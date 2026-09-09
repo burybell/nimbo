@@ -118,6 +118,7 @@ export interface EnvironmentModel {
 export interface HistoryItemModel {
   id: string;
   group: HistoryGroup;
+  createdAt: number;
   time: string;
   method: HttpMethod;
   url: string;

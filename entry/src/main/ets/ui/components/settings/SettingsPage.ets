@@ -1,4 +1,6 @@
 import { SettingsSection, SettingsSectionModel } from '../../../models/ShellModels';
+import { AppPreferencesModel } from '../../../models/PersistenceModels';
+import { createDefaultPreferences } from '../../../state/AppDefaults';
 import { SETTINGS_SECTIONS } from '../../../mock/SupportingMockData';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
@@ -7,39 +9,93 @@ import { SettingRow } from './SettingRow';
 @Component
 export struct SettingsPage {
   @State section: SettingsSection = 'General';
-  @State restoreTabs: boolean = true;
-  @State followRedirects: boolean = true;
-  @State sslVerification: boolean = true;
-  @State saveHistory: boolean = true;
-  @State maskSecrets: boolean = true;
-  onSaved: () => void = () => {};
+  @Prop preferences: AppPreferencesModel = createDefaultPreferences();
+  onChange: (preferences: AppPreferencesModel) => void = () => {};
   onReset: () => void = () => {};
+
+  private emit(restoreWorkspace: boolean, language: 'en' | 'zh', followRedirects: boolean,
+    sslVerification: boolean, defaultTimeoutMs: number, saveHistory: boolean,
+    historyRetentionDays: number, maskSecrets: boolean): void {
+    this.onChange({ restoreWorkspace, language, followRedirects, sslVerification, defaultTimeoutMs,
+      saveHistory, historyRetentionDays, maskSecrets });
+  }
+
+  private timeoutLabel(): string {
+    return `${this.preferences.defaultTimeoutMs / 1000} seconds`;
+  }
+
+  private nextTimeout(): number {
+    if (this.preferences.defaultTimeoutMs === 15000) return 30000;
+    if (this.preferences.defaultTimeoutMs === 30000) return 60000;
+    if (this.preferences.defaultTimeoutMs === 60000) return 120000;
+    return 15000;
+  }
+
+  private nextRetention(): number {
+    if (this.preferences.historyRetentionDays === 7) return 30;
+    if (this.preferences.historyRetentionDays === 30) return 90;
+    return 7;
+  }
 
   @Builder
   sectionContent() {
     if (this.section === 'General') {
       SettingRow({ title: 'Restore workspace', description: 'Reopen request tabs when Nimbo starts.', toggle: true,
-        checked: this.restoreTabs, onToggle: (value: boolean) => { this.restoreTabs = value; this.onSaved(); } })
-      SettingRow({ title: 'Language', description: 'Language used by the Nimbo interface.', controlLabel: 'English' })
+        checked: this.preferences.restoreWorkspace, onToggle: (value: boolean) => this.emit(value,
+          this.preferences.language, this.preferences.followRedirects, this.preferences.sslVerification,
+          this.preferences.defaultTimeoutMs, this.preferences.saveHistory,
+          this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
+      SettingRow({ title: 'Language', description: 'Language used by the Nimbo interface.',
+        controlLabel: this.preferences.language === 'zh' ? '简体中文' : 'English' })
       SettingRow({ title: 'Keyboard shortcuts', description: 'Use Ctrl+Enter to send, Ctrl+N for a new request, and Ctrl+K to search.', controlLabel: 'View' })
     } else if (this.section === 'Appearance') {
       SettingRow({ title: 'Theme', description: 'Follow the system appearance by default.', controlLabel: 'System' })
       SettingRow({ title: 'Interface density', description: 'Balanced desktop spacing for request-heavy workflows.', controlLabel: 'Comfortable' })
     } else if (this.section === 'Network') {
       SettingRow({ title: 'Follow redirects', description: 'Follow HTTP redirects automatically.', toggle: true,
-        checked: this.followRedirects, onToggle: (value: boolean) => { this.followRedirects = value; this.onSaved(); } })
+        checked: this.preferences.followRedirects, onToggle: (value: boolean) => this.emit(
+          this.preferences.restoreWorkspace, this.preferences.language, value,
+          this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
+          this.preferences.saveHistory, this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
       SettingRow({ title: 'SSL certificate verification', description: 'Verify server certificates before connecting.', toggle: true,
-        checked: this.sslVerification, onToggle: (value: boolean) => { this.sslVerification = value; this.onSaved(); } })
-      SettingRow({ title: 'Request timeout', description: 'Maximum wait time for a response.', controlLabel: '30 seconds' })
+        checked: this.preferences.sslVerification, onToggle: (value: boolean) => this.emit(
+          this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
+          value, this.preferences.defaultTimeoutMs, this.preferences.saveHistory,
+          this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
+      if (!this.preferences.sslVerification) {
+        Text('Warning: disabling SSL verification weakens connection security for new requests.')
+          .fontSize(12)
+          .fontColor(ColorTokens.httpDelete)
+          .width('100%')
+          .padding(SpacingTokens.x3)
+          .backgroundColor(ColorTokens.statusDangerBackground)
+          .borderRadius(RadiusTokens.small)
+      }
+      SettingRow({ title: 'Request timeout', description: 'Default for newly created requests.',
+        controlLabel: this.timeoutLabel(), onPress: () => this.emit(this.preferences.restoreWorkspace,
+          this.preferences.language, this.preferences.followRedirects, this.preferences.sslVerification,
+          this.nextTimeout(), this.preferences.saveHistory, this.preferences.historyRetentionDays,
+          this.preferences.maskSecrets) })
     } else if (this.section === 'Data') {
       SettingRow({ title: 'Save request history', description: 'Keep a local record of sent requests.', toggle: true,
-        checked: this.saveHistory, onToggle: (value: boolean) => { this.saveHistory = value; this.onSaved(); } })
-      SettingRow({ title: 'History retention', description: 'Remove local history after the selected period.', controlLabel: '30 days' })
+        checked: this.preferences.saveHistory, onToggle: (value: boolean) => this.emit(
+          this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
+          this.preferences.sslVerification, this.preferences.defaultTimeoutMs, value,
+          this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
+      SettingRow({ title: 'History retention', description: 'Remove local history after the selected period.',
+        controlLabel: `${this.preferences.historyRetentionDays} days`,
+        onPress: () => this.emit(this.preferences.restoreWorkspace, this.preferences.language,
+          this.preferences.followRedirects, this.preferences.sslVerification,
+          this.preferences.defaultTimeoutMs, this.preferences.saveHistory, this.nextRetention(),
+          this.preferences.maskSecrets) })
       SettingRow({ title: 'Reset Nimbo', description: 'Remove local collections, environments, history, and settings.',
         controlLabel: 'Reset App', dangerous: true, onPress: this.onReset })
     } else if (this.section === 'Privacy') {
       SettingRow({ title: 'Mask secret values', description: 'Hide secret environment values in editors and previews.', toggle: true,
-        checked: this.maskSecrets, onToggle: (value: boolean) => { this.maskSecrets = value; this.onSaved(); } })
+        checked: this.preferences.maskSecrets, onToggle: (value: boolean) => this.emit(
+          this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
+          this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
+          this.preferences.saveHistory, this.preferences.historyRetentionDays, value) })
       SettingRow({ title: 'Export secrets', description: 'Exporting secrets requires explicit confirmation.', controlLabel: 'Export…' })
     } else {
       SettingRow({ title: 'Nimbo', description: 'A fast, native API workspace for HarmonyOS PC.', controlLabel: 'Version 0.1.0' })

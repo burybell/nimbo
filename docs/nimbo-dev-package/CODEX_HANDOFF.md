@@ -200,6 +200,28 @@ ResponsePanel
 
 先只打通 GET，再扩展 POST / PUT / PATCH / DELETE。
 
+### Milestone 6 — Local Data & Preferences
+
+在真实 HTTP 稳定后，将内存态原型升级为可持续使用的本地工作区：
+
+```text
+UI State
+    ↓
+LocalDataStore（带 schema version）
+    ↓
+HarmonyOS PersistentStorage
+```
+
+按顺序实现：
+
+1. Collection、Request Tab、Environment、History 本地持久化
+2. Restore Workspace、History、Network、Privacy 设置真正生效
+3. UI 语言资源化与应用内语言切换
+4. 真实 cURL 导入/导出与 Postman Collection / Environment 导入
+5. 数据版本迁移、损坏数据回退、Reset Nimbo
+
+验收要求：重启应用后本地状态可恢复；关闭历史记录后不再写入；Reset 可恢复到安全默认值；导入失败不得污染现有数据。
+
 ---
 
 ## 6. 架构约束

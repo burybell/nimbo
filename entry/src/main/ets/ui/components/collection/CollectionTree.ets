@@ -6,6 +6,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 export struct CollectionTree {
   @Link nodes: CollectionNode[];
   onOpenRequest: (node: CollectionNode) => void = () => {};
+  onChange: () => void = () => {};
 
   private methodColor(method: string): string {
     if (method === 'GET') return ColorTokens.httpGet;
@@ -23,6 +24,7 @@ export struct CollectionTree {
     }
     node.expanded = !node.expanded;
     this.nodes = [...this.nodes];
+    this.onChange();
   }
 
   @Builder
@@ -81,4 +83,3 @@ export struct CollectionTree {
     .width('100%')
   }
 }
-

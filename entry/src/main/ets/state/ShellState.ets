@@ -7,6 +7,17 @@ export class ShellState {
   }
 
   static createInitialCollections(): CollectionNode[] {
-    return DEMO_COLLECTIONS;
+    return DEMO_COLLECTIONS.map((node: CollectionNode) => ShellState.cloneCollection(node));
+  }
+
+  private static cloneCollection(node: CollectionNode): CollectionNode {
+    return {
+      id: node.id,
+      type: node.type,
+      name: node.name,
+      method: node.method,
+      expanded: node.expanded,
+      children: node.children.map((child: CollectionNode) => ShellState.cloneCollection(child))
+    };
   }
 }

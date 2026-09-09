@@ -8,6 +8,7 @@ export struct CollectionSidebar {
   @Prop widthValue: number = SizeTokens.collectionSidebarWidth;
   @Link nodes: CollectionNode[];
   onOpenRequest: (node: CollectionNode) => void = () => {};
+  onChange: () => void = () => {};
 
   build() {
     Column() {
@@ -49,7 +50,7 @@ export struct CollectionSidebar {
       .margin({ bottom: SpacingTokens.x3 })
 
       Scroll() {
-        CollectionTree({ nodes: $nodes, onOpenRequest: this.onOpenRequest })
+        CollectionTree({ nodes: $nodes, onOpenRequest: this.onOpenRequest, onChange: this.onChange })
       }
       .width('100%')
       .layoutWeight(1)
