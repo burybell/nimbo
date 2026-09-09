@@ -9,7 +9,7 @@ export struct ResponseSummary {
   @Prop responseSize: string = '';
   @Prop protocol: string = '';
 
-  private statusColor(): string {
+  private statusColor(): ResourceColor {
     if (this.statusCode >= 200 && this.statusCode < 300) return ColorTokens.statusSuccess;
     if (this.statusCode >= 300 && this.statusCode < 400) return ColorTokens.statusRedirect;
     if (this.statusCode >= 400 && this.statusCode < 500) return ColorTokens.statusClientError;

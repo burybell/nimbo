@@ -27,14 +27,14 @@ export struct HistoryPage {
     return $r('app.string.history_older');
   }
 
-  private statusColor(status: number): string {
+  private statusColor(status: number): ResourceColor {
     if (status >= 200 && status < 300) return ColorTokens.statusSuccess;
     if (status >= 400 && status < 500) return ColorTokens.statusClientError;
     if (status >= 500) return ColorTokens.statusServerError;
     return ColorTokens.statusInfo;
   }
 
-  private methodColor(method: string): string {
+  private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
     if (method === 'POST') return ColorTokens.httpPost;
     if (method === 'PUT') return ColorTokens.httpPut;

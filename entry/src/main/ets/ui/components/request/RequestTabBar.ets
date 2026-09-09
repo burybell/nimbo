@@ -10,7 +10,7 @@ export struct RequestTabBar {
   onClose: (id: string) => void = () => {};
   onCreate: () => void = () => {};
 
-  private methodColor(method: string): string {
+  private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
     if (method === 'POST') return ColorTokens.httpPost;
     if (method === 'PUT') return ColorTokens.httpPut;

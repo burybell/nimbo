@@ -4,6 +4,7 @@ export function createDefaultPreferences(): AppPreferencesModel {
   return {
     restoreWorkspace: true,
     language: 'en',
+    theme: 'system',
     followRedirects: true,
     sslVerification: true,
     defaultTimeoutMs: 30000,

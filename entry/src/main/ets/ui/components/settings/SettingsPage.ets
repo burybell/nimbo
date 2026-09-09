@@ -1,5 +1,5 @@
 import { SettingsSection, SettingsSectionModel } from '../../../models/ShellModels';
-import { AppPreferencesModel } from '../../../models/PersistenceModels';
+import { AppPreferencesModel, NimboTheme } from '../../../models/PersistenceModels';
 import { createDefaultPreferences } from '../../../state/AppDefaults';
 import { SETTINGS_SECTIONS } from '../../../mock/SupportingMockData';
 import { ColorTokens } from '../../tokens/ColorTokens';
@@ -18,8 +18,31 @@ export struct SettingsPage {
   private emit(restoreWorkspace: boolean, language: 'en' | 'zh', followRedirects: boolean,
     sslVerification: boolean, defaultTimeoutMs: number, saveHistory: boolean,
     historyRetentionDays: number, maskSecrets: boolean): void {
-    this.onChange({ restoreWorkspace, language, followRedirects, sslVerification, defaultTimeoutMs,
+    this.onChange({ restoreWorkspace, language, theme: this.preferences.theme,
+      followRedirects, sslVerification, defaultTimeoutMs,
       saveHistory, historyRetentionDays, maskSecrets });
+  }
+
+  private themeLabel(): ResourceStr {
+    if (this.preferences.theme === 'light') return $r('app.string.theme_light');
+    if (this.preferences.theme === 'dark') return $r('app.string.theme_dark');
+    return $r('app.string.theme_system');
+  }
+
+  private changeTheme(): void {
+    const theme: NimboTheme = this.preferences.theme === 'system' ? 'light' :
+      (this.preferences.theme === 'light' ? 'dark' : 'system');
+    this.onChange({
+      restoreWorkspace: this.preferences.restoreWorkspace,
+      language: this.preferences.language,
+      theme,
+      followRedirects: this.preferences.followRedirects,
+      sslVerification: this.preferences.sslVerification,
+      defaultTimeoutMs: this.preferences.defaultTimeoutMs,
+      saveHistory: this.preferences.saveHistory,
+      historyRetentionDays: this.preferences.historyRetentionDays,
+      maskSecrets: this.preferences.maskSecrets
+    });
   }
 
   private timeoutLabel(): string {
@@ -69,7 +92,7 @@ export struct SettingsPage {
         controlLabel: $r('app.string.action_view') })
     } else if (this.section === 'Appearance') {
       SettingRow({ title: $r('app.string.theme_title'), description: $r('app.string.theme_description'),
-        controlLabel: $r('app.string.theme_system') })
+        controlLabel: this.themeLabel(), onPress: () => this.changeTheme() })
       SettingRow({ title: $r('app.string.density_title'), description: $r('app.string.density_description'),
         controlLabel: $r('app.string.density_comfortable') })
     } else if (this.section === 'Network') {

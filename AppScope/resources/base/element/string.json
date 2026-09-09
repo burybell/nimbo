@@ -253,6 +253,14 @@
       "value": "System"
     },
     {
+      "name": "theme_light",
+      "value": "Light"
+    },
+    {
+      "name": "theme_dark",
+      "value": "Dark"
+    },
+    {
       "name": "density_title",
       "value": "Interface density"
     },

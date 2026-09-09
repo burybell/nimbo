@@ -7,10 +7,12 @@ import {
 } from './ShellModels';
 
 export type NimboLanguage = 'en' | 'zh';
+export type NimboTheme = 'system' | 'light' | 'dark';
 
 export interface AppPreferencesModel {
   restoreWorkspace: boolean;
   language: NimboLanguage;
+  theme: NimboTheme;
   followRedirects: boolean;
   sslVerification: boolean;
   defaultTimeoutMs: number;

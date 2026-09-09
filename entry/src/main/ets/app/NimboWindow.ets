@@ -10,6 +10,7 @@ import {
 import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import {
   AppPreferencesModel,
+  NimboTheme,
   PersistedAppState,
   PersistedRequestModel,
   PersistedTabModel
@@ -46,7 +47,7 @@ import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { ColorTokens } from '../ui/tokens/ColorTokens';
 import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
 import { i18n } from '@kit.LocalizationKit';
-import { common, Want } from '@kit.AbilityKit';
+import { common, ConfigurationConstant, Want } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
 
 @Component
@@ -146,6 +147,7 @@ export struct NimboWindow {
     } else if (this.persistedData.length > 0) {
       this.applySafeDefaults();
     }
+    this.applyTheme(this.preferences.theme);
     this.stateReady = true;
     this.persistLocalData();
   }
@@ -448,8 +450,21 @@ export struct NimboWindow {
     }, 200);
   }
 
+  private applyTheme(theme: NimboTheme): void {
+    try {
+      let mode = ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET;
+      if (theme === 'light') mode = ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT;
+      if (theme === 'dark') mode = ConfigurationConstant.ColorMode.COLOR_MODE_DARK;
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      context.getApplicationContext().setColorMode(mode);
+    } catch (_error) {
+      this.showToast('Theme could not be changed');
+    }
+  }
+
   private updatePreferences(preferences: AppPreferencesModel): void {
     const languageChanged = this.preferences.language !== preferences.language;
+    const themeChanged = this.preferences.theme !== preferences.theme;
     this.preferences = preferences;
     if (languageChanged) {
       try {
@@ -460,6 +475,7 @@ export struct NimboWindow {
     }
     this.historyItems = this.normalizeHistory(this.historyItems);
     this.persistLocalData();
+    if (themeChanged) this.applyTheme(preferences.theme);
     if (languageChanged) {
       this.restartForLanguage();
     } else {

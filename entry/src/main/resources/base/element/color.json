@@ -3,7 +3,39 @@
     {
       "name": "start_window_background",
       "value": "#F7F8FC"
-    }
+    },
+    { "name": "nimbo_brand_50", "value": "#F1F3FF" },
+    { "name": "nimbo_brand_100", "value": "#E6E9FF" },
+    { "name": "nimbo_brand_500", "value": "#5B68F6" },
+    { "name": "nimbo_brand_600", "value": "#4D59E5" },
+    { "name": "nimbo_bg_app", "value": "#F5F7FB" },
+    { "name": "nimbo_bg_sidebar", "value": "#F8F9FC" },
+    { "name": "nimbo_bg_workspace", "value": "#FFFFFF" },
+    { "name": "nimbo_bg_surface", "value": "#FFFFFF" },
+    { "name": "nimbo_bg_surface_hover", "value": "#F0F2F7" },
+    { "name": "nimbo_bg_surface_active", "value": "#E9ECFF" },
+    { "name": "nimbo_text_primary", "value": "#182039" },
+    { "name": "nimbo_text_secondary", "value": "#58617A" },
+    { "name": "nimbo_text_tertiary", "value": "#9299AB" },
+    { "name": "nimbo_text_on_brand", "value": "#FFFFFF" },
+    { "name": "nimbo_border_default", "value": "#E3E6EF" },
+    { "name": "nimbo_border_subtle", "value": "#EDF0F5" },
+    { "name": "nimbo_border_focus", "value": "#5B68F6" },
+    { "name": "nimbo_http_get", "value": "#169B62" },
+    { "name": "nimbo_http_post", "value": "#D98900" },
+    { "name": "nimbo_http_put", "value": "#2878E3" },
+    { "name": "nimbo_http_patch", "value": "#8B5BD6" },
+    { "name": "nimbo_http_delete", "value": "#D94C4C" },
+    { "name": "nimbo_http_other", "value": "#72798C" },
+    { "name": "nimbo_status_success", "value": "#169B62" },
+    { "name": "nimbo_status_redirect", "value": "#2878E3" },
+    { "name": "nimbo_status_client_error", "value": "#D98900" },
+    { "name": "nimbo_status_server_error", "value": "#D94C4C" },
+    { "name": "nimbo_status_info", "value": "#5B68F6" },
+    { "name": "nimbo_status_danger_background", "value": "#FFF3F3" },
+    { "name": "nimbo_code_background", "value": "#171B24" },
+    { "name": "nimbo_code_gutter", "value": "#202631" },
+    { "name": "nimbo_code_text", "value": "#DCE3EF" },
+    { "name": "nimbo_code_line_number", "value": "#778196" }
   ]
 }
-

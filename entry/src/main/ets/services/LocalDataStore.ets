@@ -6,8 +6,20 @@ import {
 } from '../models/PersistenceModels';
 import { CollectionNode, EnvironmentModel, HistoryItemModel } from '../models/ShellModels';
 
-interface PersistedAppStateV1 {
+interface LegacyPreferencesModel {
+  restoreWorkspace: boolean;
+  language: 'en' | 'zh';
+  followRedirects: boolean;
+  sslVerification: boolean;
+  defaultTimeoutMs: number;
+  saveHistory: boolean;
+  historyRetentionDays: number;
+  maskSecrets: boolean;
+}
+
+interface LegacyPersistedAppState {
   schemaVersion: number;
+  savedAt?: number;
   collections: CollectionNode[];
   requests: PersistedRequestModel[];
   tabs: PersistedTabModel[];
@@ -15,12 +27,12 @@ interface PersistedAppStateV1 {
   environments: EnvironmentModel[];
   activeEnvironmentId: string;
   history: HistoryItemModel[];
-  preferences: AppPreferencesModel;
+  preferences: LegacyPreferencesModel;
 }
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 2;
+  static readonly schemaVersion: number = 3;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -29,10 +41,10 @@ export class LocalDataStore {
   static decode(raw: string): PersistedAppState | undefined {
     if (raw.length === 0) return undefined;
     try {
-      const versioned = JSON.parse(raw) as PersistedAppStateV1;
+      const versioned = JSON.parse(raw) as LegacyPersistedAppState;
       let state: PersistedAppState;
-      if (versioned.schemaVersion === 1) {
-        state = LocalDataStore.migrateV1(versioned);
+      if (versioned.schemaVersion === 1 || versioned.schemaVersion === 2) {
+        state = LocalDataStore.migrateLegacy(versioned);
       } else {
         state = versioned as PersistedAppState;
       }
@@ -50,10 +62,10 @@ export class LocalDataStore {
     }
   }
 
-  private static migrateV1(state: PersistedAppStateV1): PersistedAppState {
+  private static migrateLegacy(state: LegacyPersistedAppState): PersistedAppState {
     return {
       schemaVersion: LocalDataStore.schemaVersion,
-      savedAt: 0,
+      savedAt: state.savedAt ?? 0,
       collections: state.collections,
       requests: state.requests,
       tabs: state.tabs,
@@ -61,13 +73,24 @@ export class LocalDataStore {
       environments: state.environments,
       activeEnvironmentId: state.activeEnvironmentId,
       history: state.history,
-      preferences: state.preferences
+      preferences: {
+        restoreWorkspace: state.preferences.restoreWorkspace,
+        language: state.preferences.language,
+        theme: 'system',
+        followRedirects: state.preferences.followRedirects,
+        sslVerification: state.preferences.sslVerification,
+        defaultTimeoutMs: state.preferences.defaultTimeoutMs,
+        saveHistory: state.preferences.saveHistory,
+        historyRetentionDays: state.preferences.historyRetentionDays,
+        maskSecrets: state.preferences.maskSecrets
+      }
     };
   }
 
   private static validPreferences(value: AppPreferencesModel | undefined): boolean {
     return value !== undefined && typeof value.restoreWorkspace === 'boolean' &&
       (value.language === 'en' || value.language === 'zh') && typeof value.followRedirects === 'boolean' &&
+      (value.theme === 'system' || value.theme === 'light' || value.theme === 'dark') &&
       typeof value.sslVerification === 'boolean' && typeof value.defaultTimeoutMs === 'number' &&
       value.defaultTimeoutMs > 0 && typeof value.saveHistory === 'boolean' &&
       typeof value.historyRetentionDays === 'number' && value.historyRetentionDays > 0 &&

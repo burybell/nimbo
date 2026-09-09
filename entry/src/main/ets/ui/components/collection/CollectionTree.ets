@@ -8,7 +8,7 @@ export struct CollectionTree {
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onChange: () => void = () => {};
 
-  private methodColor(method: string): string {
+  private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
     if (method === 'POST') return ColorTokens.httpPost;
     if (method === 'PUT') return ColorTokens.httpPut;
