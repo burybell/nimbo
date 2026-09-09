@@ -52,8 +52,8 @@ export struct ImportCurlDialog {
       Column({ space: SpacingTokens.x4 }) {
         Row() {
           Column({ space: SpacingTokens.x1 }) {
-            Text('Import cURL').fontSize(18).fontWeight(FontWeight.Medium).fontColor(ColorTokens.textPrimary)
-            Text('Paste a cURL command to create a request.').fontSize(12).fontColor(ColorTokens.textTertiary)
+            Text($r('app.string.import_curl')).fontSize(18).fontWeight(FontWeight.Medium).fontColor(ColorTokens.textPrimary)
+            Text($r('app.string.curl_paste_hint')).fontSize(12).fontColor(ColorTokens.textTertiary)
           }
           Blank()
           Text('×').fontSize(20).fontColor(ColorTokens.textTertiary).onClick(this.onCancel)
@@ -76,13 +76,13 @@ export struct ImportCurlDialog {
           }.width('100%')
         }
         Row({ space: SpacingTokens.x3 }) {
-          Text('Headers and body values are kept in the request draft.')
+          Text($r('app.string.curl_values_hint'))
             .fontSize(11).fontColor(ColorTokens.textTertiary)
           Blank()
-          Button('Cancel').height(SizeTokens.controlMedium).fontSize(13).fontColor(ColorTokens.textPrimary)
+          Button($r('app.string.action_cancel')).height(SizeTokens.controlMedium).fontSize(13).fontColor(ColorTokens.textPrimary)
             .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderDefault })
             .borderRadius(RadiusTokens.medium).onClick(this.onCancel)
-          Button(this.state === 'importing' ? 'Importing…' : 'Import')
+          Button(this.state === 'importing' ? $r('app.string.importing') : $r('app.string.import_action'))
             .height(SizeTokens.controlMedium).fontSize(13).fontColor(ColorTokens.textOnBrand)
             .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium)
             .enabled(this.state !== 'importing').onClick(() => this.importCurl())

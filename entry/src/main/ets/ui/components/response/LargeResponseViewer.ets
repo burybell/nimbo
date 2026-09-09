@@ -10,7 +10,7 @@ export struct LargeResponseViewer {
 
   build() {
     Column({ space: SpacingTokens.x3 }) {
-      Text('Large response')
+      Text($r('app.string.response_large'))
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
         .fontColor(ColorTokens.textPrimary)
@@ -21,11 +21,11 @@ export struct LargeResponseViewer {
       Text(this.contentType)
         .fontSize(11)
         .fontColor(ColorTokens.textTertiary)
-      Text('Rendering the entire response may affect performance.')
+      Text($r('app.string.response_large_warning'))
         .fontSize(13)
         .fontColor(ColorTokens.textSecondary)
       if (this.previewAvailable) {
-        Button('Preview first 1 MB')
+        Button($r('app.string.response_preview_mb'))
           .fontSize(12)
           .height(SizeTokens.controlMedium)
           .fontColor(ColorTokens.textOnBrand)

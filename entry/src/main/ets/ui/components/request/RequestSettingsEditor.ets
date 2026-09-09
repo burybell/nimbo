@@ -13,7 +13,7 @@ export struct RequestSettingsEditor {
   }
 
   @Builder
-  private switchRow(title: string, description: string, value: boolean,
+  private switchRow(title: ResourceStr, description: ResourceStr, value: boolean,
     onChange: (value: boolean) => void) {
     Row({ space: SpacingTokens.x4 }) {
       Column({ space: SpacingTokens.x1 }) {
@@ -40,7 +40,7 @@ export struct RequestSettingsEditor {
     Scroll() {
       Column({ space: SpacingTokens.x2 }) {
         Column({ space: SpacingTokens.x2 }) {
-          Text('Request timeout')
+          Text($r('app.string.timeout_title'))
             .fontSize(13)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
@@ -69,15 +69,15 @@ export struct RequestSettingsEditor {
         .padding({ top: SpacingTokens.x3, bottom: SpacingTokens.x3 })
         .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
 
-        this.switchRow('Follow redirects', 'Automatically follow HTTP 3xx responses.',
+        this.switchRow($r('app.string.redirect_title'), $r('app.string.request_redirect_description'),
           this.settings.followRedirects, (value: boolean) => this.emit(this.settings.timeoutMs, value,
             this.settings.sslVerification, this.settings.useCookieJar))
-        this.switchRow('SSL verification', 'Verify the remote certificate and host identity.',
+        this.switchRow($r('app.string.request_ssl_title'), $r('app.string.request_ssl_description'),
           this.settings.sslVerification, (value: boolean) => this.emit(this.settings.timeoutMs,
             this.settings.followRedirects, value, this.settings.useCookieJar))
 
         if (!this.settings.sslVerification) {
-          Text('Warning: SSL verification is disabled. Traffic may be intercepted or altered.')
+          Text($r('app.string.request_ssl_warning'))
             .fontSize(12)
             .fontColor(ColorTokens.httpDelete)
             .width('100%')
@@ -86,7 +86,7 @@ export struct RequestSettingsEditor {
             .borderRadius(RadiusTokens.small)
         }
 
-        this.switchRow('Cookie jar', 'Store response cookies and send them to the same host.',
+        this.switchRow($r('app.string.cookie_jar_title'), $r('app.string.cookie_jar_description'),
           this.settings.useCookieJar, (value: boolean) => this.emit(this.settings.timeoutMs,
             this.settings.followRedirects, this.settings.sslVerification, value))
       }

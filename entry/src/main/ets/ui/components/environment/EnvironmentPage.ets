@@ -20,7 +20,7 @@ export struct EnvironmentPage {
     Row() {
       Column() {
         Row() {
-          Text('Environments')
+          Text($r('app.string.nav_environments'))
             .fontSize(15)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
@@ -73,12 +73,12 @@ export struct EnvironmentPage {
               .fontSize(20)
               .fontWeight(FontWeight.Medium)
               .fontColor(ColorTokens.textPrimary)
-            Text('Variables are resolved in the active request environment.')
+            Text($r('app.string.environment_variables_hint'))
               .fontSize(12)
               .fontColor(ColorTokens.textTertiary)
           }
           Blank()
-          Button('Save')
+          Button($r('app.string.action_save'))
             .fontSize(13)
             .fontColor(ColorTokens.textOnBrand)
             .backgroundColor(ColorTokens.brand500)
@@ -92,7 +92,7 @@ export struct EnvironmentPage {
 
         Scroll() {
           Column({ space: SpacingTokens.x3 }) {
-            Text('Variables')
+            Text($r('app.string.variables'))
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor(ColorTokens.textPrimary)

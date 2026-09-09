@@ -13,7 +13,7 @@ export struct CollectionSidebar {
   build() {
     Column() {
       Row() {
-        Text('Collections')
+        Text($r('app.string.nav_collections'))
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
           .fontColor(ColorTokens.textPrimary)
@@ -38,7 +38,7 @@ export struct CollectionSidebar {
         Text('⌕')
           .fontSize(16)
           .fontColor(ColorTokens.textTertiary)
-        Text('Search requests…')
+        Text($r('app.string.search_requests'))
           .fontSize(12)
           .fontColor(ColorTokens.textTertiary)
       }

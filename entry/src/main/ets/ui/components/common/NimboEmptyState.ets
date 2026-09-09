@@ -3,8 +3,8 @@ import { SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct NimboEmptyState {
-  @Prop title: string;
-  @Prop description: string;
+  @Prop title: ResourceStr;
+  @Prop description: ResourceStr;
 
   build() {
     Column({ space: SpacingTokens.x3 }) {

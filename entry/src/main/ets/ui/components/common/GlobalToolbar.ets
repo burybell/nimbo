@@ -22,7 +22,7 @@ export struct GlobalToolbar {
         Text('⌕')
           .fontSize(18)
           .fontColor(ColorTokens.textSecondary)
-        Text('Search requests, collections, or history…')
+        Text($r('app.string.search_global'))
           .fontSize(13)
           .fontColor(ColorTokens.textTertiary)
           .maxLines(1)

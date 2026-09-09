@@ -10,7 +10,7 @@ export struct ResponseTabs {
   onChange: (tab: ResponseTab) => void = () => {};
 
   @Builder
-  private tabItem(tab: ResponseTab, label: string, count: number = 0) {
+  private tabItem(tab: ResponseTab, label: ResourceStr, count: number = 0) {
     Row({ space: SpacingTokens.x1 }) {
       Text(label)
         .fontSize(12)
@@ -33,10 +33,10 @@ export struct ResponseTabs {
 
   build() {
     Row() {
-      this.tabItem('body', 'Body')
-      this.tabItem('headers', 'Headers', this.headerCount)
-      this.tabItem('cookies', 'Cookies', this.cookieCount)
-      this.tabItem('timeline', 'Timeline')
+      this.tabItem('body', $r('app.string.tab_body'))
+      this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount)
+      this.tabItem('cookies', $r('app.string.tab_cookies'), this.cookieCount)
+      this.tabItem('timeline', $r('app.string.tab_timeline'))
     }
     .height(38)
   }

@@ -51,14 +51,14 @@ export struct ErrorPanel {
       }
 
       Row({ space: SpacingTokens.x2 }) {
-        Button('Retry')
+        Button($r('app.string.action_retry'))
           .fontSize(12)
           .height(SizeTokens.controlMedium)
           .fontColor(ColorTokens.textOnBrand)
           .backgroundColor(ColorTokens.brand500)
           .borderRadius(RadiusTokens.small)
           .onClick(this.onRetry)
-        Button(this.showDetails ? 'Hide Details' : 'Details')
+        Button(this.showDetails ? $r('app.string.hide_details') : $r('app.string.details'))
           .fontSize(12)
           .height(SizeTokens.controlMedium)
           .fontColor(ColorTokens.textSecondary)

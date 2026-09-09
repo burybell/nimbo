@@ -10,7 +10,7 @@ export struct RequestConfigTabs {
   onChange: (tab: RequestConfigTab) => void = () => {};
 
   @Builder
-  private tabItem(tab: RequestConfigTab, label: string, suffix: string = '') {
+  private tabItem(tab: RequestConfigTab, label: ResourceStr, suffix: string = '') {
     Row({ space: SpacingTokens.x1 }) {
       Text(label)
         .fontSize(13)
@@ -36,11 +36,11 @@ export struct RequestConfigTabs {
 
   build() {
     Row() {
-      this.tabItem('params', 'Params')
-      this.tabItem('headers', 'Headers', this.headerCount > 0 ? this.headerCount.toString() : '')
-      this.tabItem('auth', 'Auth')
-      this.tabItem('body', 'Body', this.bodyHasContent ? '●' : '')
-      this.tabItem('settings', 'Settings')
+      this.tabItem('params', $r('app.string.tab_params'))
+      this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount > 0 ? this.headerCount.toString() : '')
+      this.tabItem('auth', $r('app.string.tab_auth'))
+      this.tabItem('body', $r('app.string.tab_body'), this.bodyHasContent ? '●' : '')
+      this.tabItem('settings', $r('app.string.nav_settings'))
       Blank()
     }
     .width('100%')

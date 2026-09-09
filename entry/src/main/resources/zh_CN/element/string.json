@@ -2,11 +2,11 @@
   "string": [
     {
       "name": "module_desc",
-      "value": "Nimbo API debugging client"
+      "value": "Nimbo API 调试客户端"
     },
     {
       "name": "EntryAbility_desc",
-      "value": "Nimbo main window"
+      "value": "Nimbo 主窗口"
     },
     {
       "name": "EntryAbility_label",

@@ -16,7 +16,7 @@ export struct ResponsePanel {
   onPreviewLarge: () => void = () => {};
 
   @Builder
-  private emptyState(title: string, description: string) {
+  private emptyState(title: ResourceStr, description: ResourceStr) {
     Column({ space: SpacingTokens.x2 }) {
       Text(title)
         .fontSize(15)
@@ -38,7 +38,7 @@ export struct ResponsePanel {
   }
 
   @Builder
-  private metadataRows(items: KeyValueItem[], emptyLabel: string) {
+  private metadataRows(items: KeyValueItem[], emptyLabel: ResourceStr) {
     if (items.length === 0) {
       Column() {
         Text(emptyLabel)
@@ -83,7 +83,7 @@ export struct ResponsePanel {
   private bodyContent() {
     Column() {
       Row({ space: SpacingTokens.x1 }) {
-        Text('Pretty')
+        Text($r('app.string.response_pretty'))
           .fontSize(11)
           .fontColor(this.bodyMode === 'pretty' ? ColorTokens.brand600 : ColorTokens.textSecondary)
           .height(SizeTokens.controlSmall)
@@ -94,7 +94,7 @@ export struct ResponsePanel {
           .onClick(() => {
             this.bodyMode = 'pretty';
           })
-        Text('Raw')
+        Text($r('app.string.response_raw'))
           .fontSize(11)
           .fontColor(this.bodyMode === 'raw' ? ColorTokens.brand600 : ColorTokens.textSecondary)
           .height(SizeTokens.controlSmall)
@@ -131,7 +131,7 @@ export struct ResponsePanel {
   build() {
     Column() {
       if (this.response.status === 'empty') {
-        this.emptyState('No response yet', 'Send the request to see the response here.')
+        this.emptyState($r('app.string.response_empty_title'), $r('app.string.response_empty_description'))
       } else if (this.response.status === 'error' || this.response.status === 'cancelled') {
         Column() {
           ErrorPanel({ error: this.response.error, onRetry: this.onRetry })
@@ -149,7 +149,7 @@ export struct ResponsePanel {
         })
       } else if (this.response.status === 'binary') {
         Column({ space: SpacingTokens.x3 }) {
-          Text('Binary response')
+          Text($r('app.string.response_binary'))
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor(ColorTokens.textPrimary)
@@ -164,7 +164,7 @@ export struct ResponsePanel {
         .height('100%')
         .justifyContent(FlexAlign.Center)
       } else if (this.response.status === 'sending' && this.response.body.length === 0) {
-        this.emptyState('Waiting for response...', 'The request is still in progress.')
+        this.emptyState($r('app.string.response_waiting_title'), $r('app.string.response_waiting_description'))
       } else {
         ResponseHeader({
           response: this.response,
@@ -176,16 +176,16 @@ export struct ResponsePanel {
         if (this.activeTab === 'body') {
           this.bodyContent()
         } else if (this.activeTab === 'headers') {
-          this.metadataRows(this.response.headers, 'No response headers')
+          this.metadataRows(this.response.headers, $r('app.string.response_no_headers'))
         } else if (this.activeTab === 'cookies') {
-          this.metadataRows(this.response.cookies, 'No cookies in this response')
+          this.metadataRows(this.response.cookies, $r('app.string.response_no_cookies'))
         } else {
           Column({ space: SpacingTokens.x2 }) {
-            Text('Timing details unavailable')
+            Text($r('app.string.response_timing_unavailable'))
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor(ColorTokens.textPrimary)
-            Text('Detailed DNS, connection, TLS, and download timing is not available yet.')
+            Text($r('app.string.response_timing_description'))
               .fontSize(12)
               .fontColor(ColorTokens.textTertiary)
           }

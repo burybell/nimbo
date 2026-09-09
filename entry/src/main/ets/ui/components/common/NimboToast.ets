@@ -12,7 +12,7 @@ export struct NimboToast {
         .fontSize(13)
         .fontColor(ColorTokens.textOnBrand)
       if (this.message.includes('— Undo')) {
-        Text('Undo')
+        Text($r('app.string.action_undo'))
           .fontSize(13)
           .fontWeight(FontWeight.Medium)
           .fontColor('#AEB6FF')

@@ -25,7 +25,7 @@ export struct ResponseHeader {
             .width(13)
             .height(13)
             .color(ColorTokens.brand500)
-          Text('Sending...')
+          Text($r('app.string.sending'))
             .fontSize(12)
             .fontColor(ColorTokens.brand600)
         }

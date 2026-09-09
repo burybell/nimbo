@@ -14,11 +14,18 @@ export struct HistoryPage {
   onClear: () => void = () => {};
   private groups: HistoryGroup[] = ['Today', 'Yesterday', 'Previous 7 Days', 'Older'];
   private menuItems: ContextMenuItemModel[] = [
-    { id: 'open', label: 'Open request', icon: '↗', dangerous: false },
-    { id: 'copy-url', label: 'Copy URL', icon: '⧉', dangerous: false },
-    { id: 'copy-curl', label: 'Copy as cURL', icon: '⌘', dangerous: false },
-    { id: 'delete', label: 'Delete', icon: '×', dangerous: true }
+    { id: 'open', label: $r('app.string.history_open_request'), icon: '↗', dangerous: false },
+    { id: 'copy-url', label: $r('app.string.history_copy_url'), icon: '⧉', dangerous: false },
+    { id: 'copy-curl', label: $r('app.string.history_copy_curl'), icon: '⌘', dangerous: false },
+    { id: 'delete', label: $r('app.string.action_delete'), icon: '×', dangerous: true }
   ];
+
+  private groupLabel(group: HistoryGroup): ResourceStr {
+    if (group === 'Today') return $r('app.string.history_today');
+    if (group === 'Yesterday') return $r('app.string.history_yesterday');
+    if (group === 'Previous 7 Days') return $r('app.string.history_previous_days');
+    return $r('app.string.history_older');
+  }
 
   private statusColor(status: number): string {
     if (status >= 200 && status < 300) return ColorTokens.statusSuccess;
@@ -46,7 +53,7 @@ export struct HistoryPage {
   build() {
     Row() {
       Column() {
-        Text('History')
+        Text($r('app.string.nav_history'))
           .fontSize(15)
           .fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
@@ -55,7 +62,7 @@ export struct HistoryPage {
           .padding({ left: SpacingTokens.x3 })
         ForEach(this.groups, (group: HistoryGroup) => {
           Row() {
-            Text(group)
+            Text(this.groupLabel(group))
               .fontSize(13)
               .fontColor(group === this.activeGroup ? ColorTokens.brand600 : ColorTokens.textSecondary)
             Blank()
@@ -71,7 +78,7 @@ export struct HistoryPage {
           .onClick(() => { this.activeGroup = group; })
         }, (group: HistoryGroup) => group)
         Blank()
-        Button('Clear History')
+        Button($r('app.string.action_clear_history'))
           .width('100%')
           .fontSize(12)
           .fontColor(ColorTokens.httpDelete)
@@ -89,11 +96,11 @@ export struct HistoryPage {
       Column() {
         Row() {
           Column({ space: SpacingTokens.x1 }) {
-            Text(this.activeGroup)
+            Text(this.groupLabel(this.activeGroup))
               .fontSize(20)
               .fontWeight(FontWeight.Medium)
               .fontColor(ColorTokens.textPrimary)
-            Text('Requests stay local to this device.')
+            Text($r('app.string.history_local_hint'))
               .fontSize(12)
               .fontColor(ColorTokens.textTertiary)
           }

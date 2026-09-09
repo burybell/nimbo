@@ -4,7 +4,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct SecretInput {
   @Prop value: string = '';
-  @Prop placeholder: string = 'Secret';
+  @Prop placeholder: ResourceStr = 'Secret';
   @State revealed: boolean = false;
   onChange: (value: string) => void = () => {};
 
@@ -26,7 +26,7 @@ export struct SecretInput {
           this.revealed = false;
         })
 
-      Text(this.revealed ? 'Hide' : 'Show')
+      Text(this.revealed ? $r('app.string.hide') : $r('app.string.show'))
         .fontSize(11)
         .fontColor(ColorTokens.brand600)
         .width(48)

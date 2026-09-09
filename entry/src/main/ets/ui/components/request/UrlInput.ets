@@ -8,7 +8,7 @@ export struct UrlInput {
   onSubmit: () => void = () => {};
 
   build() {
-    TextInput({ text: this.value, placeholder: 'Enter request URL' })
+    TextInput({ text: this.value, placeholder: $r('app.string.request_url_placeholder') })
       .fontSize(14)
       .fontColor(ColorTokens.textPrimary)
       .placeholderColor(ColorTokens.textTertiary)

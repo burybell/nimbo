@@ -23,7 +23,7 @@ export struct RequestToolbar {
             .width(12)
             .height(12)
             .color(ColorTokens.brand500)
-          Text('Sending...')
+          Text($r('app.string.sending'))
             .fontSize(12)
             .fontColor(ColorTokens.brand600)
         }

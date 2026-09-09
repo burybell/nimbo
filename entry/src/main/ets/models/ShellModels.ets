@@ -14,7 +14,7 @@ export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' 
 
 export interface NavigationItemModel {
   id: NavigationDestination;
-  label: string;
+  label: ResourceStr;
   icon: string;
 }
 
@@ -134,7 +134,7 @@ export interface SettingsSectionModel {
 
 export interface ContextMenuItemModel {
   id: string;
-  label: string;
+  label: ResourceStr;
   icon: string;
   dangerous: boolean;
 }

@@ -14,8 +14,8 @@ export struct PrimarySidebar {
   onImportPostman: () => void = () => {};
   @State importMenuOpen: boolean = false;
   private importItems: ContextMenuItemModel[] = [
-    { id: 'curl', label: 'Import cURL', icon: '⌘', dangerous: false },
-    { id: 'postman', label: 'Import Postman', icon: '⇧', dangerous: false }
+    { id: 'curl', label: $r('app.string.import_curl'), icon: '⌘', dangerous: false },
+    { id: 'postman', label: $r('app.string.import_postman'), icon: '⇧', dangerous: false }
   ];
 
   private handleImport(action: string): void {
@@ -25,10 +25,10 @@ export struct PrimarySidebar {
   }
 
   private mainItems: NavigationItemModel[] = [
-    { id: 'workspace', label: 'Workspace', icon: '⌂' },
-    { id: 'collections', label: 'Collections', icon: '▣' },
-    { id: 'environments', label: 'Environments', icon: '◎' },
-    { id: 'history', label: 'History', icon: '◷' }
+    { id: 'workspace', label: $r('app.string.nav_workspace'), icon: '⌂' },
+    { id: 'collections', label: $r('app.string.nav_collections'), icon: '▣' },
+    { id: 'environments', label: $r('app.string.nav_environments'), icon: '◎' },
+    { id: 'history', label: $r('app.string.nav_history'), icon: '◷' }
   ];
 
   @Builder
@@ -68,7 +68,7 @@ export struct PrimarySidebar {
           .onClick(this.onCreateRequest)
       } else {
         Row({ space: SpacingTokens.x1 }) {
-          NimboButton({ label: 'New', icon: '+', primary: true, onPress: this.onCreateRequest })
+          NimboButton({ label: $r('app.string.action_new'), icon: '+', primary: true, onPress: this.onCreateRequest })
             .layoutWeight(1)
           Button('⌄')
             .width(34)
@@ -96,7 +96,7 @@ export struct PrimarySidebar {
 
       Blank()
 
-      this.navItem({ id: 'settings', label: 'Settings', icon: '⚙' })
+      this.navItem({ id: 'settings', label: $r('app.string.nav_settings'), icon: '⚙' })
     }
     .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
     .height('100%')

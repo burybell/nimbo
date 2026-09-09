@@ -6,9 +6,9 @@ export struct EnvironmentSwitcher {
   @Prop selectedId: string = 'development';
   onChange: (id: string) => void = () => {};
   private environments: SelectOption[] = [
-    { value: 'Development' },
-    { value: 'Staging' },
-    { value: 'Production' }
+    { value: $r('app.string.environment_development') },
+    { value: $r('app.string.environment_staging') },
+    { value: $r('app.string.environment_production') }
   ];
 
   private selectedIndex(): number {

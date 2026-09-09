@@ -41,6 +41,8 @@ import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { ColorTokens } from '../ui/tokens/ColorTokens';
 import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
+import { i18n } from '@kit.LocalizationKit';
+import { common, Want } from '@kit.AbilityKit';
 
 @Component
 export struct NimboWindow {
@@ -396,11 +398,35 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private restartForLanguage(): void {
+    setTimeout(() => {
+      try {
+        const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+        const want: Want = { bundleName: 'com.nimbo.app', abilityName: 'EntryAbility' };
+        context.getApplicationContext().restartApp(want);
+      } catch (_error) {
+        this.showToast('Restart Nimbo to apply the language');
+      }
+    }, 200);
+  }
+
   private updatePreferences(preferences: AppPreferencesModel): void {
+    const languageChanged = this.preferences.language !== preferences.language;
     this.preferences = preferences;
+    if (languageChanged) {
+      try {
+        i18n.System.setAppPreferredLanguage(preferences.language === 'zh' ? 'zh' : 'en');
+      } catch (_error) {
+        this.showToast('Language could not be changed');
+      }
+    }
     this.historyItems = this.normalizeHistory(this.historyItems);
     this.persistLocalData();
-    this.showToast('Saved');
+    if (languageChanged) {
+      this.restartForLanguage();
+    } else {
+      this.showToast('Saved');
+    }
   }
 
   private createImportedRequest(method: HttpMethod, url: string, name: string): void {
@@ -631,9 +657,9 @@ export struct NimboWindow {
       }
       if (this.activeOverlay === 'clear-history') {
         NimboDialog({
-          title: 'Clear History',
-          message: 'Delete all local request history? This action can be undone briefly.',
-          confirmLabel: 'Clear History',
+          title: $r('app.string.action_clear_history'),
+          message: $r('app.string.dialog_clear_history_message'),
+          confirmLabel: $r('app.string.action_clear_history'),
           dangerous: true,
           onCancel: () => { this.activeOverlay = ''; },
           onConfirm: () => {
@@ -647,9 +673,9 @@ export struct NimboWindow {
       }
       if (this.activeOverlay === 'reset-app') {
         NimboDialog({
-          title: 'Reset Nimbo',
-          message: 'Reset local demo data and settings to their defaults?',
-          confirmLabel: 'Reset App',
+          title: $r('app.string.reset_title'),
+          message: $r('app.string.dialog_reset_message'),
+          confirmLabel: $r('app.string.reset_action'),
           dangerous: true,
           onCancel: () => { this.activeOverlay = ''; },
           onConfirm: () => {
@@ -661,9 +687,14 @@ export struct NimboWindow {
             this.selectedEnvironmentId = 'development';
             this.savedRequests = [];
             this.preferences = createDefaultPreferences();
+            try {
+              i18n.System.setAppPreferredLanguage('en');
+            } catch (_error) {
+              this.showToast('Language could not be changed');
+            }
             this.activeOverlay = '';
             this.persistLocalData();
-            this.showToast('Saved');
+            this.restartForLanguage();
           }
         })
       }

@@ -14,7 +14,7 @@ export struct AuthEditor {
   }
 
   @Builder
-  private authTypeItem(type: AuthType, label: string, description: string) {
+  private authTypeItem(type: AuthType, label: ResourceStr, description: ResourceStr) {
     Column({ space: 2 }) {
       Text(label)
         .fontSize(13)
@@ -44,14 +44,14 @@ export struct AuthEditor {
   build() {
     Row() {
       Column({ space: SpacingTokens.x1 }) {
-        Text('TYPE')
+        Text($r('app.string.field_type'))
           .fontSize(10)
           .fontColor(ColorTokens.textTertiary)
           .margin({ left: SpacingTokens.x3, bottom: SpacingTokens.x2 })
-        this.authTypeItem('none', 'No Auth', 'No authorization data')
-        this.authTypeItem('bearer', 'Bearer Token', 'Authorization header')
-        this.authTypeItem('basic', 'Basic Auth', 'Username and password')
-        this.authTypeItem('apiKey', 'API Key', 'Header or query value')
+        this.authTypeItem('none', $r('app.string.auth_none'), $r('app.string.auth_none_hint'))
+        this.authTypeItem('bearer', $r('app.string.auth_bearer'), $r('app.string.auth_bearer_hint'))
+        this.authTypeItem('basic', $r('app.string.auth_basic'), $r('app.string.auth_basic_hint'))
+        this.authTypeItem('apiKey', $r('app.string.auth_api_key'), $r('app.string.auth_api_key_hint'))
       }
       .width(190)
       .height('100%')
@@ -61,23 +61,23 @@ export struct AuthEditor {
 
       Column({ space: SpacingTokens.x3 }) {
         if (this.config.type === 'none') {
-          Text('This request does not use authorization.')
+          Text($r('app.string.auth_unused'))
             .fontSize(13)
             .fontColor(ColorTokens.textSecondary)
         } else if (this.config.type === 'bearer') {
           this.fieldLabel('TOKEN')
           SecretInput({
             value: this.config.bearerToken,
-            placeholder: 'Bearer token',
+            placeholder: $r('app.string.auth_bearer'),
             onChange: (value: string) => this.update(this.config.type, value, this.config.username,
               this.config.password, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
           })
-          Text('The token will be sent as an Authorization: Bearer header.')
+          Text($r('app.string.auth_bearer_description'))
             .fontSize(11)
             .fontColor(ColorTokens.textTertiary)
         } else if (this.config.type === 'basic') {
           this.fieldLabel('USERNAME')
-          TextInput({ text: this.config.username, placeholder: 'Username' })
+          TextInput({ text: this.config.username, placeholder: $r('app.string.username') })
             .fontSize(13)
             .height(SizeTokens.controlMedium)
             .backgroundColor(ColorTokens.bgSurface)
@@ -88,7 +88,7 @@ export struct AuthEditor {
           this.fieldLabel('PASSWORD')
           SecretInput({
             value: this.config.password,
-            placeholder: 'Password',
+            placeholder: $r('app.string.password'),
             onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, value, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
           })
@@ -105,7 +105,7 @@ export struct AuthEditor {
           this.fieldLabel('VALUE')
           SecretInput({
             value: this.config.apiValue,
-            placeholder: 'API key value',
+            placeholder: $r('app.string.api_key_value'),
             onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, this.config.password, this.config.apiKey, value, this.config.apiLocation)
           })

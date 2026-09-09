@@ -31,7 +31,7 @@ export struct BodyEditor {
   }
 
   @Builder
-  private typeItem(type: BodyType, label: string) {
+  private typeItem(type: BodyType, label: ResourceStr) {
     Text(label)
       .fontSize(12)
       .fontWeight(this.bodyType === type ? FontWeight.Medium : FontWeight.Regular)
@@ -47,12 +47,12 @@ export struct BodyEditor {
   build() {
     Column({ space: SpacingTokens.x3 }) {
       Row() {
-        this.typeItem('none', 'None')
+        this.typeItem('none', $r('app.string.body_none'))
         this.typeItem('json', 'JSON')
-        this.typeItem('text', 'Text')
-        this.typeItem('form', 'Form')
-        this.typeItem('multipart', 'Multipart')
-        this.typeItem('binary', 'Binary')
+        this.typeItem('text', $r('app.string.body_text'))
+        this.typeItem('form', $r('app.string.body_form'))
+        this.typeItem('multipart', $r('app.string.body_multipart'))
+        this.typeItem('binary', $r('app.string.body_binary'))
       }
       .padding(3)
       .backgroundColor(ColorTokens.bgApp)
@@ -60,11 +60,11 @@ export struct BodyEditor {
 
       if (this.bodyType === 'none') {
         Column({ space: SpacingTokens.x2 }) {
-          Text('No request body')
+          Text($r('app.string.body_empty_title'))
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
-          Text('Select a body type when the endpoint expects payload data.')
+          Text($r('app.string.body_empty_description'))
             .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
         }
@@ -75,7 +75,7 @@ export struct BodyEditor {
         JsonEditor({ value: this.bodyText, onChange: this.onTextChange })
           .layoutWeight(1)
       } else if (this.bodyType === 'text') {
-        TextArea({ text: this.bodyText, placeholder: 'Plain text request body' })
+        TextArea({ text: this.bodyText, placeholder: $r('app.string.body_text_placeholder') })
           .fontSize(13)
           .fontFamily('monospace')
           .fontColor(ColorTokens.textPrimary)
@@ -103,16 +103,17 @@ export struct BodyEditor {
         })
       } else {
         Column({ space: SpacingTokens.x3 }) {
-          Text('Binary file')
+          Text($r('app.string.body_binary_file'))
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
-          Text(this.binaryFileName.length > 0 ? this.binaryFileName : 'No file selected')
+          Text(this.binaryFileName.length > 0 ? this.binaryFileName : $r('app.string.body_no_file'))
             .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
-          Button(this.binaryFileName.length > 0 ? 'Choose Another File' : 'Choose File')
+          Button(this.binaryFileName.length > 0 ? $r('app.string.body_choose_another_file') :
+            $r('app.string.body_choose_file'))
             .fontSize(12)
             .fontColor(ColorTokens.brand600)
             .height(SizeTokens.controlMedium)

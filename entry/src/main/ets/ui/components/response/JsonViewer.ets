@@ -33,7 +33,7 @@ export struct JsonViewer {
     Column() {
       if (this.searchVisible) {
         Row({ space: SpacingTokens.x2 }) {
-          TextInput({ text: this.query, placeholder: 'Search response' })
+          TextInput({ text: this.query, placeholder: $r('app.string.search_response') })
             .fontSize(12)
             .height(28)
             .layoutWeight(1)

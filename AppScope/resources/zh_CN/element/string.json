@@ -6,19 +6,19 @@
     },
     {
       "name": "settings_title",
-      "value": "Settings"
+      "value": "设置"
     },
     {
       "name": "settings_description",
-      "value": "Configure Nimbo for your local API workflow."
+      "value": "配置 Nimbo 的本地 API 工作流。"
     },
     {
       "name": "language_title",
-      "value": "Language"
+      "value": "界面语言"
     },
     {
       "name": "language_description",
-      "value": "Language used by the Nimbo interface."
+      "value": "Nimbo 界面使用的语言。"
     },
     {
       "name": "language_english",
@@ -26,679 +26,679 @@
     },
     {
       "name": "language_chinese",
-      "value": "Simplified Chinese"
+      "value": "简体中文"
     },
     {
       "name": "nav_workspace",
-      "value": "Workspace"
+      "value": "工作区"
     },
     {
       "name": "nav_collections",
-      "value": "Collections"
+      "value": "集合"
     },
     {
       "name": "nav_environments",
-      "value": "Environments"
+      "value": "环境"
     },
     {
       "name": "nav_history",
-      "value": "History"
+      "value": "历史记录"
     },
     {
       "name": "nav_settings",
-      "value": "Settings"
+      "value": "设置"
     },
     {
       "name": "action_new",
-      "value": "New"
+      "value": "新建"
     },
     {
       "name": "action_save",
-      "value": "Save"
+      "value": "保存"
     },
     {
       "name": "action_send",
-      "value": "Send"
+      "value": "发送"
     },
     {
       "name": "action_cancel",
-      "value": "Cancel"
+      "value": "取消"
     },
     {
       "name": "action_retry",
-      "value": "Retry"
+      "value": "重试"
     },
     {
       "name": "action_clear_history",
-      "value": "Clear History"
+      "value": "清空历史记录"
     },
     {
       "name": "action_undo",
-      "value": "Undo"
+      "value": "撤销"
     },
     {
       "name": "import_curl",
-      "value": "Import cURL"
+      "value": "导入 cURL"
     },
     {
       "name": "import_postman",
-      "value": "Import Postman"
+      "value": "导入 Postman"
     },
     {
       "name": "search_global",
-      "value": "Search requests, collections, or history…"
+      "value": "搜索请求、集合或历史记录…"
     },
     {
       "name": "search_requests",
-      "value": "Search requests…"
+      "value": "搜索请求…"
     },
     {
       "name": "search_response",
-      "value": "Search response"
+      "value": "搜索响应"
     },
     {
       "name": "environment_variables_hint",
-      "value": "Variables are resolved in the active request environment."
+      "value": "变量会在当前请求环境中解析。"
     },
     {
       "name": "variables",
-      "value": "Variables"
+      "value": "变量"
     },
     {
       "name": "history_local_hint",
-      "value": "Requests stay local to this device."
+      "value": "请求记录仅保存在此设备上。"
     },
     {
       "name": "history_today",
-      "value": "Today"
+      "value": "今天"
     },
     {
       "name": "history_yesterday",
-      "value": "Yesterday"
+      "value": "昨天"
     },
     {
       "name": "history_previous_days",
-      "value": "Previous 7 Days"
+      "value": "过去 7 天"
     },
     {
       "name": "history_older",
-      "value": "Older"
+      "value": "更早"
     },
     {
       "name": "request_url_placeholder",
-      "value": "Enter request URL"
+      "value": "输入请求 URL"
     },
     {
       "name": "empty_workspace_title",
-      "value": "What do you want to test?"
+      "value": "想测试什么？"
     },
     {
       "name": "empty_workspace_description",
-      "value": "Create a request to start a local API workspace."
+      "value": "创建一个请求，开始本地 API 工作。"
     },
     {
       "name": "response_empty_title",
-      "value": "No response yet"
+      "value": "暂无响应"
     },
     {
       "name": "response_empty_description",
-      "value": "Send the request to see the response here."
+      "value": "发送请求后，响应会显示在这里。"
     },
     {
       "name": "response_waiting_title",
-      "value": "Waiting for response…"
+      "value": "正在等待响应…"
     },
     {
       "name": "response_waiting_description",
-      "value": "The request is still in progress."
+      "value": "请求仍在处理中。"
     },
     {
       "name": "response_pretty",
-      "value": "Pretty"
+      "value": "美化"
     },
     {
       "name": "response_raw",
-      "value": "Raw"
+      "value": "原始"
     },
     {
       "name": "response_binary",
-      "value": "Binary response"
+      "value": "二进制响应"
     },
     {
       "name": "response_no_headers",
-      "value": "No response headers"
+      "value": "响应中没有标头"
     },
     {
       "name": "response_no_cookies",
-      "value": "No cookies in this response"
+      "value": "响应中没有 Cookie"
     },
     {
       "name": "response_timing_unavailable",
-      "value": "Timing details unavailable"
+      "value": "暂无计时详情"
     },
     {
       "name": "response_timing_description",
-      "value": "Detailed DNS, connection, TLS, and download timing is not available yet."
+      "value": "详细的 DNS、连接、TLS 和下载计时暂不可用。"
     },
     {
       "name": "response_large",
-      "value": "Large response"
+      "value": "大型响应"
     },
     {
       "name": "response_large_warning",
-      "value": "Rendering the entire response may affect performance."
+      "value": "渲染完整响应可能影响性能。"
     },
     {
       "name": "response_preview_mb",
-      "value": "Preview first 1 MB"
+      "value": "预览前 1 MB"
     },
     {
       "name": "settings_general",
-      "value": "General"
+      "value": "通用"
     },
     {
       "name": "settings_appearance",
-      "value": "Appearance"
+      "value": "外观"
     },
     {
       "name": "settings_network",
-      "value": "Network"
+      "value": "网络"
     },
     {
       "name": "settings_data",
-      "value": "Data"
+      "value": "数据"
     },
     {
       "name": "settings_privacy",
-      "value": "Privacy"
+      "value": "隐私"
     },
     {
       "name": "settings_about",
-      "value": "About"
+      "value": "关于"
     },
     {
       "name": "restore_workspace_title",
-      "value": "Restore workspace"
+      "value": "恢复工作区"
     },
     {
       "name": "restore_workspace_description",
-      "value": "Reopen request tabs when Nimbo starts."
+      "value": "Nimbo 启动时重新打开请求标签页。"
     },
     {
       "name": "shortcuts_title",
-      "value": "Keyboard shortcuts"
+      "value": "键盘快捷键"
     },
     {
       "name": "shortcuts_description",
-      "value": "Use Ctrl+Enter to send, Ctrl+N for a new request, and Ctrl+K to search."
+      "value": "Ctrl+Enter 发送，Ctrl+N 新建请求，Ctrl+K 搜索。"
     },
     {
       "name": "action_view",
-      "value": "View"
+      "value": "查看"
     },
     {
       "name": "theme_title",
-      "value": "Theme"
+      "value": "主题"
     },
     {
       "name": "theme_description",
-      "value": "Follow the system appearance by default."
+      "value": "默认跟随系统外观。"
     },
     {
       "name": "theme_system",
-      "value": "System"
+      "value": "跟随系统"
     },
     {
       "name": "density_title",
-      "value": "Interface density"
+      "value": "界面密度"
     },
     {
       "name": "density_description",
-      "value": "Balanced desktop spacing for request-heavy workflows."
+      "value": "为高频请求工作流提供舒适的桌面间距。"
     },
     {
       "name": "density_comfortable",
-      "value": "Comfortable"
+      "value": "舒适"
     },
     {
       "name": "redirect_title",
-      "value": "Follow redirects"
+      "value": "跟随重定向"
     },
     {
       "name": "redirect_description",
-      "value": "Follow HTTP redirects automatically."
+      "value": "自动跟随 HTTP 重定向。"
     },
     {
       "name": "ssl_title",
-      "value": "SSL certificate verification"
+      "value": "SSL 证书验证"
     },
     {
       "name": "ssl_description",
-      "value": "Verify server certificates before connecting."
+      "value": "连接前验证服务器证书。"
     },
     {
       "name": "ssl_warning",
-      "value": "Warning: disabling SSL verification weakens connection security for new requests."
+      "value": "警告：关闭 SSL 验证会降低新请求的连接安全性。"
     },
     {
       "name": "timeout_title",
-      "value": "Request timeout"
+      "value": "请求超时"
     },
     {
       "name": "timeout_description",
-      "value": "Default for newly created requests."
+      "value": "新请求使用的默认值。"
     },
     {
       "name": "save_history_title",
-      "value": "Save request history"
+      "value": "保存请求历史"
     },
     {
       "name": "save_history_description",
-      "value": "Keep a local record of sent requests."
+      "value": "在本地保留已发送请求的记录。"
     },
     {
       "name": "retention_title",
-      "value": "History retention"
+      "value": "历史记录保留期"
     },
     {
       "name": "retention_description",
-      "value": "Remove local history after the selected period."
+      "value": "在所选时间后移除本地历史记录。"
     },
     {
       "name": "reset_title",
-      "value": "Reset Nimbo"
+      "value": "重置 Nimbo"
     },
     {
       "name": "reset_description",
-      "value": "Remove local collections, environments, history, and settings."
+      "value": "移除本地集合、环境、历史记录和设置。"
     },
     {
       "name": "reset_action",
-      "value": "Reset App"
+      "value": "重置应用"
     },
     {
       "name": "mask_secrets_title",
-      "value": "Mask secret values"
+      "value": "隐藏密钥值"
     },
     {
       "name": "mask_secrets_description",
-      "value": "Hide secret environment values in editors and previews."
+      "value": "在编辑器和预览中隐藏环境密钥值。"
     },
     {
       "name": "export_secrets_title",
-      "value": "Export secrets"
+      "value": "导出密钥"
     },
     {
       "name": "export_secrets_description",
-      "value": "Exporting secrets requires explicit confirmation."
+      "value": "导出密钥需要明确确认。"
     },
     {
       "name": "export_action",
-      "value": "Export…"
+      "value": "导出…"
     },
     {
       "name": "about_description",
-      "value": "A fast, native API workspace for HarmonyOS PC."
+      "value": "面向 HarmonyOS PC 的快速原生 API 工作区。"
     },
     {
       "name": "application_identity",
-      "value": "Application identity"
+      "value": "应用标识"
     },
     {
       "name": "local_build",
-      "value": "Local build"
+      "value": "本地构建"
     },
     {
       "name": "environment_development",
-      "value": "Development"
+      "value": "开发环境"
     },
     {
       "name": "environment_staging",
-      "value": "Staging"
+      "value": "预发布环境"
     },
     {
       "name": "environment_production",
-      "value": "Production"
+      "value": "生产环境"
     },
     {
       "name": "history_open_request",
-      "value": "Open request"
+      "value": "打开请求"
     },
     {
       "name": "history_copy_url",
-      "value": "Copy URL"
+      "value": "复制 URL"
     },
     {
       "name": "history_copy_curl",
-      "value": "Copy as cURL"
+      "value": "复制为 cURL"
     },
     {
       "name": "action_delete",
-      "value": "Delete"
+      "value": "删除"
     },
     {
       "name": "copied",
-      "value": "Copied"
+      "value": "已复制"
     },
     {
       "name": "tab_params",
-      "value": "Params"
+      "value": "参数"
     },
     {
       "name": "tab_headers",
-      "value": "Headers"
+      "value": "标头"
     },
     {
       "name": "tab_auth",
-      "value": "Auth"
+      "value": "认证"
     },
     {
       "name": "tab_body",
-      "value": "Body"
+      "value": "正文"
     },
     {
       "name": "tab_cookies",
-      "value": "Cookies"
+      "value": "Cookie"
     },
     {
       "name": "tab_timeline",
-      "value": "Timeline"
+      "value": "时间线"
     },
     {
       "name": "body_none",
-      "value": "None"
+      "value": "无"
     },
     {
       "name": "body_text",
-      "value": "Text"
+      "value": "文本"
     },
     {
       "name": "body_form",
-      "value": "Form"
+      "value": "表单"
     },
     {
       "name": "body_multipart",
-      "value": "Multipart"
+      "value": "多部分"
     },
     {
       "name": "body_binary",
-      "value": "Binary"
+      "value": "二进制"
     },
     {
       "name": "body_empty_title",
-      "value": "No request body"
+      "value": "无请求正文"
     },
     {
       "name": "body_empty_description",
-      "value": "Select a body type when the endpoint expects payload data."
+      "value": "当接口需要负载数据时，请选择正文类型。"
     },
     {
       "name": "body_text_placeholder",
-      "value": "Plain text request body"
+      "value": "纯文本请求正文"
     },
     {
       "name": "body_binary_file",
-      "value": "Binary file"
+      "value": "二进制文件"
     },
     {
       "name": "body_no_file",
-      "value": "No file selected"
+      "value": "未选择文件"
     },
     {
       "name": "body_choose_file",
-      "value": "Choose File"
+      "value": "选择文件"
     },
     {
       "name": "body_choose_another_file",
-      "value": "Choose Another File"
+      "value": "选择其他文件"
     },
     {
       "name": "request_redirect_description",
-      "value": "Automatically follow HTTP 3xx responses."
+      "value": "自动跟随 HTTP 3xx 响应。"
     },
     {
       "name": "request_ssl_title",
-      "value": "SSL verification"
+      "value": "SSL 验证"
     },
     {
       "name": "request_ssl_description",
-      "value": "Verify the remote certificate and host identity."
+      "value": "验证远程证书和主机身份。"
     },
     {
       "name": "request_ssl_warning",
-      "value": "Warning: SSL verification is disabled. Traffic may be intercepted or altered."
+      "value": "警告：SSL 验证已关闭，流量可能被拦截或篡改。"
     },
     {
       "name": "cookie_jar_title",
-      "value": "Cookie jar"
+      "value": "Cookie 容器"
     },
     {
       "name": "cookie_jar_description",
-      "value": "Store response cookies and send them to the same host."
+      "value": "保存响应 Cookie，并发送到同一主机。"
     },
     {
       "name": "sending",
-      "value": "Sending…"
+      "value": "正在发送…"
     },
     {
       "name": "details",
-      "value": "Details"
+      "value": "详情"
     },
     {
       "name": "hide_details",
-      "value": "Hide Details"
+      "value": "收起详情"
     },
     {
       "name": "action_confirm",
-      "value": "Confirm"
+      "value": "确认"
     },
     {
       "name": "action_apply",
-      "value": "Apply"
+      "value": "应用"
     },
     {
       "name": "action_format",
-      "value": "Format"
+      "value": "格式化"
     },
     {
       "name": "action_minify",
-      "value": "Minify"
+      "value": "压缩"
     },
     {
       "name": "wrap_on",
-      "value": "Wrap On"
+      "value": "自动换行：开"
     },
     {
       "name": "wrap_off",
-      "value": "Wrap Off"
+      "value": "自动换行：关"
     },
     {
       "name": "field_key",
-      "value": "KEY"
+      "value": "键"
     },
     {
       "name": "field_value",
-      "value": "VALUE"
+      "value": "值"
     },
     {
       "name": "field_secret",
-      "value": "SECRET"
+      "value": "密钥"
     },
     {
       "name": "field_type",
-      "value": "TYPE"
+      "value": "类型"
     },
     {
       "name": "field_description",
-      "value": "DESCRIPTION"
+      "value": "说明"
     },
     {
       "name": "field_key_placeholder",
-      "value": "Key"
+      "value": "键"
     },
     {
       "name": "field_value_placeholder",
-      "value": "Value"
+      "value": "值"
     },
     {
       "name": "field_description_placeholder",
-      "value": "Description"
+      "value": "说明"
     },
     {
       "name": "edit_bulk",
-      "value": "Bulk Edit"
+      "value": "批量编辑"
     },
     {
       "name": "edit_table",
-      "value": "Table Edit"
+      "value": "表格编辑"
     },
     {
       "name": "file_choose",
-      "value": "Choose file"
+      "value": "选择文件"
     },
     {
       "name": "type_text",
-      "value": "Text"
+      "value": "文本"
     },
     {
       "name": "type_file",
-      "value": "File"
+      "value": "文件"
     },
     {
       "name": "invalid_json",
-      "value": "Invalid JSON. Check commas, quotes, and brackets."
+      "value": "JSON 无效，请检查逗号、引号和括号。"
     },
     {
       "name": "auth_none",
-      "value": "No Auth"
+      "value": "无认证"
     },
     {
       "name": "auth_none_hint",
-      "value": "No authorization data"
+      "value": "不发送认证数据"
     },
     {
       "name": "auth_bearer",
-      "value": "Bearer Token"
+      "value": "Bearer 令牌"
     },
     {
       "name": "auth_bearer_hint",
-      "value": "Authorization header"
+      "value": "Authorization 标头"
     },
     {
       "name": "auth_basic",
-      "value": "Basic Auth"
+      "value": "基础认证"
     },
     {
       "name": "auth_basic_hint",
-      "value": "Username and password"
+      "value": "用户名和密码"
     },
     {
       "name": "auth_api_key",
-      "value": "API Key"
+      "value": "API 密钥"
     },
     {
       "name": "auth_api_key_hint",
-      "value": "Header or query value"
+      "value": "标头或查询参数"
     },
     {
       "name": "auth_unused",
-      "value": "This request does not use authorization."
+      "value": "此请求不使用认证。"
     },
     {
       "name": "auth_bearer_description",
-      "value": "The token will be sent as an Authorization: Bearer header."
+      "value": "令牌将作为 Authorization: Bearer 标头发送。"
     },
     {
       "name": "username",
-      "value": "Username"
+      "value": "用户名"
     },
     {
       "name": "password",
-      "value": "Password"
+      "value": "密码"
     },
     {
       "name": "api_key_value",
-      "value": "API key value"
+      "value": "API 密钥值"
     },
     {
       "name": "show",
-      "value": "Show"
+      "value": "显示"
     },
     {
       "name": "hide",
-      "value": "Hide"
+      "value": "隐藏"
     },
     {
       "name": "dialog_clear_history_message",
-      "value": "Delete all local request history? This action can be undone briefly."
+      "value": "删除全部本地请求历史？短时间内可以撤销此操作。"
     },
     {
       "name": "dialog_reset_message",
-      "value": "Reset local demo data and settings to their defaults?"
+      "value": "将本地演示数据和设置恢复为默认值？"
     },
     {
       "name": "curl_paste_hint",
-      "value": "Paste a cURL command to create a request."
+      "value": "粘贴 cURL 命令以创建请求。"
     },
     {
       "name": "curl_values_hint",
-      "value": "Headers and body values are kept in the request draft."
+      "value": "标头和正文值会保留在请求草稿中。"
     },
     {
       "name": "import_action",
-      "value": "Import"
+      "value": "导入"
     },
     {
       "name": "importing",
-      "value": "Importing…"
+      "value": "正在导入…"
     },
     {
       "name": "postman_title",
-      "value": "Import from Postman"
+      "value": "从 Postman 导入"
     },
     {
       "name": "postman_select_title",
-      "value": "Select a Postman export"
+      "value": "选择 Postman 导出文件"
     },
     {
       "name": "postman_support_hint",
-      "value": "Supports Collection v2, v2.1, and Environment JSON."
+      "value": "支持 Collection v2、v2.1 和 Environment JSON。"
     },
     {
       "name": "select_file",
-      "value": "Select File"
+      "value": "选择文件"
     },
     {
       "name": "analyzing_import",
-      "value": "Analyzing import…"
+      "value": "正在分析导入内容…"
     },
     {
       "name": "import_preview",
-      "value": "Import Preview"
+      "value": "导入预览"
     },
     {
       "name": "collection_name",
-      "value": "Collection Name"
+      "value": "集合名称"
     },
     {
       "name": "requests",
-      "value": "Requests"
+      "value": "请求"
     },
     {
       "name": "folders",
-      "value": "Folders"
+      "value": "文件夹"
     },
     {
       "name": "unsupported_features",
-      "value": "Unsupported features"
+      "value": "不支持的功能"
     },
     {
       "name": "import_complete",
-      "value": "Import complete"
+      "value": "导入完成"
     },
     {
       "name": "view_details",
-      "value": "View Details"
+      "value": "查看详情"
     }
   ]
 }

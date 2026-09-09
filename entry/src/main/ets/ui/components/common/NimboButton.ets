@@ -3,7 +3,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 
 @Component
 export struct NimboButton {
-  @Prop label: string;
+  @Prop label: ResourceStr;
   @Prop icon: string = '';
   @Prop primary: boolean = false;
   onPress: () => void = () => {};
@@ -35,4 +35,3 @@ export struct NimboButton {
     .onClick(this.onPress)
   }
 }
-

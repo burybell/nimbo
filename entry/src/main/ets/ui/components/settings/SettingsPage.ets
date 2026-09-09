@@ -21,7 +21,17 @@ export struct SettingsPage {
   }
 
   private timeoutLabel(): string {
-    return `${this.preferences.defaultTimeoutMs / 1000} seconds`;
+    return this.preferences.language === 'zh' ? `${this.preferences.defaultTimeoutMs / 1000} 秒` :
+      `${this.preferences.defaultTimeoutMs / 1000} seconds`;
+  }
+
+  private sectionLabel(section: SettingsSection): ResourceStr {
+    if (section === 'General') return $r('app.string.settings_general');
+    if (section === 'Appearance') return $r('app.string.settings_appearance');
+    if (section === 'Network') return $r('app.string.settings_network');
+    if (section === 'Data') return $r('app.string.settings_data');
+    if (section === 'Privacy') return $r('app.string.settings_privacy');
+    return $r('app.string.settings_about');
   }
 
   private nextTimeout(): number {
@@ -40,30 +50,39 @@ export struct SettingsPage {
   @Builder
   sectionContent() {
     if (this.section === 'General') {
-      SettingRow({ title: 'Restore workspace', description: 'Reopen request tabs when Nimbo starts.', toggle: true,
+      SettingRow({ title: $r('app.string.restore_workspace_title'),
+        description: $r('app.string.restore_workspace_description'), toggle: true,
         checked: this.preferences.restoreWorkspace, onToggle: (value: boolean) => this.emit(value,
           this.preferences.language, this.preferences.followRedirects, this.preferences.sslVerification,
           this.preferences.defaultTimeoutMs, this.preferences.saveHistory,
           this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
-      SettingRow({ title: 'Language', description: 'Language used by the Nimbo interface.',
-        controlLabel: this.preferences.language === 'zh' ? '简体中文' : 'English' })
-      SettingRow({ title: 'Keyboard shortcuts', description: 'Use Ctrl+Enter to send, Ctrl+N for a new request, and Ctrl+K to search.', controlLabel: 'View' })
+      SettingRow({ title: $r('app.string.language_title'), description: $r('app.string.language_description'),
+        controlLabel: this.preferences.language === 'zh' ? $r('app.string.language_chinese') :
+          $r('app.string.language_english'),
+        onPress: () => this.emit(this.preferences.restoreWorkspace,
+          this.preferences.language === 'en' ? 'zh' : 'en', this.preferences.followRedirects,
+          this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
+          this.preferences.saveHistory, this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
+      SettingRow({ title: $r('app.string.shortcuts_title'), description: $r('app.string.shortcuts_description'),
+        controlLabel: $r('app.string.action_view') })
     } else if (this.section === 'Appearance') {
-      SettingRow({ title: 'Theme', description: 'Follow the system appearance by default.', controlLabel: 'System' })
-      SettingRow({ title: 'Interface density', description: 'Balanced desktop spacing for request-heavy workflows.', controlLabel: 'Comfortable' })
+      SettingRow({ title: $r('app.string.theme_title'), description: $r('app.string.theme_description'),
+        controlLabel: $r('app.string.theme_system') })
+      SettingRow({ title: $r('app.string.density_title'), description: $r('app.string.density_description'),
+        controlLabel: $r('app.string.density_comfortable') })
     } else if (this.section === 'Network') {
-      SettingRow({ title: 'Follow redirects', description: 'Follow HTTP redirects automatically.', toggle: true,
+      SettingRow({ title: $r('app.string.redirect_title'), description: $r('app.string.redirect_description'), toggle: true,
         checked: this.preferences.followRedirects, onToggle: (value: boolean) => this.emit(
           this.preferences.restoreWorkspace, this.preferences.language, value,
           this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
           this.preferences.saveHistory, this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
-      SettingRow({ title: 'SSL certificate verification', description: 'Verify server certificates before connecting.', toggle: true,
+      SettingRow({ title: $r('app.string.ssl_title'), description: $r('app.string.ssl_description'), toggle: true,
         checked: this.preferences.sslVerification, onToggle: (value: boolean) => this.emit(
           this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
           value, this.preferences.defaultTimeoutMs, this.preferences.saveHistory,
           this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
       if (!this.preferences.sslVerification) {
-        Text('Warning: disabling SSL verification weakens connection security for new requests.')
+        Text($r('app.string.ssl_warning'))
           .fontSize(12)
           .fontColor(ColorTokens.httpDelete)
           .width('100%')
@@ -71,42 +90,45 @@ export struct SettingsPage {
           .backgroundColor(ColorTokens.statusDangerBackground)
           .borderRadius(RadiusTokens.small)
       }
-      SettingRow({ title: 'Request timeout', description: 'Default for newly created requests.',
+      SettingRow({ title: $r('app.string.timeout_title'), description: $r('app.string.timeout_description'),
         controlLabel: this.timeoutLabel(), onPress: () => this.emit(this.preferences.restoreWorkspace,
           this.preferences.language, this.preferences.followRedirects, this.preferences.sslVerification,
           this.nextTimeout(), this.preferences.saveHistory, this.preferences.historyRetentionDays,
           this.preferences.maskSecrets) })
     } else if (this.section === 'Data') {
-      SettingRow({ title: 'Save request history', description: 'Keep a local record of sent requests.', toggle: true,
+      SettingRow({ title: $r('app.string.save_history_title'), description: $r('app.string.save_history_description'), toggle: true,
         checked: this.preferences.saveHistory, onToggle: (value: boolean) => this.emit(
           this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
           this.preferences.sslVerification, this.preferences.defaultTimeoutMs, value,
           this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
-      SettingRow({ title: 'History retention', description: 'Remove local history after the selected period.',
-        controlLabel: `${this.preferences.historyRetentionDays} days`,
+      SettingRow({ title: $r('app.string.retention_title'), description: $r('app.string.retention_description'),
+        controlLabel: this.preferences.language === 'zh' ? `${this.preferences.historyRetentionDays} 天` :
+          `${this.preferences.historyRetentionDays} days`,
         onPress: () => this.emit(this.preferences.restoreWorkspace, this.preferences.language,
           this.preferences.followRedirects, this.preferences.sslVerification,
           this.preferences.defaultTimeoutMs, this.preferences.saveHistory, this.nextRetention(),
           this.preferences.maskSecrets) })
-      SettingRow({ title: 'Reset Nimbo', description: 'Remove local collections, environments, history, and settings.',
-        controlLabel: 'Reset App', dangerous: true, onPress: this.onReset })
+      SettingRow({ title: $r('app.string.reset_title'), description: $r('app.string.reset_description'),
+        controlLabel: $r('app.string.reset_action'), dangerous: true, onPress: this.onReset })
     } else if (this.section === 'Privacy') {
-      SettingRow({ title: 'Mask secret values', description: 'Hide secret environment values in editors and previews.', toggle: true,
+      SettingRow({ title: $r('app.string.mask_secrets_title'), description: $r('app.string.mask_secrets_description'), toggle: true,
         checked: this.preferences.maskSecrets, onToggle: (value: boolean) => this.emit(
           this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
           this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
           this.preferences.saveHistory, this.preferences.historyRetentionDays, value) })
-      SettingRow({ title: 'Export secrets', description: 'Exporting secrets requires explicit confirmation.', controlLabel: 'Export…' })
+      SettingRow({ title: $r('app.string.export_secrets_title'), description: $r('app.string.export_secrets_description'),
+        controlLabel: $r('app.string.export_action') })
     } else {
-      SettingRow({ title: 'Nimbo', description: 'A fast, native API workspace for HarmonyOS PC.', controlLabel: 'Version 0.1.0' })
-      SettingRow({ title: 'Application identity', description: 'Bundle com.nimbo.app · App ID 6917615930484878194', controlLabel: 'Local build' })
+      SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: 'Version 0.1.0' })
+      SettingRow({ title: $r('app.string.application_identity'),
+        description: 'Bundle com.nimbo.app · App ID 6917615930484878194', controlLabel: $r('app.string.local_build') })
     }
   }
 
   build() {
     Row() {
       Column() {
-        Text('Settings')
+        Text($r('app.string.settings_title'))
           .fontSize(15)
           .fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
@@ -117,7 +139,7 @@ export struct SettingsPage {
           Row({ space: SpacingTokens.x3 }) {
             Text(item.icon).width(20).fontSize(15).textAlign(TextAlign.Center)
               .fontColor(item.id === this.section ? ColorTokens.brand500 : ColorTokens.textTertiary)
-            Text(item.label).fontSize(13)
+            Text(this.sectionLabel(item.id)).fontSize(13)
               .fontColor(item.id === this.section ? ColorTokens.brand600 : ColorTokens.textSecondary)
           }
           .width('100%')
@@ -137,12 +159,12 @@ export struct SettingsPage {
 
       Scroll() {
         Column() {
-          Text(this.section)
+          Text(this.sectionLabel(this.section))
             .fontSize(22)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
             .width('100%')
-          Text('Configure Nimbo for your local API workflow.')
+          Text($r('app.string.settings_description'))
             .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
             .width('100%')

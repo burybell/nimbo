@@ -3,9 +3,9 @@ import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct SettingRow {
-  @Prop title: string = '';
-  @Prop description: string = '';
-  @Prop controlLabel: string = '';
+  @Prop title: ResourceStr = '';
+  @Prop description: ResourceStr = '';
+  @Prop controlLabel: ResourceStr = '';
   @Prop toggle: boolean = false;
   @Prop checked: boolean = false;
   @Prop dangerous: boolean = false;
@@ -31,7 +31,7 @@ export struct SettingRow {
         Toggle({ type: ToggleType.Switch, isOn: this.checked })
           .selectedColor(ColorTokens.brand500)
           .onChange(this.onToggle)
-      } else if (this.controlLabel.length > 0) {
+      } else {
         Button(this.controlLabel)
           .fontSize(12)
           .fontColor(this.dangerous ? ColorTokens.httpDelete : ColorTokens.textPrimary)

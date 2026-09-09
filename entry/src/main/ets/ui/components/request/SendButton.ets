@@ -17,7 +17,7 @@ export struct SendButton {
             .height(16)
             .color(ColorTokens.textOnBrand)
         }
-        Text(this.state === 'sending' ? 'Cancel' : 'Send')
+        Text(this.state === 'sending' ? $r('app.string.action_cancel') : $r('app.string.action_send'))
           .fontSize(14)
           .fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textOnBrand)

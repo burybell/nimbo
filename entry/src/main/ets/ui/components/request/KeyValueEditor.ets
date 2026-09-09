@@ -142,7 +142,7 @@ export struct KeyValueEditor {
           .fontSize(12)
           .fontColor(ColorTokens.textTertiary)
         Blank()
-        Text(this.bulkMode ? 'Table Edit' : 'Bulk Edit')
+        Text(this.bulkMode ? $r('app.string.edit_table') : $r('app.string.edit_bulk'))
           .fontSize(12)
           .fontColor(ColorTokens.brand600)
           .height(SizeTokens.controlSmall)
@@ -183,7 +183,7 @@ export struct KeyValueEditor {
           }
           Row() {
             Blank()
-            Button('Apply')
+            Button($r('app.string.action_apply'))
               .fontSize(12)
               .height(SizeTokens.controlMedium)
               .backgroundColor(ColorTokens.brand500)
@@ -197,16 +197,16 @@ export struct KeyValueEditor {
       } else {
         Row() {
           Text('✓').width(34).textAlign(TextAlign.Center).fontSize(10).fontColor(ColorTokens.textTertiary)
-          Text('KEY').layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
-          Text('VALUE').layoutWeight(4).fontSize(10).fontColor(ColorTokens.textTertiary)
+          Text($r('app.string.field_key')).layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
+          Text($r('app.string.field_value')).layoutWeight(4).fontSize(10).fontColor(ColorTokens.textTertiary)
           if (this.showSecret) {
-            Text('SECRET').width(58).fontSize(10).fontColor(ColorTokens.textTertiary).textAlign(TextAlign.Center)
+            Text($r('app.string.field_secret')).width(58).fontSize(10).fontColor(ColorTokens.textTertiary).textAlign(TextAlign.Center)
           }
           if (this.showType) {
-            Text('TYPE').width(76).fontSize(10).fontColor(ColorTokens.textTertiary)
+            Text($r('app.string.field_type')).width(76).fontSize(10).fontColor(ColorTokens.textTertiary)
           }
           if (this.showDescription) {
-            Text('DESCRIPTION').layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
+            Text($r('app.string.field_description')).layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
           }
           Blank().width(72)
         }
@@ -225,7 +225,7 @@ export struct KeyValueEditor {
               .height(18)
               .onChange((enabled: boolean) => this.updateItem(item.id, item.key, item.value,
                 item.description, enabled, item.type))
-            TextInput({ text: item.key, placeholder: 'Key' })
+            TextInput({ text: item.key, placeholder: $r('app.string.field_key_placeholder') })
               .fontSize(13)
               .height(SizeTokens.controlMedium)
               .backgroundColor(ColorTokens.bgWorkspace)
@@ -234,7 +234,7 @@ export struct KeyValueEditor {
                 item.description, item.enabled, item.type))
             if (this.showType && item.type === 'file') {
               Button() {
-                Text(item.value.length > 0 ? item.value : 'Choose file')
+                Text(item.value.length > 0 ? item.value : $r('app.string.file_choose'))
                   .fontSize(12)
                   .fontColor(item.value.length > 0 ? ColorTokens.textSecondary : ColorTokens.brand600)
                   .maxLines(1)
@@ -246,7 +246,7 @@ export struct KeyValueEditor {
                 .layoutWeight(4)
                 .onClick(() => this.selectItemFile(item))
             } else {
-              TextInput({ text: item.value, placeholder: 'Value' })
+              TextInput({ text: item.value, placeholder: $r('app.string.field_value_placeholder') })
                 .type(item.secret ? InputType.Password : InputType.Normal)
                 .fontSize(13)
                 .height(SizeTokens.controlMedium)
@@ -264,16 +264,16 @@ export struct KeyValueEditor {
                 .onChange((secret: boolean) => this.toggleSecret(item.id, secret))
             }
             if (this.showType) {
-              Select([{ value: 'Text' }, { value: 'File' }])
+              Select([{ value: $r('app.string.type_text') }, { value: $r('app.string.type_file') }])
                 .selected(item.type === 'file' ? 1 : 0)
-                .value(item.type === 'file' ? 'File' : 'Text')
+                .value(item.type === 'file' ? $r('app.string.type_file') : $r('app.string.type_text'))
                 .width(76)
                 .height(SizeTokens.controlMedium)
                 .onSelect((index: number) => this.updateItem(item.id, item.key, item.value,
                   item.description, item.enabled, index === 1 ? 'file' : 'text'))
             }
             if (this.showDescription) {
-              TextInput({ text: item.description, placeholder: 'Description' })
+              TextInput({ text: item.description, placeholder: $r('app.string.field_description_placeholder') })
                 .fontSize(13)
                 .height(SizeTokens.controlMedium)
                 .backgroundColor(ColorTokens.bgWorkspace)

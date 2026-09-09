@@ -3,9 +3,9 @@ import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct NimboDialog {
-  @Prop title: string = '';
-  @Prop message: string = '';
-  @Prop confirmLabel: string = 'Confirm';
+  @Prop title: ResourceStr = '';
+  @Prop message: ResourceStr = '';
+  @Prop confirmLabel: ResourceStr = $r('app.string.action_confirm');
   @Prop dangerous: boolean = false;
   onCancel: () => void = () => {};
   onConfirm: () => void = () => {};
@@ -31,7 +31,7 @@ export struct NimboDialog {
           .width('100%')
         Row({ space: SpacingTokens.x3 }) {
           Blank()
-          Button('Cancel')
+          Button($r('app.string.action_cancel'))
             .fontSize(13)
             .fontColor(ColorTokens.textPrimary)
             .backgroundColor(ColorTokens.bgSurface)

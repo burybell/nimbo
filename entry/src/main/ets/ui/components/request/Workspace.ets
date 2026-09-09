@@ -52,8 +52,8 @@ export struct Workspace {
 
       if (this.tabs.length === 0) {
         NimboEmptyState({
-          title: 'What do you want to test?',
-          description: 'Create a request to start a local API workspace.'
+          title: $r('app.string.empty_workspace_title'),
+          description: $r('app.string.empty_workspace_description')
         })
           .layoutWeight(1)
       } else {
