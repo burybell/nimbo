@@ -1,6 +1,22 @@
-import { CollectionNode, HttpMethod, NavigationDestination, RequestDraft, RequestTabModel } from '../models/ShellModels';
+import {
+  CollectionNode,
+  HttpMethod,
+  NavigationDestination,
+  RequestDraft,
+  RequestTabModel,
+  ResponseModel,
+  ResponseStatus
+} from '../models/ShellModels';
 import { ShellState } from '../state/ShellState';
-import { createEmptyRequest } from '../mock/ShellMockData';
+import {
+  createBinaryResponse,
+  createCancelledResponse,
+  createEmptyRequest,
+  createEmptyResponse,
+  createErrorResponse,
+  createLargeResponse,
+  createSuccessResponse
+} from '../mock/ShellMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
@@ -37,6 +53,106 @@ export struct NimboWindow {
       previous.binaryFileName !== next.binaryFileName;
   }
 
+  private responseWithStatus(response: ResponseModel, status: ResponseStatus): ResponseModel {
+    return {
+      status,
+      statusCode: response.statusCode,
+      statusText: response.statusText,
+      headers: response.headers,
+      cookies: response.cookies,
+      body: response.body,
+      contentType: response.contentType,
+      size: response.size,
+      duration: response.duration,
+      protocol: response.protocol,
+      error: response.error,
+      previewAvailable: response.previewAvailable
+    };
+  }
+
+  private requestWithLifecycle(request: RequestDraft, lifecycle: 'idle' | 'sending'): RequestDraft {
+    return {
+      method: request.method,
+      url: request.url,
+      lifecycle,
+      activeConfigTab: request.activeConfigTab,
+      params: request.params,
+      headers: request.headers,
+      auth: request.auth,
+      bodyType: request.bodyType,
+      bodyText: request.bodyText,
+      formItems: request.formItems,
+      multipartItems: request.multipartItems,
+      binaryFileName: request.binaryFileName
+    };
+  }
+
+  private mockResponseForUrl(url: string): ResponseModel {
+    const normalized = url.toLowerCase();
+    if (normalized.includes('localhost') || normalized.includes('error')) return createErrorResponse();
+    if (normalized.includes('large')) return createLargeResponse();
+    if (normalized.includes('binary') || normalized.includes('download')) return createBinaryResponse();
+    return createSuccessResponse();
+  }
+
+  private completeMockRequest(id: string): void {
+    this.tabs = this.tabs.map((tab: RequestTabModel) => {
+      if (tab.id !== id || tab.request.lifecycle !== 'sending') return tab;
+      return {
+        id: tab.id,
+        name: tab.name,
+        method: tab.method,
+        dirty: tab.dirty,
+        pinned: tab.pinned,
+        loading: false,
+        request: this.requestWithLifecycle(tab.request, 'idle'),
+        response: this.mockResponseForUrl(tab.request.url)
+      };
+    });
+  }
+
+  private updateRequest(id: string, request: RequestDraft): void {
+    let shouldComplete = false;
+    this.tabs = this.tabs.map((tab: RequestTabModel) => {
+      if (tab.id !== id) return tab;
+      const started = tab.request.lifecycle !== 'sending' && request.lifecycle === 'sending';
+      const cancelled = tab.request.lifecycle === 'sending' && request.lifecycle === 'idle';
+      shouldComplete = started;
+      return {
+        id: tab.id,
+        name: tab.name,
+        method: request.method,
+        dirty: tab.dirty || this.requestContentChanged(tab.request, request),
+        pinned: tab.pinned,
+        loading: request.lifecycle === 'sending',
+        request,
+        response: started ? this.responseWithStatus(tab.response, 'sending') :
+          (cancelled ? createCancelledResponse() : tab.response)
+      };
+    });
+    if (shouldComplete) {
+      setTimeout(() => this.completeMockRequest(id), 800);
+    }
+  }
+
+  private previewLargeResponse(id: string): void {
+    this.tabs = this.tabs.map((tab: RequestTabModel) => {
+      if (tab.id !== id) return tab;
+      const response = createSuccessResponse();
+      response.size = '1.0 MB preview';
+      return {
+        id: tab.id,
+        name: tab.name,
+        method: tab.method,
+        dirty: tab.dirty,
+        pinned: tab.pinned,
+        loading: tab.loading,
+        request: tab.request,
+        response
+      };
+    });
+  }
+
   private createTab(): void {
     const id = `untitled-${this.nextTabNumber}`;
     const request = createEmptyRequest();
@@ -47,7 +163,8 @@ export struct NimboWindow {
       dirty: true,
       pinned: false,
       loading: false,
-      request
+      request,
+      response: createEmptyResponse()
     }];
     this.nextTabNumber += 1;
     this.activeTabId = id;
@@ -80,6 +197,20 @@ export struct NimboWindow {
     if (node.method === 'HEAD') method = 'HEAD';
     if (node.method === 'OPTIONS') method = 'OPTIONS';
     const request = createEmptyRequest(method);
+    let response = createEmptyResponse();
+    if (node.id === 'get-users-request') {
+      request.url = 'https://jsonplaceholder.typicode.com/users';
+      response = createSuccessResponse();
+    } else if (node.id === 'connection-error-request') {
+      request.url = 'https://localhost:8080/api/users';
+      response = createErrorResponse();
+    } else if (node.id === 'large-response-request') {
+      request.url = 'https://api.example.com/large';
+      response = createLargeResponse();
+    } else if (node.id === 'binary-response-request') {
+      request.url = 'https://api.example.com/download';
+      response = createBinaryResponse();
+    }
     const tab: RequestTabModel = {
       id: node.id,
       name: node.name,
@@ -87,7 +218,8 @@ export struct NimboWindow {
       dirty: false,
       pinned: false,
       loading: false,
-      request
+      request,
+      response
     };
     this.tabs = [...this.tabs, tab];
     this.activeTabId = tab.id;
@@ -123,22 +255,8 @@ export struct NimboWindow {
           },
           onCloseTab: (id: string) => this.closeTab(id),
           onCreateTab: () => this.createTab(),
-          onUpdateRequest: (id: string, request: RequestDraft) => {
-            this.tabs = this.tabs.map((tab: RequestTabModel) => {
-              if (tab.id !== id) {
-                return tab;
-              }
-              return {
-                id: tab.id,
-                name: tab.name,
-                method: request.method,
-                dirty: tab.dirty || this.requestContentChanged(tab.request, request),
-                pinned: tab.pinned,
-                loading: request.lifecycle === 'sending',
-                request
-              };
-            });
-          }
+          onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
+          onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id)
         })
           .layoutWeight(1)
       }

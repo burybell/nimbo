@@ -6,6 +6,11 @@ export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
 export type BodyType = 'none' | 'json' | 'text' | 'form' | 'multipart' | 'binary';
+export type ResponseStatus = 'empty' | 'sending' | 'success' | 'error' | 'large' | 'binary' | 'cancelled';
+export type ResponseTab = 'body' | 'headers' | 'cookies' | 'timeline';
+export type ResponseBodyMode = 'pretty' | 'raw';
+export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
+  'connectionReset' | 'invalidUrl' | 'proxy' | 'cancelled' | 'unknown';
 
 export interface NavigationItemModel {
   id: NavigationDestination;
@@ -30,6 +35,7 @@ export interface RequestTabModel {
   pinned: boolean;
   loading: boolean;
   request: RequestDraft;
+  response: ResponseModel;
 }
 
 export interface KeyValueItem {
@@ -65,4 +71,27 @@ export interface RequestDraft {
   formItems: KeyValueItem[];
   multipartItems: KeyValueItem[];
   binaryFileName: string;
+}
+
+export interface ResponseErrorModel {
+  type: ResponseErrorType;
+  title: string;
+  message: string;
+  code: string;
+  details: string;
+}
+
+export interface ResponseModel {
+  status: ResponseStatus;
+  statusCode: number;
+  statusText: string;
+  headers: KeyValueItem[];
+  cookies: KeyValueItem[];
+  body: string;
+  contentType: string;
+  size: string;
+  duration: string;
+  protocol: string;
+  error: ResponseErrorModel;
+  previewAvailable: boolean;
 }

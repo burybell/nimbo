@@ -1,4 +1,102 @@
-import { CollectionNode, HttpMethod, RequestDraft, RequestTabModel } from '../models/ShellModels';
+import { CollectionNode, HttpMethod, RequestDraft, RequestTabModel, ResponseModel } from '../models/ShellModels';
+
+const SUCCESS_BODY: string = `[
+  {
+    "id": 1,
+    "name": "Leanne Graham",
+    "username": "Bret",
+    "email": "Sincere@april.biz",
+    "phone": "1-770-736-8031 x56442",
+    "website": "hildegard.org"
+  },
+  {
+    "id": 2,
+    "name": "Ervin Howell",
+    "username": "Antonette",
+    "email": "Shanna@melissa.tv"
+  }
+]`;
+
+export function createEmptyResponse(): ResponseModel {
+  return {
+    status: 'empty',
+    statusCode: 0,
+    statusText: '',
+    headers: [],
+    cookies: [],
+    body: '',
+    contentType: '',
+    size: '',
+    duration: '',
+    protocol: '',
+    error: { type: 'unknown', title: '', message: '', code: '', details: '' },
+    previewAvailable: false
+  };
+}
+
+export function createSuccessResponse(): ResponseModel {
+  return {
+    status: 'success',
+    statusCode: 200,
+    statusText: 'OK',
+    headers: [
+      { id: 'response-content-type', enabled: true, key: 'content-type', value: 'application/json; charset=utf-8', description: '', type: 'text', secret: false },
+      { id: 'response-cache-control', enabled: true, key: 'cache-control', value: 'max-age=43200', description: '', type: 'text', secret: false },
+      { id: 'response-server', enabled: true, key: 'server', value: 'cloudflare', description: '', type: 'text', secret: false }
+    ],
+    cookies: [],
+    body: SUCCESS_BODY,
+    contentType: 'application/json',
+    size: '12.4 KB',
+    duration: '183 ms',
+    protocol: 'HTTP/2',
+    error: { type: 'unknown', title: '', message: '', code: '', details: '' },
+    previewAvailable: true
+  };
+}
+
+export function createErrorResponse(): ResponseModel {
+  const response = createEmptyResponse();
+  response.status = 'error';
+  response.error = {
+    type: 'connectionRefused',
+    title: 'Connection failed',
+    message: 'Connection refused — localhost:8080',
+    code: 'ECONNREFUSED',
+    details: 'TCP connection to 127.0.0.1:8080 failed.'
+  };
+  return response;
+}
+
+export function createLargeResponse(): ResponseModel {
+  const response = createEmptyResponse();
+  response.status = 'large';
+  response.contentType = 'application/json';
+  response.size = '42.8 MB';
+  response.previewAvailable = true;
+  return response;
+}
+
+export function createBinaryResponse(): ResponseModel {
+  const response = createEmptyResponse();
+  response.status = 'binary';
+  response.contentType = 'application/zip';
+  response.size = '6.2 MB';
+  return response;
+}
+
+export function createCancelledResponse(): ResponseModel {
+  const response = createEmptyResponse();
+  response.status = 'cancelled';
+  response.error = {
+    type: 'cancelled',
+    title: 'Request cancelled',
+    message: 'The request was cancelled before it completed.',
+    code: 'CANCELLED',
+    details: 'Cancelled by the user.'
+  };
+  return response;
+}
 
 export function createEmptyRequest(method: HttpMethod = 'GET'): RequestDraft {
   return {
@@ -46,7 +144,8 @@ export const INITIAL_TABS: RequestTabModel[] = [
     dirty: false,
     pinned: false,
     loading: false,
-    request: createDemoRequest()
+    request: createDemoRequest(),
+    response: createSuccessResponse()
   }
 ];
 
@@ -76,6 +175,38 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
             type: 'request',
             name: 'Create User',
             method: 'POST',
+            expanded: false,
+            children: []
+          }
+        ]
+      },
+      {
+        id: 'response-states-folder',
+        type: 'folder',
+        name: 'Response States',
+        expanded: true,
+        children: [
+          {
+            id: 'connection-error-request',
+            type: 'request',
+            name: 'Connection Error',
+            method: 'GET',
+            expanded: false,
+            children: []
+          },
+          {
+            id: 'large-response-request',
+            type: 'request',
+            name: 'Large Response',
+            method: 'GET',
+            expanded: false,
+            children: []
+          },
+          {
+            id: 'binary-response-request',
+            type: 'request',
+            name: 'Binary Response',
+            method: 'GET',
             expanded: false,
             children: []
           }
