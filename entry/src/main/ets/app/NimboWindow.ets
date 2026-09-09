@@ -66,6 +66,7 @@ export struct NimboWindow {
   @State selectedEnvironmentId: string = 'development';
   @State savedRequests: PersistedRequestModel[] = [];
   @State preferences: AppPreferencesModel = createDefaultPreferences();
+  @State collectionDrawerOpen: boolean = false;
   private nextTabNumber: number = 1;
   private requestController: RequestController = new RequestController();
   private requestSerials: Map<string, number> = new Map<string, number>();
@@ -241,6 +242,25 @@ export struct NimboWindow {
 
   private showCollectionSidebar(): boolean {
     return this.activeDestination === 'collections' && this.windowWidth >= BreakpointTokens.compact;
+  }
+
+  private showCollectionDrawer(): boolean {
+    return this.activeDestination === 'collections' && this.windowWidth < BreakpointTokens.compact &&
+      this.collectionDrawerOpen;
+  }
+
+  private selectDestination(destination: NavigationDestination): void {
+    if (destination === 'collections' && this.windowWidth < BreakpointTokens.compact) {
+      if (this.activeDestination === 'collections') {
+        this.collectionDrawerOpen = !this.collectionDrawerOpen;
+      } else {
+        this.activeDestination = destination;
+        this.collectionDrawerOpen = true;
+      }
+      return;
+    }
+    this.collectionDrawerOpen = false;
+    this.activeDestination = destination;
   }
 
   private requestContentChanged(previous: RequestDraft, next: RequestDraft): boolean {
@@ -637,29 +657,60 @@ export struct NimboWindow {
       })
       .layoutWeight(1)
     } else {
-      if (this.showCollectionSidebar()) {
-        CollectionSidebar({
-          widthValue: this.collectionWidth(),
-          nodes: $collections,
-          onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node),
-          onChange: () => this.persistLocalData()
-        })
-      }
+      Stack({ alignContent: Alignment.TopStart }) {
+        Row() {
+          if (this.showCollectionSidebar()) {
+            CollectionSidebar({
+              widthValue: this.collectionWidth(),
+              nodes: $collections,
+              onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node),
+              onChange: () => this.persistLocalData()
+            })
+          }
 
-      Workspace({
-        tabs: $tabs,
-        activeTabId: $activeTabId,
-        onSelectTab: (id: string) => {
-          this.activeTabId = id;
-          this.persistLocalData();
-        },
-        onCloseTab: (id: string) => this.closeTab(id),
-        onCreateTab: () => this.createTab(),
-        onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
-        onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
-        onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response)
-      })
+          Workspace({
+            tabs: $tabs,
+            activeTabId: $activeTabId,
+            onSelectTab: (id: string) => {
+              this.activeTabId = id;
+              this.persistLocalData();
+            },
+            onCloseTab: (id: string) => this.closeTab(id),
+            onCreateTab: () => this.createTab(),
+            onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
+            onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
+            onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response)
+          })
+          .layoutWeight(1)
+        }
+        .width('100%')
+        .height('100%')
+
+        if (this.showCollectionDrawer()) {
+          Row() {
+            CollectionSidebar({
+              widthValue: SizeTokens.collectionSidebarCompactWidth,
+              nodes: $collections,
+              dismissible: true,
+              onOpenRequest: (node: CollectionNode) => {
+                this.collectionDrawerOpen = false;
+                this.openCollectionRequest(node);
+              },
+              onChange: () => this.persistLocalData(),
+              onDismiss: () => { this.collectionDrawerOpen = false; }
+            })
+            Column()
+              .layoutWeight(1)
+              .height('100%')
+              .backgroundColor(ColorTokens.overlayScrim)
+              .onClick(() => { this.collectionDrawerOpen = false; })
+          }
+          .width('100%')
+          .height('100%')
+        }
+      }
       .layoutWeight(1)
+      .height('100%')
     }
   }
 
@@ -749,7 +800,7 @@ export struct NimboWindow {
           PrimarySidebar({
             compact: this.isCompact(),
             activeDestination: this.activeDestination,
-            onDestinationChange: (destination: NavigationDestination) => { this.activeDestination = destination; },
+            onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
             onCreateRequest: () => this.createTab(),
             onImportCurl: () => { this.activeOverlay = 'curl'; },
             onImportPostman: () => { this.activeOverlay = 'postman'; }
@@ -840,6 +891,7 @@ export struct NimboWindow {
     .onAreaChange((_oldValue: Area, newValue: Area) => {
       const measuredWidth = Number.parseFloat(newValue.width.toString());
       if (!Number.isNaN(measuredWidth)) {
+        if (measuredWidth >= BreakpointTokens.compact) this.collectionDrawerOpen = false;
         this.windowWidth = measuredWidth;
       }
     })

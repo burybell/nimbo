@@ -7,8 +7,10 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 export struct CollectionSidebar {
   @Prop widthValue: number = SizeTokens.collectionSidebarWidth;
   @Link nodes: CollectionNode[];
+  @Prop dismissible: boolean = false;
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onChange: () => void = () => {};
+  onDismiss: () => void = () => {};
 
   build() {
     Column() {
@@ -30,6 +32,15 @@ export struct CollectionSidebar {
           .width(SizeTokens.controlSmall)
           .height(SizeTokens.controlSmall)
           .textAlign(TextAlign.Center)
+        if (this.dismissible) {
+          Text('×')
+            .fontSize(18)
+            .fontColor(ColorTokens.textSecondary)
+            .width(SizeTokens.controlSmall)
+            .height(SizeTokens.controlSmall)
+            .textAlign(TextAlign.Center)
+            .onClick(this.onDismiss)
+        }
       }
       .width('100%')
       .height(SizeTokens.controlLarge)

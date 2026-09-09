@@ -236,7 +236,7 @@ Milestone 6 完成后，按 PRD 的 `Nimbo 1.0 必须完成` 收口仍缺失的 
 
 第一批验收要求：导出文件可被标准 JSON 解析；默认导出不包含认证密码、Token、API Key 或标记为 Secret 的变量值；二进制下载与保存后的字节数和内容一致；取消文件选择不得产生空文件或错误提示。
 
-当前进度（2026-09-09）：第 1–3 项已完成并通过 HarmonyOS PC 模拟器运行时验收。Light / Dark / System 可在设置页即时切换，主题选择随 schema v3 本地状态持久化，旧 schema v1/v2 数据可无损迁移；深色模式下重启应用后主题、集合、请求与历史记录均可恢复。下一批从第 4 项 HarmonyOS PC 细节打磨与 1024px 窗口验收开始。
+当前进度（2026-09-09）：第 1–4 项已完成并通过 HarmonyOS PC 模拟器运行时验收。Light / Dark / System 可在设置页即时切换，主题选择随 schema v3 本地状态持久化，旧 schema v1/v2 数据可无损迁移；深色模式下重启应用后主题、集合、请求与历史记录均可恢复。PC 端已验证 1024px Compact、1280px Desktop 和最大化大屏布局；低于 1024px 时 Secondary Sidebar 自动隐藏，并可通过集合图标打开带遮罩的临时侧栏。下一批从第 5 项 Tablet / Phone 基础响应式验收开始。
 
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
@@ -421,7 +421,7 @@ Response 是视觉核心。
 - [ ] Response Mock Success 可展示
 - [ ] Response Mock Error 可展示
 - [ ] Environment Switcher 可打开
-- [ ] 1024px 窗口宽度不出现严重溢出
+- [x] 1024px 窗口宽度不出现严重溢出
 - [ ] 主要颜色、间距、圆角都来自 Token
 - [ ] 没有真实网络请求依赖
 

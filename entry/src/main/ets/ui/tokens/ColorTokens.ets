@@ -33,6 +33,7 @@ export class ColorTokens {
   static get statusServerError(): ResourceColor { return $r('app.color.nimbo_status_server_error'); }
   static get statusInfo(): ResourceColor { return $r('app.color.nimbo_status_info'); }
   static get statusDangerBackground(): ResourceColor { return $r('app.color.nimbo_status_danger_background'); }
+  static get overlayScrim(): ResourceColor { return $r('app.color.nimbo_overlay_scrim'); }
 
   static get codeBackground(): ResourceColor { return $r('app.color.nimbo_code_background'); }
   static get codeGutter(): ResourceColor { return $r('app.color.nimbo_code_gutter'); }

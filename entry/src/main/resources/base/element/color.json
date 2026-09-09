@@ -33,6 +33,7 @@
     { "name": "nimbo_status_server_error", "value": "#D94C4C" },
     { "name": "nimbo_status_info", "value": "#5B68F6" },
     { "name": "nimbo_status_danger_background", "value": "#FFF3F3" },
+    { "name": "nimbo_overlay_scrim", "value": "#520F1422" },
     { "name": "nimbo_code_background", "value": "#171B24" },
     { "name": "nimbo_code_gutter", "value": "#202631" },
     { "name": "nimbo_code_text", "value": "#DCE3EF" },
