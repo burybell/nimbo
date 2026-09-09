@@ -1,4 +1,4 @@
-import { HttpMethod } from '../../../models/ShellModels';
+import { CurlCodec, CurlImportResult } from '../../../services/CurlCodec';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
@@ -8,42 +8,17 @@ export struct ImportCurlDialog {
   @State state: string = 'idle';
   @State errorText: string = '';
   onCancel: () => void = () => {};
-  onImport: (method: HttpMethod, url: string) => void = () => {};
-
-  private parsedMethod(): HttpMethod {
-    const upper = this.curlText.toUpperCase();
-    if (upper.includes('-X POST')) return 'POST';
-    if (upper.includes('-X PUT')) return 'PUT';
-    if (upper.includes('-X PATCH')) return 'PATCH';
-    if (upper.includes('-X DELETE')) return 'DELETE';
-    if (upper.includes('-X HEAD')) return 'HEAD';
-    if (upper.includes('-X OPTIONS')) return 'OPTIONS';
-    return 'GET';
-  }
-
-  private parsedUrl(): string {
-    const words = this.curlText.replaceAll('\n', ' ').split(' ');
-    for (let index = 0; index < words.length; index += 1) {
-      const clean = words[index].trim().replaceAll("'", '').replaceAll('"', '');
-      if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
-    }
-    return '';
-  }
+  onImport: (result: CurlImportResult) => void = () => {};
 
   private importCurl(): void {
-    if (!this.curlText.trim().toLowerCase().startsWith('curl')) {
+    try {
+      const result = CurlCodec.parse(this.curlText);
+      this.state = 'importing';
+      setTimeout(() => this.onImport(result), 120);
+    } catch (error) {
       this.state = 'invalid';
-      this.errorText = 'Line 1: expected a command beginning with curl.';
-      return;
+      this.errorText = `${error}`.replace('Error: ', '');
     }
-    const url = this.parsedUrl();
-    if (url.length === 0) {
-      this.state = 'invalid';
-      this.errorText = 'Line 1: no valid http:// or https:// URL was found.';
-      return;
-    }
-    this.state = 'importing';
-    setTimeout(() => this.onImport(this.parsedMethod(), url), 350);
   }
 
   build() {

@@ -9,7 +9,7 @@ export struct HistoryPage {
   @State activeGroup: HistoryGroup = 'Today';
   @State menuId: string = '';
   onOpen: (item: HistoryItemModel) => void = () => {};
-  onCopy: (message: string) => void = () => {};
+  onCopy: (item: HistoryItemModel, asCurl: boolean) => void = () => {};
   onDelete: (id: string) => void = () => {};
   onClear: () => void = () => {};
   private groups: HistoryGroup[] = ['Today', 'Yesterday', 'Previous 7 Days', 'Older'];
@@ -45,8 +45,8 @@ export struct HistoryPage {
   private handleMenu(action: string, item: HistoryItemModel): void {
     this.menuId = '';
     if (action === 'open') this.onOpen(item);
-    if (action === 'copy-url') this.onCopy('Copied');
-    if (action === 'copy-curl') this.onCopy('Copied');
+    if (action === 'copy-url') this.onCopy(item, false);
+    if (action === 'copy-curl') this.onCopy(item, true);
     if (action === 'delete') this.onDelete(item.id);
   }
 

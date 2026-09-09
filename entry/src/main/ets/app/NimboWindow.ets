@@ -17,6 +17,7 @@ import {
 import { ShellState } from '../state/ShellState';
 import { createDefaultPreferences } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
+import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
 import { RequestController } from '../controller/RequestController';
 import {
   createBinaryResponse,
@@ -43,6 +44,7 @@ import { ColorTokens } from '../ui/tokens/ColorTokens';
 import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
 import { i18n } from '@kit.LocalizationKit';
 import { common, Want } from '@kit.AbilityKit';
+import { pasteboard } from '@kit.BasicServicesKit';
 
 @Component
 export struct NimboWindow {
@@ -429,14 +431,21 @@ export struct NimboWindow {
     }
   }
 
-  private createImportedRequest(method: HttpMethod, url: string, name: string): void {
+  private createImportedRequest(result: CurlImportResult, name: string): void {
     const id = `imported-${Date.now()}`;
-    const request = this.createRequest(method);
-    request.url = url;
+    const request = this.createRequest(result.method);
+    request.url = result.url;
+    request.params = result.params;
+    request.headers = result.headers;
+    request.auth = result.auth;
+    request.bodyType = result.bodyType;
+    request.bodyText = result.bodyText;
+    request.formItems = result.formItems;
+    request.multipartItems = result.multipartItems;
     this.tabs = [...this.tabs, {
       id,
       name,
-      method,
+      method: result.method,
       dirty: true,
       pinned: false,
       loading: false,
@@ -487,6 +496,22 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private async copyHistoryItem(item: HistoryItemModel, asCurl: boolean): Promise<void> {
+    let value = item.url;
+    if (asCurl) {
+      const request = this.createRequest(item.method);
+      request.url = item.url;
+      value = CurlCodec.encode(request);
+    }
+    try {
+      const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, value);
+      await pasteboard.getSystemPasteboard().setData(data);
+      this.showToast('Copied');
+    } catch (_error) {
+      this.showToast('Copy failed');
+    }
+  }
+
   @Builder
   mainContent() {
     if (this.activeDestination === 'environments') {
@@ -500,7 +525,7 @@ export struct NimboWindow {
       HistoryPage({
         items: this.historyItems,
         onOpen: (item: HistoryItemModel) => this.openHistoryItem(item),
-        onCopy: (message: string) => this.showToast(message),
+        onCopy: (item: HistoryItemModel, asCurl: boolean) => this.copyHistoryItem(item, asCurl),
         onDelete: (id: string) => this.deleteHistoryItem(id),
         onClear: () => { this.activeOverlay = 'clear-history'; }
       })
@@ -642,9 +667,9 @@ export struct NimboWindow {
       if (this.activeOverlay === 'curl') {
         ImportCurlDialog({
           onCancel: () => { this.activeOverlay = ''; },
-          onImport: (method: HttpMethod, url: string) => {
+          onImport: (result: CurlImportResult) => {
             this.activeOverlay = '';
-            this.createImportedRequest(method, url, 'Imported cURL');
+            this.createImportedRequest(result, 'Imported cURL');
             this.showToast('Imported');
           }
         })
