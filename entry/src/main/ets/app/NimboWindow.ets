@@ -68,7 +68,7 @@ export struct NimboWindow {
       previous.params !== next.params || previous.headers !== next.headers || previous.auth !== next.auth ||
       previous.bodyType !== next.bodyType || previous.bodyText !== next.bodyText ||
       previous.formItems !== next.formItems || previous.multipartItems !== next.multipartItems ||
-      previous.binaryFileName !== next.binaryFileName;
+      previous.binaryFileName !== next.binaryFileName || previous.settings !== next.settings;
   }
 
   private responseWithStatus(response: ResponseModel, status: ResponseStatus): ResponseModel {
@@ -101,7 +101,8 @@ export struct NimboWindow {
       bodyText: request.bodyText,
       formItems: request.formItems,
       multipartItems: request.multipartItems,
-      binaryFileName: request.binaryFileName
+      binaryFileName: request.binaryFileName,
+      settings: request.settings
     };
   }
 
@@ -379,6 +380,11 @@ export struct NimboWindow {
     if (node.id === 'get-users-request') {
       request.url = 'https://jsonplaceholder.typicode.com/users';
       response = createSuccessResponse();
+    } else if (node.id === 'create-user-request') {
+      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.activeConfigTab = 'body';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "title": "Nimbo",\n  "body": "HarmonyOS request",\n  "userId": 1\n}';
     } else if (node.id === 'connection-error-request') {
       request.url = 'https://localhost:8080/api/users';
       response = createErrorResponse();

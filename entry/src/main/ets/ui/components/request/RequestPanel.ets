@@ -5,7 +5,8 @@ import {
   KeyValueItem,
   RequestConfigTab,
   RequestDraft,
-  RequestLifecycle
+  RequestLifecycle,
+  RequestSettings
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
@@ -13,6 +14,7 @@ import { AuthEditor } from './AuthEditor';
 import { BodyEditor } from './BodyEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 import { RequestConfigTabs } from './RequestConfigTabs';
+import { RequestSettingsEditor } from './RequestSettingsEditor';
 import { RequestToolbar } from './RequestToolbar';
 
 @Component
@@ -23,7 +25,8 @@ export struct RequestPanel {
   private emit(method: HttpMethod, url: string, lifecycle: RequestLifecycle,
     activeConfigTab: RequestConfigTab, params: KeyValueItem[], headers: KeyValueItem[],
     auth: AuthConfig, bodyType: BodyType, bodyText: string, formItems: KeyValueItem[],
-    multipartItems: KeyValueItem[], binaryFileName: string): void {
+    multipartItems: KeyValueItem[], binaryFileName: string,
+    settings: RequestSettings = this.request.settings): void {
     this.onChange({
       method,
       url,
@@ -36,7 +39,8 @@ export struct RequestPanel {
       bodyText,
       formItems,
       multipartItems,
-      binaryFileName
+      binaryFileName,
+      settings
     });
   }
 
@@ -126,7 +130,7 @@ export struct RequestPanel {
             this.request.multipartItems, this.request.binaryFileName)
         })
           .layoutWeight(1)
-      } else {
+      } else if (this.request.activeConfigTab === 'body') {
         BodyEditor({
           bodyType: this.request.bodyType,
           bodyText: this.request.bodyText,
@@ -153,6 +157,15 @@ export struct RequestPanel {
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
             this.request.multipartItems, binaryFileName)
+        })
+          .layoutWeight(1)
+      } else {
+        RequestSettingsEditor({
+          settings: this.request.settings,
+          onChange: (settings: RequestSettings) => this.emit(this.request.method, this.request.url,
+            this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
+            this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
+            this.request.multipartItems, this.request.binaryFileName, settings)
         })
           .layoutWeight(1)
       }

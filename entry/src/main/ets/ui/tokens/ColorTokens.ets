@@ -32,6 +32,7 @@ export class ColorTokens {
   static readonly statusClientError: string = '#D98900';
   static readonly statusServerError: string = '#D94C4C';
   static readonly statusInfo: string = '#5B68F6';
+  static readonly statusDangerBackground: string = '#FFF3F3';
 
   static readonly codeBackground: string = '#171B24';
   static readonly codeGutter: string = '#202631';

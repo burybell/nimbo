@@ -119,7 +119,13 @@ export function createEmptyRequest(method: HttpMethod = 'GET'): RequestDraft {
     bodyText: '',
     formItems: [],
     multipartItems: [],
-    binaryFileName: ''
+    binaryFileName: '',
+    settings: {
+      timeoutMs: 30000,
+      followRedirects: true,
+      sslVerification: true,
+      useCookieJar: true
+    }
   };
 }
 

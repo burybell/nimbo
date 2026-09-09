@@ -40,6 +40,7 @@ export struct RequestConfigTabs {
       this.tabItem('headers', 'Headers', this.headerCount > 0 ? this.headerCount.toString() : '')
       this.tabItem('auth', 'Auth')
       this.tabItem('body', 'Body', this.bodyHasContent ? '●' : '')
+      this.tabItem('settings', 'Settings')
       Blank()
     }
     .width('100%')

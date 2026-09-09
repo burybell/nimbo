@@ -1,7 +1,7 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body';
+export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
@@ -58,6 +58,13 @@ export interface AuthConfig {
   apiLocation: 'header' | 'query';
 }
 
+export interface RequestSettings {
+  timeoutMs: number;
+  followRedirects: boolean;
+  sslVerification: boolean;
+  useCookieJar: boolean;
+}
+
 export interface RequestDraft {
   method: HttpMethod;
   url: string;
@@ -71,6 +78,7 @@ export interface RequestDraft {
   formItems: KeyValueItem[];
   multipartItems: KeyValueItem[];
   binaryFileName: string;
+  settings: RequestSettings;
 }
 
 export interface ResponseErrorModel {

@@ -1,6 +1,15 @@
 import { http } from '@kit.NetworkKit';
 import { HttpEngineRequest, HttpEngineResponse } from '../models/NetworkModels';
 
+class StopRedirectInterceptor implements http.HttpInterceptor {
+  interceptorType: http.InterceptorType = http.InterceptorType.REDIRECTION;
+
+  async interceptorHandle(_request: http.HttpRequestContext,
+    _response: http.HttpResponse): Promise<http.ChainContinue> {
+    return false;
+  }
+}
+
 export class HttpEngine {
   private activeRequests: Map<string, http.HttpRequest> = new Map<string, http.HttpRequest>();
 
@@ -16,6 +25,16 @@ export class HttpEngine {
   async execute(id: string, request: HttpEngineRequest): Promise<HttpEngineResponse> {
     this.cancel(id);
     const task = http.createHttp();
+    if (!request.followRedirects) {
+      try {
+        const interceptorChain = new http.HttpInterceptorChain();
+        interceptorChain.addChain([new StopRedirectInterceptor()]);
+        interceptorChain.apply(task);
+      } catch (_error) {
+        task.destroy();
+        throw new Error('Redirect control is unavailable on this device.');
+      }
+    }
     this.activeRequests.set(id, task);
     const startedAt = Date.now();
     const options: http.HttpRequestOptions = {
@@ -28,7 +47,23 @@ export class HttpEngine {
       maxLimit: 12 * 1024 * 1024
     };
     if (request.method === 'PATCH') options.method = request.method as http.RequestMethod;
-    if (request.body.length > 0) options.extraData = request.body;
+    options.remoteValidation = request.sslVerification ? 'system' : 'skip';
+    if (typeof request.body === 'string') {
+      if (request.body.length > 0) options.extraData = request.body;
+    } else if (request.body.byteLength > 0) {
+      options.extraData = request.body;
+    }
+    if (request.multipart.length > 0) {
+      options.multiFormDataList = request.multipart.map((part) => {
+        const formPart: http.MultiFormData = {
+          name: part.name,
+          contentType: part.contentType,
+          data: part.data
+        };
+        if (part.remoteFileName.length > 0) formPart.remoteFileName = part.remoteFileName;
+        return formPart;
+      });
+    }
     try {
       const response = await task.request(request.url, options);
       let body = '';

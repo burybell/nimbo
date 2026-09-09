@@ -1,7 +1,8 @@
 import { BusinessError } from '@kit.BasicServicesKit';
 import { util } from '@kit.ArkTS';
+import { fileIo } from '@kit.CoreFileKit';
 import { HttpEngine } from '../network/HttpEngine';
-import { HttpEngineRequest, HttpEngineResponse } from '../models/NetworkModels';
+import { HttpEngineRequest, HttpEngineResponse, HttpMultipartPart } from '../models/NetworkModels';
 import {
   EnvironmentModel,
   KeyValueItem,
@@ -15,6 +16,8 @@ import { createCancelledResponse, createEmptyResponse } from '../mock/ShellMockD
 export class RequestController {
   private engine: HttpEngine = new HttpEngine();
   private cancelledRequests: Set<string> = new Set<string>();
+  private cookieJar: Map<string, Map<string, string>> = new Map<string, Map<string, string>>();
+  private readonly maxUploadBytes: number = 32 * 1024 * 1024;
 
   private resolveVariables(value: string, environment: EnvironmentModel): string {
     let resolved = value;
@@ -74,6 +77,99 @@ export class RequestController {
 
   private hasHeader(headers: Record<string, string>, name: string): boolean {
     return Object.keys(headers).some((key: string) => key.toLowerCase() === name.toLowerCase());
+  }
+
+  private hostKey(url: string): string {
+    const scheme = url.indexOf('://');
+    const start = scheme >= 0 ? scheme + 3 : 0;
+    const slash = url.indexOf('/', start);
+    return url.substring(start, slash >= 0 ? slash : url.length).toLowerCase();
+  }
+
+  private cookieHeader(url: string): string {
+    const cookies = this.cookieJar.get(this.hostKey(url));
+    if (!cookies) return '';
+    const values: string[] = [];
+    cookies.forEach((value: string, name: string) => values.push(`${name}=${value}`));
+    return values.join('; ');
+  }
+
+  private storeCookies(url: string, responseCookies: string): void {
+    if (responseCookies.length === 0) return;
+    const host = this.hostKey(url);
+    const cookies = this.cookieJar.get(host) ?? new Map<string, string>();
+    responseCookies.split('\n').forEach((line: string) => {
+      const pair = line.trim().split(';')[0];
+      const separator = pair.indexOf('=');
+      if (separator <= 0) return;
+      const name = pair.substring(0, separator).trim();
+      const value = pair.substring(separator + 1).trim();
+      if (value.length === 0) cookies.delete(name);
+      else cookies.set(name, value);
+    });
+    this.cookieJar.set(host, cookies);
+  }
+
+  private fileName(uri: string): string {
+    const slash = uri.lastIndexOf('/');
+    const name = slash >= 0 ? uri.substring(slash + 1) : uri;
+    try {
+      return decodeURIComponent(name);
+    } catch (_error) {
+      return name;
+    }
+  }
+
+  private async readFile(uri: string): Promise<ArrayBuffer> {
+    let descriptor = -1;
+    try {
+      const file = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
+      descriptor = file.fd;
+      const stat = await fileIo.stat(descriptor);
+      if (stat.size > this.maxUploadBytes) {
+        throw new Error('The selected file exceeds the 32 MB upload limit.');
+      }
+      const buffer = new ArrayBuffer(stat.size);
+      const bytesRead = await fileIo.read(descriptor, buffer);
+      return bytesRead === stat.size ? buffer : buffer.slice(0, bytesRead);
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('The selected file could not be read.');
+    } finally {
+      if (descriptor >= 0) {
+        try {
+          fileIo.closeSync(descriptor);
+        } catch (_error) {
+          // The descriptor may already be closed after an I/O failure.
+        }
+      }
+    }
+  }
+
+  private async buildMultipart(request: RequestDraft,
+    environment: EnvironmentModel): Promise<HttpMultipartPart[]> {
+    const parts: HttpMultipartPart[] = [];
+    for (let index = 0; index < request.multipartItems.length; index += 1) {
+      const item = request.multipartItems[index];
+      if (!item.enabled || item.key.length === 0) continue;
+      if (item.type === 'file') {
+        if (item.value.length === 0) continue;
+        parts.push({
+          name: this.resolveVariables(item.key, environment),
+          contentType: 'application/octet-stream',
+          remoteFileName: this.fileName(item.value),
+          data: await this.readFile(item.value)
+        });
+      } else {
+        parts.push({
+          name: this.resolveVariables(item.key, environment),
+          contentType: 'text/plain; charset=utf-8',
+          remoteFileName: '',
+          data: this.resolveVariables(item.value, environment)
+        });
+      }
+    }
+    return parts;
   }
 
   private buildBody(request: RequestDraft, environment: EnvironmentModel,
@@ -197,10 +293,15 @@ export class RequestController {
   private errorModel(error: BusinessError): ResponseModel {
     const response = createEmptyResponse();
     response.status = 'error';
+    const code = error.code === undefined ? 'CLIENT_ERROR' : `${error.code}`;
     let model: ResponseErrorModel = {
       type: 'unknown', title: 'Request failed', message: error.message,
-      code: `${error.code}`, details: error.message
+      code, details: error.message
     };
+    if (error.message.includes('selected file') || error.message.includes('upload limit')) {
+      model = { type: 'unknown', title: 'File upload failed', message: error.message,
+        code, details: 'Choose a readable file no larger than 32 MB.' };
+    }
     if (error.code === 2300003 || error.code === 2300001) {
       model = { type: 'invalidUrl', title: 'Invalid URL', message: error.message,
         code: `${error.code}`, details: 'Check the URL and protocol, then try again.' };
@@ -211,7 +312,7 @@ export class RequestController {
       model = { type: 'connectionRefused', title: 'Connection failed', message: error.message,
         code: `${error.code}`, details: 'The remote server refused or could not accept the connection.' };
     } else if (error.code === 2300028) {
-      model = { type: 'timeout', title: 'Request timed out', message: 'The request exceeded the 30 second timeout.',
+      model = { type: 'timeout', title: 'Request timed out', message: 'The request exceeded its configured timeout.',
         code: `${error.code}`, details: error.message };
     } else if (error.code === 2300058 || error.code === 2300059 || error.code === 2300060 ||
       error.code === 2300077) {
@@ -224,28 +325,35 @@ export class RequestController {
 
   async send(id: string, request: RequestDraft, environment: EnvironmentModel): Promise<ResponseModel> {
     this.cancelledRequests.delete(id);
-    if (request.bodyType === 'multipart' || request.bodyType === 'binary') {
-      const unsupported = createEmptyResponse();
-      unsupported.status = 'error';
-      unsupported.error = {
-        type: 'unknown',
-        title: 'Body type not connected yet',
-        message: 'Multipart and binary transfer are scheduled after the core HTTP methods.',
-        code: 'UNSUPPORTED_BODY',
-        details: 'Use JSON, Text, or Form for the current HTTP milestone.'
-      };
-      return unsupported;
-    }
-    const headers = this.buildHeaders(request, environment);
-    const engineRequest: HttpEngineRequest = {
-      url: this.buildUrl(request, environment),
-      method: request.method,
-      headers,
-      body: this.buildBody(request, environment, headers),
-      timeout: 30000
-    };
     try {
-      return this.responseModel(await this.engine.execute(id, engineRequest));
+      const url = this.buildUrl(request, environment);
+      const headers = this.buildHeaders(request, environment);
+      if (request.settings.useCookieJar && !this.hasHeader(headers, 'cookie')) {
+        const cookie = this.cookieHeader(url);
+        if (cookie.length > 0) headers['Cookie'] = cookie;
+      }
+      let body: string | ArrayBuffer = this.buildBody(request, environment, headers);
+      let multipart: HttpMultipartPart[] = [];
+      if (request.method !== 'GET' && request.method !== 'HEAD' && request.bodyType === 'binary' &&
+        request.binaryFileName.length > 0) {
+        body = await this.readFile(request.binaryFileName);
+        if (!this.hasHeader(headers, 'content-type')) headers['Content-Type'] = 'application/octet-stream';
+      } else if (request.method !== 'GET' && request.method !== 'HEAD' && request.bodyType === 'multipart') {
+        multipart = await this.buildMultipart(request, environment);
+      }
+      const engineRequest: HttpEngineRequest = {
+        url,
+        method: request.method,
+        headers,
+        body,
+        multipart,
+        timeout: request.settings.timeoutMs,
+        followRedirects: request.settings.followRedirects,
+        sslVerification: request.settings.sslVerification
+      };
+      const result = await this.engine.execute(id, engineRequest);
+      if (request.settings.useCookieJar) this.storeCookies(url, result.cookies);
+      return this.responseModel(result);
     } catch (error) {
       if (this.cancelledRequests.has(id)) return createCancelledResponse();
       return this.errorModel(error as BusinessError);

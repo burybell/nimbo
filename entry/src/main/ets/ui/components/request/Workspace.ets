@@ -35,7 +35,8 @@ export struct Workspace {
       bodyText: request.bodyText,
       formItems: request.formItems,
       multipartItems: request.multipartItems,
-      binaryFileName: request.binaryFileName
+      binaryFileName: request.binaryFileName,
+      settings: request.settings
     };
   }
 

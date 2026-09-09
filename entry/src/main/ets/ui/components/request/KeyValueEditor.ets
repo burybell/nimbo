@@ -1,4 +1,5 @@
 import { KeyValueItem, KeyValueMode } from '../../../models/ShellModels';
+import filePicker from '@ohos.file.picker';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
@@ -84,6 +85,18 @@ export struct KeyValueEditor {
 
   private removeItem(id: string): void {
     this.onChange(this.items.filter((item: KeyValueItem) => item.id !== id));
+  }
+
+  private async selectItemFile(item: KeyValueItem): Promise<void> {
+    try {
+      const picker = new filePicker.DocumentViewPicker();
+      const uris = await picker.select();
+      if (uris.length > 0) {
+        this.updateItem(item.id, item.key, uris[0], item.description, item.enabled, 'file');
+      }
+    } catch (_error) {
+      // Cancelling the system picker keeps the previous selection.
+    }
   }
 
   private enterBulkMode(): void {
@@ -219,14 +232,29 @@ export struct KeyValueEditor {
               .layoutWeight(3)
               .onChange((value: string) => this.updateItem(item.id, value, item.value,
                 item.description, item.enabled, item.type))
-            TextInput({ text: item.value, placeholder: 'Value' })
-              .type(item.secret ? InputType.Password : InputType.Normal)
-              .fontSize(13)
-              .height(SizeTokens.controlMedium)
-              .backgroundColor(ColorTokens.bgWorkspace)
-              .layoutWeight(4)
-              .onChange((value: string) => this.updateItem(item.id, item.key, value,
-                item.description, item.enabled, item.type))
+            if (this.showType && item.type === 'file') {
+              Button() {
+                Text(item.value.length > 0 ? item.value : 'Choose file')
+                  .fontSize(12)
+                  .fontColor(item.value.length > 0 ? ColorTokens.textSecondary : ColorTokens.brand600)
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+              }
+                .height(SizeTokens.controlMedium)
+                .backgroundColor(ColorTokens.bgApp)
+                .borderRadius(RadiusTokens.small)
+                .layoutWeight(4)
+                .onClick(() => this.selectItemFile(item))
+            } else {
+              TextInput({ text: item.value, placeholder: 'Value' })
+                .type(item.secret ? InputType.Password : InputType.Normal)
+                .fontSize(13)
+                .height(SizeTokens.controlMedium)
+                .backgroundColor(ColorTokens.bgWorkspace)
+                .layoutWeight(4)
+                .onChange((value: string) => this.updateItem(item.id, item.key, value,
+                  item.description, item.enabled, item.type))
+            }
             if (this.showSecret) {
               Checkbox({ name: `${item.id}-secret` })
                 .select(item.secret)
@@ -270,7 +298,7 @@ export struct KeyValueEditor {
           .width('100%')
           .padding({ left: SpacingTokens.x2, right: SpacingTokens.x1 })
           .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
-        }, (item: KeyValueItem) => item.id)
+        }, (item: KeyValueItem) => `${item.id}-${item.type}-${item.secret}`)
 
         Row({ space: SpacingTokens.x2 }) {
           Text('+')
