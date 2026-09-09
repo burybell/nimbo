@@ -37,6 +37,7 @@ export interface PersistedTabModel {
 
 export interface PersistedAppState {
   schemaVersion: number;
+  savedAt: number;
   collections: CollectionNode[];
   requests: PersistedRequestModel[];
   tabs: PersistedTabModel[];

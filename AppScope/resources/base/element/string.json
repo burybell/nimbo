@@ -634,7 +634,7 @@
     },
     {
       "name": "dialog_reset_message",
-      "value": "Reset local demo data and settings to their defaults?"
+      "value": "Remove all local collections, requests, environments, history, and settings?"
     },
     {
       "name": "curl_paste_hint",

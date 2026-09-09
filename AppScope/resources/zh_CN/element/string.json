@@ -634,7 +634,7 @@
     },
     {
       "name": "dialog_reset_message",
-      "value": "将本地演示数据和设置恢复为默认值？"
+      "value": "移除所有本地集合、请求、环境、历史记录和设置？"
     },
     {
       "name": "curl_paste_hint",

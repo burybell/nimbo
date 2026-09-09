@@ -141,9 +141,36 @@ export struct NimboWindow {
         this.tabs = [];
         this.activeTabId = '';
       }
+    } else if (this.persistedData.length > 0) {
+      this.applySafeDefaults();
     }
     this.stateReady = true;
     this.persistLocalData();
+  }
+
+  private applySafeDefaults(): void {
+    const preferences = createDefaultPreferences();
+    const request = createEmptyRequest();
+    request.settings = {
+      timeoutMs: preferences.defaultTimeoutMs,
+      followRedirects: preferences.followRedirects,
+      sslVerification: preferences.sslVerification,
+      useCookieJar: true
+    };
+    const tab: RequestTabModel = {
+      id: 'untitled-1', name: 'Untitled Request 1', method: 'GET', dirty: false,
+      pinned: false, loading: false, request, response: createEmptyResponse()
+    };
+    this.collections = [];
+    this.tabs = [tab];
+    this.activeTabId = tab.id;
+    this.environments = [];
+    this.historyItems = [];
+    this.lastDeletedHistory = [];
+    this.selectedEnvironmentId = '';
+    this.savedRequests = [{ id: tab.id, name: tab.name, method: tab.method, request: this.idleRequest(request) }];
+    this.preferences = preferences;
+    this.nextTabNumber = 2;
   }
 
   private historyGroup(createdAt: number): 'Today' | 'Yesterday' | 'Previous 7 Days' | 'Older' {
@@ -173,6 +200,7 @@ export struct NimboWindow {
       this.tabs.map((tab: RequestTabModel) => this.persistedTab(tab)) : [];
     const state: PersistedAppState = {
       schemaVersion: LocalDataStore.schemaVersion,
+      savedAt: Date.now(),
       collections: this.collections,
       requests: this.savedRequests,
       tabs,
@@ -716,14 +744,7 @@ export struct NimboWindow {
           dangerous: true,
           onCancel: () => { this.activeOverlay = ''; },
           onConfirm: () => {
-            this.collections = ShellState.createInitialCollections();
-            this.tabs = ShellState.createInitialTabs();
-            this.activeTabId = this.tabs.length > 0 ? this.tabs[0].id : '';
-            this.environments = DEMO_ENVIRONMENTS;
-            this.historyItems = DEMO_HISTORY;
-            this.selectedEnvironmentId = 'development';
-            this.savedRequests = [];
-            this.preferences = createDefaultPreferences();
+            this.applySafeDefaults();
             try {
               i18n.System.setAppPreferredLanguage('en');
             } catch (_error) {
