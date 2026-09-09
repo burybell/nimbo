@@ -724,6 +724,8 @@
       "name": "view_details",
       "value": "View Details"
     },
+    { "name": "mobile_request", "value": "Request" },
+    { "name": "mobile_response", "value": "Response" },
     { "name": "action_done", "value": "Done" },
     { "name": "step_select", "value": "1  Select" },
     { "name": "step_analyze", "value": "2  Analyze" },

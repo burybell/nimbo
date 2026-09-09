@@ -10,6 +10,7 @@ export struct RequestToolbar {
   @Prop method: HttpMethod = 'GET';
   @Prop url: string = '';
   @Prop lifecycle: RequestLifecycle = 'idle';
+  @Prop phone: boolean = false;
   onMethodChange: (value: HttpMethod) => void = () => {};
   onUrlChange: (value: string) => void = () => {};
   onSend: () => void = () => {};
@@ -30,13 +31,28 @@ export struct RequestToolbar {
         .width('100%')
       }
 
-      Row() {
-        MethodSelector({ value: this.method, onChange: this.onMethodChange })
-        UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })
-          .layoutWeight(1)
-        SendButton({ state: this.lifecycle, onSend: this.onSend, onCancel: this.onCancel })
+      if (this.phone) {
+        Column({ space: SpacingTokens.x2 }) {
+          UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })
+            .width('100%')
+          Row({ space: SpacingTokens.x2 }) {
+            MethodSelector({ value: this.method, fluid: true, onChange: this.onMethodChange })
+              .layoutWeight(1)
+            SendButton({ state: this.lifecycle, fluid: true, onSend: this.onSend, onCancel: this.onCancel })
+              .layoutWeight(1)
+          }
+          .width('100%')
+        }
+        .width('100%')
+      } else {
+        Row() {
+          MethodSelector({ value: this.method, onChange: this.onMethodChange })
+          UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })
+            .layoutWeight(1)
+          SendButton({ state: this.lifecycle, onSend: this.onSend, onCancel: this.onCancel })
+        }
+        .width('100%')
       }
-      .width('100%')
     }
     .width('100%')
   }

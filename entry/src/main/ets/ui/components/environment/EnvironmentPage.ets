@@ -6,6 +6,7 @@ import { KeyValueEditor } from '../request/KeyValueEditor';
 @Component
 export struct EnvironmentPage {
   @Prop environments: EnvironmentModel[] = [];
+  @Prop phone: boolean = false;
   @State selectedId: string = 'development';
   onChange: (id: string, variables: KeyValueItem[]) => void = () => {};
   onSaved: () => void = () => {};
@@ -17,6 +18,63 @@ export struct EnvironmentPage {
   }
 
   build() {
+    if (this.phone) {
+      Column() {
+        Scroll() {
+          Row({ space: SpacingTokens.x2 }) {
+            ForEach(this.environments, (environment: EnvironmentModel) => {
+              Row({ space: SpacingTokens.x2 }) {
+                Text('◎').fontSize(14)
+                  .fontColor(environment.id === this.selectedId ? ColorTokens.brand500 : ColorTokens.textTertiary)
+                Text(environment.name).fontSize(12).maxLines(1)
+                  .fontColor(environment.id === this.selectedId ? ColorTokens.brand600 : ColorTokens.textSecondary)
+              }
+              .height(40)
+              .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+              .backgroundColor(environment.id === this.selectedId ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
+              .borderRadius(RadiusTokens.medium)
+              .onClick(() => { this.selectedId = environment.id; })
+            }, (environment: EnvironmentModel) => environment.id)
+          }
+          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+        }
+        .width('100%').height(56).scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off)
+        .backgroundColor(ColorTokens.bgSidebar)
+
+        Column() {
+          Row() {
+            Column({ space: SpacingTokens.x1 }) {
+              Text(this.selectedEnvironment().name).fontSize(18).fontWeight(FontWeight.Medium)
+                .fontColor(ColorTokens.textPrimary)
+              Text($r('app.string.environment_variables_hint')).fontSize(11)
+                .fontColor(ColorTokens.textTertiary).maxLines(2)
+            }
+            .layoutWeight(1)
+            Button($r('app.string.action_save')).fontSize(12).fontColor(ColorTokens.textOnBrand)
+              .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium).onClick(this.onSaved)
+          }
+          .width('100%').height(68).padding({ left: SpacingTokens.x4, right: SpacingTokens.x3 })
+          .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+          Scroll() {
+            Column({ space: SpacingTokens.x3 }) {
+              Text($r('app.string.variables')).fontSize(14).fontWeight(FontWeight.Medium)
+                .fontColor(ColorTokens.textPrimary).width('100%')
+              KeyValueEditor({
+                items: this.selectedEnvironment().variables,
+                mode: 'environment',
+                showDescription: false,
+                showSecret: true,
+                onChange: (items: KeyValueItem[]) => this.onChange(this.selectedId, items)
+              })
+            }
+            .width('100%').padding(SpacingTokens.x4)
+          }
+          .layoutWeight(1).width('100%')
+        }
+        .layoutWeight(1).width('100%').backgroundColor(ColorTokens.bgWorkspace)
+      }
+      .width('100%').height('100%')
+    } else {
     Row() {
       Column() {
         Row() {
@@ -117,5 +175,6 @@ export struct EnvironmentPage {
     }
     .width('100%')
     .height('100%')
+    }
   }
 }

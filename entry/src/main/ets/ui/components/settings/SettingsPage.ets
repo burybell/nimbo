@@ -10,6 +10,7 @@ import { SettingRow } from './SettingRow';
 export struct SettingsPage {
   @State section: SettingsSection = 'General';
   @Prop preferences: AppPreferencesModel = createDefaultPreferences();
+  @Prop phone: boolean = false;
   onChange: (preferences: AppPreferencesModel) => void = () => {};
   onExport: () => void = () => {};
   onExportSecrets: () => void = () => {};
@@ -154,59 +155,81 @@ export struct SettingsPage {
   }
 
   build() {
-    Row() {
+    if (this.phone) {
       Column() {
-        Text($r('app.string.settings_title'))
-          .fontSize(15)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(ColorTokens.textPrimary)
-          .width('100%')
-          .height(48)
-          .padding({ left: SpacingTokens.x3 })
-        ForEach(SETTINGS_SECTIONS, (item: SettingsSectionModel) => {
-          Row({ space: SpacingTokens.x3 }) {
-            Text(item.icon).width(20).fontSize(15).textAlign(TextAlign.Center)
-              .fontColor(item.id === this.section ? ColorTokens.brand500 : ColorTokens.textTertiary)
-            Text(this.sectionLabel(item.id)).fontSize(13)
-              .fontColor(item.id === this.section ? ColorTokens.brand600 : ColorTokens.textSecondary)
+        Scroll() {
+          Row({ space: SpacingTokens.x2 }) {
+            ForEach(SETTINGS_SECTIONS, (item: SettingsSectionModel) => {
+              Row({ space: SpacingTokens.x2 }) {
+                Text(item.icon).fontSize(14)
+                  .fontColor(item.id === this.section ? ColorTokens.brand500 : ColorTokens.textTertiary)
+                Text(this.sectionLabel(item.id)).fontSize(12)
+                  .fontColor(item.id === this.section ? ColorTokens.brand600 : ColorTokens.textSecondary)
+              }
+              .height(40)
+              .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+              .backgroundColor(item.id === this.section ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
+              .borderRadius(RadiusTokens.medium)
+              .onClick(() => { this.section = item.id; })
+            }, (item: SettingsSectionModel) => item.id)
           }
-          .width('100%')
-          .height(40)
-          .padding({ left: SpacingTokens.x3 })
-          .backgroundColor(item.id === this.section ? ColorTokens.bgSurfaceActive : ColorTokens.bgSidebar)
-          .borderRadius(RadiusTokens.medium)
-          .onClick(() => { this.section = item.id; })
-        }, (item: SettingsSectionModel) => item.id)
-        Blank()
-      }
-      .width(220)
-      .height('100%')
-      .padding(SpacingTokens.x2)
-      .backgroundColor(ColorTokens.bgSidebar)
-      .border({ width: { right: 1 }, color: ColorTokens.borderSubtle })
-
-      Scroll() {
-        Column() {
-          Text(this.sectionLabel(this.section))
-            .fontSize(22)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(ColorTokens.textPrimary)
-            .width('100%')
-          Text($r('app.string.settings_description'))
-            .fontSize(12)
-            .fontColor(ColorTokens.textTertiary)
-            .width('100%')
-            .margin({ top: SpacingTokens.x1, bottom: SpacingTokens.x5 })
-          this.sectionContent()
+          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
         }
         .width('100%')
-        .padding({ left: 40, right: 40, top: 30, bottom: 40 })
+        .height(56)
+        .scrollable(ScrollDirection.Horizontal)
+        .scrollBar(BarState.Off)
+        .backgroundColor(ColorTokens.bgSidebar)
+
+        Scroll() {
+          Column() {
+            Text(this.sectionLabel(this.section)).fontSize(20).fontWeight(FontWeight.Medium)
+              .fontColor(ColorTokens.textPrimary).width('100%')
+            Text($r('app.string.settings_description')).fontSize(12).fontColor(ColorTokens.textTertiary)
+              .width('100%').margin({ top: SpacingTokens.x1, bottom: SpacingTokens.x4 })
+            this.sectionContent()
+          }
+          .width('100%')
+          .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4, top: SpacingTokens.x4, bottom: 40 })
+        }
+        .layoutWeight(1)
+        .width('100%')
       }
-      .layoutWeight(1)
-      .height('100%')
-      .backgroundColor(ColorTokens.bgWorkspace)
+      .width('100%').height('100%').backgroundColor(ColorTokens.bgWorkspace)
+    } else {
+      Row() {
+        Column() {
+          Text($r('app.string.settings_title')).fontSize(15).fontWeight(FontWeight.Medium)
+            .fontColor(ColorTokens.textPrimary).width('100%').height(48).padding({ left: SpacingTokens.x3 })
+          ForEach(SETTINGS_SECTIONS, (item: SettingsSectionModel) => {
+            Row({ space: SpacingTokens.x3 }) {
+              Text(item.icon).width(20).fontSize(15).textAlign(TextAlign.Center)
+                .fontColor(item.id === this.section ? ColorTokens.brand500 : ColorTokens.textTertiary)
+              Text(this.sectionLabel(item.id)).fontSize(13)
+                .fontColor(item.id === this.section ? ColorTokens.brand600 : ColorTokens.textSecondary)
+            }
+            .width('100%').height(40).padding({ left: SpacingTokens.x3 })
+            .backgroundColor(item.id === this.section ? ColorTokens.bgSurfaceActive : ColorTokens.bgSidebar)
+            .borderRadius(RadiusTokens.medium).onClick(() => { this.section = item.id; })
+          }, (item: SettingsSectionModel) => item.id)
+          Blank()
+        }
+        .width(220).height('100%').padding(SpacingTokens.x2).backgroundColor(ColorTokens.bgSidebar)
+        .border({ width: { right: 1 }, color: ColorTokens.borderSubtle })
+
+        Scroll() {
+          Column() {
+            Text(this.sectionLabel(this.section)).fontSize(22).fontWeight(FontWeight.Medium)
+              .fontColor(ColorTokens.textPrimary).width('100%')
+            Text($r('app.string.settings_description')).fontSize(12).fontColor(ColorTokens.textTertiary)
+              .width('100%').margin({ top: SpacingTokens.x1, bottom: SpacingTokens.x5 })
+            this.sectionContent()
+          }
+          .width('100%').padding({ left: 40, right: 40, top: 30, bottom: 40 })
+        }
+        .layoutWeight(1).height('100%').backgroundColor(ColorTokens.bgWorkspace)
+      }
+      .width('100%').height('100%')
     }
-    .width('100%')
-    .height('100%')
   }
 }

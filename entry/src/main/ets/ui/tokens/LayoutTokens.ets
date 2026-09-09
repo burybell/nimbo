@@ -28,8 +28,8 @@ export class SizeTokens {
 }
 
 export class BreakpointTokens {
+  static readonly tablet: number = 720;
   static readonly compact: number = 1024;
   static readonly desktop: number = 1280;
   static readonly desktopLarge: number = 1440;
 }
-

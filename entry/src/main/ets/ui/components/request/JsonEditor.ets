@@ -103,8 +103,8 @@ export struct JsonEditor {
           .fontColor(ColorTokens.httpDelete)
           .width('100%')
           .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: 7, bottom: 7 })
-          .backgroundColor('#FFF3F3')
-          .border({ width: { top: 1 }, color: '#FFDADA' })
+          .backgroundColor(ColorTokens.statusDangerBackground)
+          .border({ width: { top: 1 }, color: ColorTokens.statusDangerBorder })
       }
     }
     .width('100%')

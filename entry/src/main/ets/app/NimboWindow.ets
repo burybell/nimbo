@@ -35,6 +35,7 @@ import {
 import { DEMO_ENVIRONMENTS, DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
+import { MobileNavigation } from '../ui/components/common/MobileNavigation';
 import { NimboDialog } from '../ui/components/common/NimboDialog';
 import { NimboToast } from '../ui/components/common/NimboToast';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
@@ -225,6 +226,10 @@ export struct NimboWindow {
     return this.windowWidth < BreakpointTokens.desktop;
   }
 
+  private isPhone(): boolean {
+    return this.windowWidth < BreakpointTokens.tablet;
+  }
+
   private createRequest(method: HttpMethod = 'GET'): RequestDraft {
     const request = createEmptyRequest(method);
     request.settings = {
@@ -241,16 +246,16 @@ export struct NimboWindow {
   }
 
   private showCollectionSidebar(): boolean {
-    return this.activeDestination === 'collections' && this.windowWidth >= BreakpointTokens.compact;
+    return this.activeDestination === 'collections' && this.windowWidth >= BreakpointTokens.tablet;
   }
 
   private showCollectionDrawer(): boolean {
-    return this.activeDestination === 'collections' && this.windowWidth < BreakpointTokens.compact &&
+    return this.activeDestination === 'collections' && this.isPhone() &&
       this.collectionDrawerOpen;
   }
 
   private selectDestination(destination: NavigationDestination): void {
-    if (destination === 'collections' && this.windowWidth < BreakpointTokens.compact) {
+    if (destination === 'collections' && this.isPhone()) {
       if (this.activeDestination === 'collections') {
         this.collectionDrawerOpen = !this.collectionDrawerOpen;
       } else {
@@ -634,6 +639,7 @@ export struct NimboWindow {
     if (this.activeDestination === 'environments') {
       EnvironmentPage({
         environments: this.environments,
+        phone: this.isPhone(),
         onChange: (id: string, variables: KeyValueItem[]) => this.updateEnvironment(id, variables),
         onSaved: () => this.showToast('Saved')
       })
@@ -641,6 +647,7 @@ export struct NimboWindow {
     } else if (this.activeDestination === 'history') {
       HistoryPage({
         items: this.historyItems,
+        phone: this.isPhone(),
         onOpen: (item: HistoryItemModel) => this.openHistoryItem(item),
         onCopy: (item: HistoryItemModel, asCurl: boolean) => this.copyHistoryItem(item, asCurl),
         onDelete: (id: string) => this.deleteHistoryItem(id),
@@ -650,6 +657,7 @@ export struct NimboWindow {
     } else if (this.activeDestination === 'settings') {
       SettingsPage({
         preferences: this.preferences,
+        phone: this.isPhone(),
         onChange: (preferences: AppPreferencesModel) => this.updatePreferences(preferences),
         onExport: () => this.exportNimbo(false),
         onExportSecrets: () => { this.activeOverlay = 'export-secrets'; },
@@ -671,6 +679,7 @@ export struct NimboWindow {
           Workspace({
             tabs: $tabs,
             activeTabId: $activeTabId,
+            phone: this.isPhone(),
             onSelectTab: (id: string) => {
               this.activeTabId = id;
               this.persistLocalData();
@@ -694,6 +703,7 @@ export struct NimboWindow {
               dismissible: true,
               onOpenRequest: (node: CollectionNode) => {
                 this.collectionDrawerOpen = false;
+                this.activeDestination = 'workspace';
                 this.openCollectionRequest(node);
               },
               onChange: () => this.persistLocalData(),
@@ -788,6 +798,7 @@ export struct NimboWindow {
       Column() {
         GlobalToolbar({
           compact: this.isCompact(),
+          phone: this.isPhone(),
           selectedEnvironmentId: this.selectedEnvironmentId,
           onEnvironmentChange: (id: string) => {
             this.selectedEnvironmentId = id;
@@ -796,20 +807,32 @@ export struct NimboWindow {
           onSettings: () => { this.activeDestination = 'settings'; }
         })
 
-        Row() {
-          PrimarySidebar({
-            compact: this.isCompact(),
-            activeDestination: this.activeDestination,
-            onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
-            onCreateRequest: () => this.createTab(),
-            onImportCurl: () => { this.activeOverlay = 'curl'; },
-            onImportPostman: () => { this.activeOverlay = 'postman'; }
-          })
+        if (this.isPhone()) {
+          Column() {
+            this.mainContent()
+            MobileNavigation({
+              activeDestination: this.activeDestination,
+              onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination)
+            })
+          }
+          .layoutWeight(1)
+          .width('100%')
+        } else {
+          Row() {
+            PrimarySidebar({
+              compact: this.isCompact(),
+              activeDestination: this.activeDestination,
+              onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
+              onCreateRequest: () => this.createTab(),
+              onImportCurl: () => { this.activeOverlay = 'curl'; },
+              onImportPostman: () => { this.activeOverlay = 'postman'; }
+            })
 
-          this.mainContent()
+            this.mainContent()
+          }
+          .layoutWeight(1)
+          .width('100%')
         }
-        .layoutWeight(1)
-        .width('100%')
       }
       .width('100%')
       .height('100%')
@@ -891,7 +914,9 @@ export struct NimboWindow {
     .onAreaChange((_oldValue: Area, newValue: Area) => {
       const measuredWidth = Number.parseFloat(newValue.width.toString());
       if (!Number.isNaN(measuredWidth)) {
-        if (measuredWidth >= BreakpointTokens.compact) this.collectionDrawerOpen = false;
+        if (this.windowWidth >= BreakpointTokens.tablet && measuredWidth < BreakpointTokens.tablet &&
+          this.activeDestination === 'collections') this.collectionDrawerOpen = true;
+        if (measuredWidth >= BreakpointTokens.tablet) this.collectionDrawerOpen = false;
         this.windowWidth = measuredWidth;
       }
     })

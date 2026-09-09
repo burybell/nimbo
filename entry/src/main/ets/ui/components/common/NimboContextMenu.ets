@@ -35,6 +35,6 @@ export struct NimboContextMenu {
     .backgroundColor(ColorTokens.bgSurface)
     .border({ width: 1, color: ColorTokens.borderSubtle })
     .borderRadius(RadiusTokens.large)
-    .shadow({ radius: 12, color: '#29000000', offsetY: 4 })
+    .shadow({ radius: 12, color: ColorTokens.shadowDefault, offsetY: 4 })
   }
 }

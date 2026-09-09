@@ -15,13 +15,13 @@ export struct NimboToast {
         Text($r('app.string.action_undo'))
           .fontSize(13)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#AEB6FF')
+          .fontColor(ColorTokens.toastAction)
           .onClick(this.onAction)
       }
     }
     .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4, top: SpacingTokens.x3, bottom: SpacingTokens.x3 })
-    .backgroundColor(ColorTokens.textPrimary)
+    .backgroundColor(ColorTokens.toastBackground)
     .borderRadius(RadiusTokens.large)
-    .shadow({ radius: 12, color: '#33000000', offsetY: 4 })
+    .shadow({ radius: 12, color: ColorTokens.shadowDefault, offsetY: 4 })
   }
 }

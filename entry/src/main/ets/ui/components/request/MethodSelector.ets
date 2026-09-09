@@ -5,6 +5,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct MethodSelector {
   @Prop value: HttpMethod = 'GET';
+  @Prop fluid: boolean = false;
   onChange: (value: HttpMethod) => void = () => {};
 
   private methodIndex(): number {
@@ -44,7 +45,7 @@ export struct MethodSelector {
       .selectedOptionBgColor(ColorTokens.brand50)
       .selectedOptionFontColor(ColorTokens.brand600)
       .height(SizeTokens.controlLarge)
-      .width(104)
+      .width(this.fluid ? '100%' : 104)
       .padding({ left: SpacingTokens.x2, right: SpacingTokens.x1 })
       .backgroundColor(ColorTokens.bgSurface)
       .borderRadius({ topLeft: RadiusTokens.medium, bottomLeft: RadiusTokens.medium })

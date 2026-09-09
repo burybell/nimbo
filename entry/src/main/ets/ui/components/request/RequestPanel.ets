@@ -20,6 +20,7 @@ import { RequestToolbar } from './RequestToolbar';
 @Component
 export struct RequestPanel {
   @Prop request: RequestDraft;
+  @Prop phone: boolean = false;
   onChange: (request: RequestDraft) => void = () => {};
 
   private emit(method: HttpMethod, url: string, lifecycle: RequestLifecycle,
@@ -68,6 +69,7 @@ export struct RequestPanel {
         method: this.request.method,
         url: this.request.url,
         lifecycle: this.request.lifecycle,
+        phone: this.phone,
         onMethodChange: (method: HttpMethod) => this.emitCore(method, this.request.url,
           this.request.lifecycle, this.request.activeConfigTab),
         onUrlChange: (url: string) => this.emitCore(this.request.method, url,
@@ -77,7 +79,9 @@ export struct RequestPanel {
         onCancel: () => this.emitCore(this.request.method, this.request.url, 'idle',
           this.request.activeConfigTab)
       })
-        .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4, top: SpacingTokens.x4, bottom: SpacingTokens.x3 })
+        .padding({ left: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,
+          right: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,
+          top: this.phone ? SpacingTokens.x3 : SpacingTokens.x4, bottom: SpacingTokens.x3 })
 
       RequestConfigTabs({
         activeTab: this.request.activeConfigTab,

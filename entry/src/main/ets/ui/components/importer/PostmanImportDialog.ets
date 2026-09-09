@@ -128,7 +128,7 @@ export struct PostmanImportDialog {
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      Column().width('100%').height('100%').backgroundColor('#520F1422').onClick(this.onCancel)
+      Column().width('100%').height('100%').backgroundColor(ColorTokens.overlayScrim).onClick(this.onCancel)
       Column({ space: SpacingTokens.x4 }) {
         Row() {
           Text($r('app.string.postman_title')).fontSize(18).fontWeight(FontWeight.Medium).fontColor(ColorTokens.textPrimary)
@@ -163,7 +163,7 @@ export struct PostmanImportDialog {
       .padding(SpacingTokens.x6)
       .backgroundColor(ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.large)
-      .shadow({ radius: 20, color: '#33000000', offsetY: 8 })
+      .shadow({ radius: 20, color: ColorTokens.shadowDefault, offsetY: 8 })
     }
     .width('100%').height('100%')
   }

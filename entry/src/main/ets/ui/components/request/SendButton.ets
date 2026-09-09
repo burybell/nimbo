@@ -5,6 +5,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct SendButton {
   @Prop state: RequestLifecycle = 'idle';
+  @Prop fluid: boolean = false;
   onSend: () => void = () => {};
   onCancel: () => void = () => {};
 
@@ -25,7 +26,7 @@ export struct SendButton {
       .justifyContent(FlexAlign.Center)
     }
     .height(SizeTokens.controlLarge)
-    .width(108)
+    .width(this.fluid ? '100%' : 108)
     .backgroundColor(this.state === 'sending' ? ColorTokens.httpDelete : ColorTokens.brand500)
     .borderRadius({ topRight: RadiusTokens.medium, bottomRight: RadiusTokens.medium })
     .stateStyles({

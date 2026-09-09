@@ -18,7 +18,7 @@ export struct ErrorPanel {
           .width(36)
           .height(36)
           .textAlign(TextAlign.Center)
-          .backgroundColor('#FFE6E6')
+          .backgroundColor(ColorTokens.statusDangerBackground)
           .borderRadius(18)
         Column({ space: SpacingTokens.x1 }) {
           Text(this.error.title)
@@ -73,8 +73,8 @@ export struct ErrorPanel {
     .width('100%')
     .padding(SpacingTokens.x5)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor('#FFF1F1')
-    .border({ width: 1, color: '#FFDADA' })
+    .backgroundColor(ColorTokens.statusDangerBackground)
+    .border({ width: 1, color: ColorTokens.statusDangerBorder })
     .borderRadius(RadiusTokens.medium)
   }
 }

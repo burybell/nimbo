@@ -6,6 +6,7 @@ import { NimboContextMenu } from '../common/NimboContextMenu';
 @Component
 export struct HistoryPage {
   @Prop items: HistoryItemModel[] = [];
+  @Prop phone: boolean = false;
   @State activeGroup: HistoryGroup = 'Today';
   @State menuId: string = '';
   onOpen: (item: HistoryItemModel) => void = () => {};
@@ -51,6 +52,72 @@ export struct HistoryPage {
   }
 
   build() {
+    if (this.phone) {
+      Column() {
+        Scroll() {
+          Row({ space: SpacingTokens.x2 }) {
+            ForEach(this.groups, (group: HistoryGroup) => {
+              Text(this.groupLabel(group))
+                .fontSize(12)
+                .fontColor(group === this.activeGroup ? ColorTokens.brand600 : ColorTokens.textSecondary)
+                .height(40)
+                .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+                .backgroundColor(group === this.activeGroup ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
+                .borderRadius(RadiusTokens.medium)
+                .onClick(() => { this.activeGroup = group; })
+            }, (group: HistoryGroup) => group)
+          }
+          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+        }
+        .width('100%').height(56).scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Off)
+        .backgroundColor(ColorTokens.bgSidebar)
+
+        Row() {
+          Column({ space: SpacingTokens.x1 }) {
+            Text(this.groupLabel(this.activeGroup)).fontSize(18).fontWeight(FontWeight.Medium)
+              .fontColor(ColorTokens.textPrimary)
+            Text($r('app.string.history_local_hint')).fontSize(11).fontColor(ColorTokens.textTertiary)
+          }
+          Blank()
+          Button($r('app.string.action_clear_history')).fontSize(11).fontColor(ColorTokens.httpDelete)
+            .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderDefault })
+            .borderRadius(RadiusTokens.medium).onClick(this.onClear)
+        }
+        .width('100%').height(68).padding({ left: SpacingTokens.x4, right: SpacingTokens.x3 })
+        .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+
+        Scroll() {
+          Column() {
+            ForEach(this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup),
+              (item: HistoryItemModel) => {
+                Column({ space: SpacingTokens.x2 }) {
+                  Row({ space: SpacingTokens.x3 }) {
+                    Text(item.method).fontSize(11).fontWeight(FontWeight.Medium)
+                      .fontColor(this.methodColor(item.method))
+                    Text(item.url).layoutWeight(1).fontSize(13).fontColor(ColorTokens.textPrimary)
+                      .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+                    Text(`${item.status}`).fontSize(12).fontWeight(FontWeight.Medium)
+                      .fontColor(this.statusColor(item.status))
+                  }
+                  .width('100%')
+                  Row() {
+                    Text(item.time).fontSize(11).fontColor(ColorTokens.textTertiary)
+                    Blank()
+                    Text(item.duration).fontSize(11).fontColor(ColorTokens.textSecondary)
+                  }
+                  .width('100%')
+                }
+                .width('100%').height(64).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
+                .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+                .onClick(() => this.onOpen(item))
+              }, (item: HistoryItemModel) => item.id)
+          }
+          .width('100%')
+        }
+        .layoutWeight(1).width('100%')
+      }
+      .width('100%').height('100%').backgroundColor(ColorTokens.bgWorkspace)
+    } else {
     Row() {
       Column() {
         Text($r('app.string.nav_history'))
@@ -160,5 +227,6 @@ export struct HistoryPage {
     }
     .width('100%')
     .height('100%')
+    }
   }
 }
