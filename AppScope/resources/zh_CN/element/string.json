@@ -699,6 +699,11 @@
     {
       "name": "view_details",
       "value": "查看详情"
-    }
+    },
+    { "name": "action_done", "value": "完成" },
+    { "name": "step_select", "value": "1  选择" },
+    { "name": "step_analyze", "value": "2  分析" },
+    { "name": "step_preview", "value": "3  预览" },
+    { "name": "step_result", "value": "4  结果" }
   ]
 }

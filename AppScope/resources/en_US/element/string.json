@@ -699,6 +699,11 @@
     {
       "name": "view_details",
       "value": "View Details"
-    }
+    },
+    { "name": "action_done", "value": "Done" },
+    { "name": "step_select", "value": "1  Select" },
+    { "name": "step_analyze", "value": "2  Analyze" },
+    { "name": "step_preview", "value": "3  Preview" },
+    { "name": "step_result", "value": "4  Result" }
   ]
 }

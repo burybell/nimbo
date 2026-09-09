@@ -18,6 +18,7 @@ import { ShellState } from '../state/ShellState';
 import { createDefaultPreferences } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
 import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
+import { PostmanImportResult } from '../services/PostmanCodec';
 import { RequestController } from '../controller/RequestController';
 import {
   createBinaryResponse,
@@ -458,6 +459,16 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private applyPostmanImport(result: PostmanImportResult): void {
+    const nextCollections = [...this.collections, ...result.collections];
+    const nextRequests = [...this.savedRequests, ...result.requests];
+    const nextEnvironments = [...this.environments, ...result.environments];
+    this.collections = nextCollections;
+    this.savedRequests = nextRequests;
+    this.environments = nextEnvironments;
+    this.persistLocalData();
+  }
+
   private openHistoryItem(item: HistoryItemModel): void {
     const existing = this.tabs.find((tab: RequestTabModel) => tab.id === item.id);
     if (existing) {
@@ -677,6 +688,7 @@ export struct NimboWindow {
       if (this.activeOverlay === 'postman') {
         PostmanImportDialog({
           onCancel: () => { this.activeOverlay = ''; },
+          onImport: (result: PostmanImportResult) => this.applyPostmanImport(result),
           onComplete: () => { this.activeOverlay = ''; this.showToast('Imported'); }
         })
       }
