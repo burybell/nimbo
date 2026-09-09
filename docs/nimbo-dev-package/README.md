@@ -36,7 +36,9 @@ nimbo-dev-package/
 
 ## 当前目标
 
-第一阶段不是立刻做一个完整 Postman，而是先完成可运行的 **HarmonyOS PC UI Skeleton**：
+Milestone 0–6 已完成。当前进入 **Milestone 7 — Nimbo 1.0 Completion**，按 PRD 收口本地备份导出、二进制响应保存、主题和多尺寸适配；不提前实现 1.1/1.2 或明确暂缓的能力。
+
+最初的 UI Skeleton 结构为：
 
 ```text
 App Window

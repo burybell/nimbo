@@ -165,6 +165,10 @@
       "value": "Binary response"
     },
     {
+      "name": "response_save_binary",
+      "value": "Save binary…"
+    },
+    {
       "name": "response_no_headers",
       "value": "No response headers"
     },
@@ -335,6 +339,18 @@
     {
       "name": "export_action",
       "value": "Export…"
+    },
+    {
+      "name": "nimbo_export_title",
+      "value": "Export Nimbo backup"
+    },
+    {
+      "name": "nimbo_export_description",
+      "value": "Save a local .nimbo.json backup with secrets redacted."
+    },
+    {
+      "name": "dialog_export_secrets_message",
+      "value": "Export a backup containing unmasked authentication and secret values?"
     },
     {
       "name": "about_description",

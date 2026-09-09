@@ -1,4 +1,5 @@
 import { http } from '@kit.NetworkKit';
+import { util } from '@kit.ArkTS';
 import { HttpEngineRequest, HttpEngineResponse } from '../models/NetworkModels';
 
 class StopRedirectInterceptor implements http.HttpInterceptor {
@@ -42,7 +43,7 @@ export class HttpEngine {
       header: request.headers,
       readTimeout: request.timeout,
       connectTimeout: request.timeout,
-      expectDataType: http.HttpDataType.STRING,
+      expectDataType: http.HttpDataType.ARRAY_BUFFER,
       usingCache: false,
       maxLimit: 12 * 1024 * 1024
     };
@@ -66,8 +67,12 @@ export class HttpEngine {
     }
     try {
       const response = await task.request(request.url, options);
-      let body = '';
-      if (typeof response.result === 'string') body = response.result;
+      let body = new ArrayBuffer(0);
+      if (response.result instanceof ArrayBuffer) {
+        body = response.result;
+      } else if (typeof response.result === 'string') {
+        body = new util.TextEncoder().encodeInto(response.result).buffer as ArrayBuffer;
+      }
       return {
         statusCode: Number(response.responseCode),
         headers: response.header as Record<string, string | Array<string>>,

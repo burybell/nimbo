@@ -222,6 +222,24 @@ HarmonyOS PersistentStorage
 
 验收要求：重启应用后本地状态可恢复；关闭历史记录后不再写入；Reset 可恢复到安全默认值；导入失败不得污染现有数据。
 
+### Milestone 7 — Nimbo 1.0 Completion
+
+Milestone 6 完成后，按 PRD 的 `Nimbo 1.0 必须完成` 收口仍缺失的 P0 能力，不进入 1.1 的协议与协作范围。
+
+按顺序实现：
+
+1. Nimbo 本地备份导出 `*.nimbo.json`；默认脱敏 Secret，包含 Secret 的导出必须再次确认
+2. 二进制响应保留原始字节并支持通过系统文件选择器保存
+3. Light / Dark / System 主题真正生效
+4. HarmonyOS PC 细节打磨与 1024px 窗口验收
+5. Tablet / Phone 基础响应式验收
+
+第一批验收要求：导出文件可被标准 JSON 解析；默认导出不包含认证密码、Token、API Key 或标记为 Secret 的变量值；二进制下载与保存后的字节数和内容一致；取消文件选择不得产生空文件或错误提示。
+
+当前进度（2026-09-09）：第 1–2 项已完成并通过 HarmonyOS PC 模拟器运行时验收；下一批从第 3 项主题切换开始。
+
+继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
+
 ---
 
 ## 6. 架构约束

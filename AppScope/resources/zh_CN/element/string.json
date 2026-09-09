@@ -165,6 +165,10 @@
       "value": "二进制响应"
     },
     {
+      "name": "response_save_binary",
+      "value": "保存二进制文件…"
+    },
+    {
       "name": "response_no_headers",
       "value": "响应中没有标头"
     },
@@ -335,6 +339,18 @@
     {
       "name": "export_action",
       "value": "导出…"
+    },
+    {
+      "name": "nimbo_export_title",
+      "value": "导出 Nimbo 备份"
+    },
+    {
+      "name": "nimbo_export_description",
+      "value": "保存本地 .nimbo.json 备份，默认脱敏密钥。"
+    },
+    {
+      "name": "dialog_export_secrets_message",
+      "value": "导出包含未脱敏认证信息和密钥值的备份？"
     },
     {
       "name": "about_description",

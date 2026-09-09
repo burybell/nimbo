@@ -19,6 +19,8 @@ import { createDefaultPreferences } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
 import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
 import { PostmanImportResult } from '../services/PostmanCodec';
+import { LocalFileExporter } from '../services/LocalFileExporter';
+import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
 import {
   createBinaryResponse,
@@ -194,11 +196,10 @@ export struct NimboWindow {
       item.id === id ? saved : item) : [...this.savedRequests, saved];
   }
 
-  private persistLocalData(): void {
-    if (!this.stateReady) return;
+  private persistedState(): PersistedAppState {
     const tabs: PersistedTabModel[] = this.preferences.restoreWorkspace ?
       this.tabs.map((tab: RequestTabModel) => this.persistedTab(tab)) : [];
-    const state: PersistedAppState = {
+    return {
       schemaVersion: LocalDataStore.schemaVersion,
       savedAt: Date.now(),
       collections: this.collections,
@@ -210,7 +211,11 @@ export struct NimboWindow {
       history: this.normalizeHistory(this.historyItems),
       preferences: this.preferences
     };
-    this.persistedData = LocalDataStore.encode(state);
+  }
+
+  private persistLocalData(): void {
+    if (!this.stateReady) return;
+    this.persistedData = LocalDataStore.encode(this.persistedState());
   }
 
   private isCompact(): boolean {
@@ -252,6 +257,7 @@ export struct NimboWindow {
       headers: response.headers,
       cookies: response.cookies,
       body: response.body,
+      binaryBody: response.binaryBody,
       contentType: response.contentType,
       size: response.size,
       duration: response.duration,
@@ -374,6 +380,7 @@ export struct NimboWindow {
         headers: response.headers,
         cookies: response.cookies,
         body: response.body.substring(0, 1024 * 1024),
+        binaryBody: new ArrayBuffer(0),
         contentType: response.contentType,
         size: `${response.size} · 1.0 MB preview`,
         duration: response.duration,
@@ -551,6 +558,41 @@ export struct NimboWindow {
     }
   }
 
+  private async exportNimbo(includeSecrets: boolean): Promise<void> {
+    try {
+      const date = new Date().toISOString().substring(0, 10);
+      const content = NimboExportCodec.encode(this.persistedState(), includeSecrets);
+      if (await LocalFileExporter.saveText(`nimbo-backup-${date}.nimbo.json`, content)) {
+        this.showToast('Exported');
+      }
+    } catch (_error) {
+      this.showToast('Export failed');
+    }
+  }
+
+  private binaryExtension(contentType: string): string {
+    const value = contentType.toLowerCase();
+    if (value.includes('zip')) return 'zip';
+    if (value.includes('pdf')) return 'pdf';
+    if (value.includes('png')) return 'png';
+    if (value.includes('jpeg') || value.includes('jpg')) return 'jpg';
+    if (value.includes('gif')) return 'gif';
+    return 'bin';
+  }
+
+  private async saveBinaryResponse(response: ResponseModel): Promise<void> {
+    if (response.binaryBody.byteLength === 0) {
+      this.showToast('No binary data');
+      return;
+    }
+    try {
+      const name = `nimbo-response.${this.binaryExtension(response.contentType)}`;
+      if (await LocalFileExporter.saveBytes(name, response.binaryBody)) this.showToast('Saved');
+    } catch (_error) {
+      this.showToast('Save failed');
+    }
+  }
+
   @Builder
   mainContent() {
     if (this.activeDestination === 'environments') {
@@ -573,6 +615,8 @@ export struct NimboWindow {
       SettingsPage({
         preferences: this.preferences,
         onChange: (preferences: AppPreferencesModel) => this.updatePreferences(preferences),
+        onExport: () => this.exportNimbo(false),
+        onExportSecrets: () => { this.activeOverlay = 'export-secrets'; },
         onReset: () => { this.activeOverlay = 'reset-app'; }
       })
       .layoutWeight(1)
@@ -596,7 +640,8 @@ export struct NimboWindow {
         onCloseTab: (id: string) => this.closeTab(id),
         onCreateTab: () => this.createTab(),
         onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
-        onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id)
+        onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
+        onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response)
       })
       .layoutWeight(1)
     }
@@ -753,6 +798,19 @@ export struct NimboWindow {
             this.activeOverlay = '';
             this.persistLocalData();
             this.restartForLanguage();
+          }
+        })
+      }
+      if (this.activeOverlay === 'export-secrets') {
+        NimboDialog({
+          title: $r('app.string.export_secrets_title'),
+          message: $r('app.string.dialog_export_secrets_message'),
+          confirmLabel: $r('app.string.export_action'),
+          dangerous: true,
+          onCancel: () => { this.activeOverlay = ''; },
+          onConfirm: () => {
+            this.activeOverlay = '';
+            this.exportNimbo(true);
           }
         })
       }

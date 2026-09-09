@@ -22,7 +22,7 @@ export interface HttpEngineResponse {
   statusCode: number;
   headers: Record<string, string | Array<string>>;
   cookies: string;
-  body: string;
+  body: ArrayBuffer;
   durationMs: number;
   protocol: string;
 }

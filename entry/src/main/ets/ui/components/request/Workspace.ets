@@ -1,4 +1,4 @@
-import { RequestDraft, RequestTabModel } from '../../../models/ShellModels';
+import { RequestDraft, RequestTabModel, ResponseModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -17,6 +17,7 @@ export struct Workspace {
   onCreateTab: () => void = () => {};
   onUpdateRequest: (id: string, request: RequestDraft) => void = () => {};
   onPreviewLargeResponse: (id: string) => void = () => {};
+  onSaveBinary: (response: ResponseModel) => void = () => {};
 
   private activeIndex(): number {
     return this.tabs.findIndex((tab: RequestTabModel) => tab.id === this.activeTabId);
@@ -78,7 +79,8 @@ export struct Workspace {
             response: this.tabs[this.activeIndex()].response,
             onRetry: () => this.onUpdateRequest(this.activeTabId,
               this.requestWithLifecycle(this.tabs[this.activeIndex()].request, 'sending')),
-            onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId)
+            onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId),
+            onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response)
           })
             .layoutWeight(1)
         }

@@ -96,6 +96,7 @@ export interface ResponseModel {
   headers: KeyValueItem[];
   cookies: KeyValueItem[];
   body: string;
+  binaryBody: ArrayBuffer;
   contentType: string;
   size: string;
   duration: string;

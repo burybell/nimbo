@@ -14,6 +14,7 @@ export struct ResponsePanel {
   @State bodyMode: ResponseBodyMode = 'pretty';
   onRetry: () => void = () => {};
   onPreviewLarge: () => void = () => {};
+  onSaveBinary: () => void = () => {};
 
   @Builder
   private emptyState(title: ResourceStr, description: ResourceStr) {
@@ -159,6 +160,12 @@ export struct ResponsePanel {
           Text(this.response.size)
             .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
+          Button($r('app.string.response_save_binary'))
+            .fontSize(13)
+            .fontColor(ColorTokens.textOnBrand)
+            .backgroundColor(ColorTokens.brand500)
+            .borderRadius(RadiusTokens.medium)
+            .onClick(this.onSaveBinary)
         }
         .width('100%')
         .height('100%')

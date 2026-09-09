@@ -11,6 +11,8 @@ export struct SettingsPage {
   @State section: SettingsSection = 'General';
   @Prop preferences: AppPreferencesModel = createDefaultPreferences();
   onChange: (preferences: AppPreferencesModel) => void = () => {};
+  onExport: () => void = () => {};
+  onExportSecrets: () => void = () => {};
   onReset: () => void = () => {};
 
   private emit(restoreWorkspace: boolean, language: 'en' | 'zh', followRedirects: boolean,
@@ -96,6 +98,9 @@ export struct SettingsPage {
           this.nextTimeout(), this.preferences.saveHistory, this.preferences.historyRetentionDays,
           this.preferences.maskSecrets) })
     } else if (this.section === 'Data') {
+      SettingRow({ title: $r('app.string.nimbo_export_title'),
+        description: $r('app.string.nimbo_export_description'),
+        controlLabel: $r('app.string.export_action'), onPress: this.onExport })
       SettingRow({ title: $r('app.string.save_history_title'), description: $r('app.string.save_history_description'), toggle: true,
         checked: this.preferences.saveHistory, onToggle: (value: boolean) => this.emit(
           this.preferences.restoreWorkspace, this.preferences.language, this.preferences.followRedirects,
@@ -117,7 +122,7 @@ export struct SettingsPage {
           this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
           this.preferences.saveHistory, this.preferences.historyRetentionDays, value) })
       SettingRow({ title: $r('app.string.export_secrets_title'), description: $r('app.string.export_secrets_description'),
-        controlLabel: $r('app.string.export_action') })
+        controlLabel: $r('app.string.export_action'), onPress: this.onExportSecrets })
     } else {
       SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: 'Version 0.1.0' })
       SettingRow({ title: $r('app.string.application_identity'),

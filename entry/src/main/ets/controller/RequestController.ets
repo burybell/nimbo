@@ -267,10 +267,12 @@ export class RequestController {
   private responseModel(result: HttpEngineResponse): ResponseModel {
     const headers = this.headerItems(result.headers);
     const contentType = this.headerValue(headers, 'content-type');
-    const size = result.body.length;
+    const size = result.body.byteLength;
     let status: ResponseStatus = 'success';
-    if (size > 10 * 1024 * 1024) status = 'large';
-    else if (this.isBinary(contentType)) status = 'binary';
+    if (this.isBinary(contentType)) status = 'binary';
+    else if (size > 10 * 1024 * 1024) status = 'large';
+    const text = status === 'binary' ? '' :
+      new util.TextDecoder().decodeToString(new Uint8Array(result.body));
     return {
       status,
       statusCode: result.statusCode,
@@ -280,7 +282,8 @@ export class RequestController {
         id: 'response-cookie', enabled: true, key: 'set-cookie', value: result.cookies,
         description: '', type: 'text', secret: false
       }] : [],
-      body: status === 'binary' ? '' : this.displayBody(result.body, contentType),
+      body: status === 'binary' ? '' : this.displayBody(text, contentType),
+      binaryBody: status === 'binary' ? result.body : new ArrayBuffer(0),
       contentType,
       size: this.formatSize(size),
       duration: `${result.durationMs} ms`,
