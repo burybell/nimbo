@@ -1,5 +1,6 @@
-import { CollectionNode, NavigationDestination, RequestTabModel } from '../models/ShellModels';
+import { CollectionNode, HttpMethod, NavigationDestination, RequestDraft, RequestTabModel } from '../models/ShellModels';
 import { ShellState } from '../state/ShellState';
+import { createEmptyRequest } from '../mock/ShellMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
@@ -28,15 +29,25 @@ export struct NimboWindow {
     return this.activeDestination === 'collections' && this.windowWidth >= BreakpointTokens.compact;
   }
 
+  private requestContentChanged(previous: RequestDraft, next: RequestDraft): boolean {
+    return previous.method !== next.method || previous.url !== next.url ||
+      previous.params !== next.params || previous.headers !== next.headers || previous.auth !== next.auth ||
+      previous.bodyType !== next.bodyType || previous.bodyText !== next.bodyText ||
+      previous.formItems !== next.formItems || previous.multipartItems !== next.multipartItems ||
+      previous.binaryFileName !== next.binaryFileName;
+  }
+
   private createTab(): void {
     const id = `untitled-${this.nextTabNumber}`;
+    const request = createEmptyRequest();
     this.tabs = [...this.tabs, {
       id,
       name: `Untitled Request ${this.nextTabNumber}`,
       method: 'GET',
       dirty: true,
       pinned: false,
-      loading: false
+      loading: false,
+      request
     }];
     this.nextTabNumber += 1;
     this.activeTabId = id;
@@ -61,13 +72,22 @@ export struct NimboWindow {
       this.activeTabId = existing.id;
       return;
     }
+    let method: HttpMethod = 'GET';
+    if (node.method === 'POST') method = 'POST';
+    if (node.method === 'PUT') method = 'PUT';
+    if (node.method === 'PATCH') method = 'PATCH';
+    if (node.method === 'DELETE') method = 'DELETE';
+    if (node.method === 'HEAD') method = 'HEAD';
+    if (node.method === 'OPTIONS') method = 'OPTIONS';
+    const request = createEmptyRequest(method);
     const tab: RequestTabModel = {
       id: node.id,
       name: node.name,
-      method: node.method ?? 'GET',
+      method: request.method,
       dirty: false,
       pinned: false,
-      loading: false
+      loading: false,
+      request
     };
     this.tabs = [...this.tabs, tab];
     this.activeTabId = tab.id;
@@ -102,7 +122,23 @@ export struct NimboWindow {
             this.activeTabId = id;
           },
           onCloseTab: (id: string) => this.closeTab(id),
-          onCreateTab: () => this.createTab()
+          onCreateTab: () => this.createTab(),
+          onUpdateRequest: (id: string, request: RequestDraft) => {
+            this.tabs = this.tabs.map((tab: RequestTabModel) => {
+              if (tab.id !== id) {
+                return tab;
+              }
+              return {
+                id: tab.id,
+                name: tab.name,
+                method: request.method,
+                dirty: tab.dirty || this.requestContentChanged(tab.request, request),
+                pinned: tab.pinned,
+                loading: request.lifecycle === 'sending',
+                request
+              };
+            });
+          }
         })
           .layoutWeight(1)
       }

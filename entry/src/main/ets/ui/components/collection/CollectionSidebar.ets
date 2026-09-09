@@ -53,6 +53,7 @@ export struct CollectionSidebar {
       }
       .width('100%')
       .layoutWeight(1)
+      .align(Alignment.TopStart)
       .scrollBar(BarState.Auto)
     }
     .width(this.widthValue)

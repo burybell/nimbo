@@ -1,5 +1,6 @@
-import { RequestTabModel } from '../../../models/ShellModels';
+import { RequestDraft, RequestTabModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
+import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
 import { ColorTokens } from '../../tokens/ColorTokens';
 
@@ -10,6 +11,11 @@ export struct Workspace {
   onSelectTab: (id: string) => void = () => {};
   onCloseTab: (id: string) => void = () => {};
   onCreateTab: () => void = () => {};
+  onUpdateRequest: (id: string, request: RequestDraft) => void = () => {};
+
+  private activeIndex(): number {
+    return this.tabs.findIndex((tab: RequestTabModel) => tab.id === this.activeTabId);
+  }
 
   build() {
     Column() {
@@ -28,9 +34,9 @@ export struct Workspace {
         })
           .layoutWeight(1)
       } else {
-        NimboEmptyState({
-          title: 'Request ready',
-          description: 'Choose a collection request or create a new tab.'
+        RequestPanel({
+          request: this.tabs[this.activeIndex()].request,
+          onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
         })
           .layoutWeight(1)
       }
