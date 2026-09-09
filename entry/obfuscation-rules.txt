@@ -1,0 +1,2 @@
+# Nimbo release obfuscation rules will be added when the persistence boundary is implemented.
+

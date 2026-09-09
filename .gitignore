@@ -1,0 +1,10 @@
+.DS_Store
+/.idea/
+/.hvigor/
+**/.preview/
+/node_modules/
+/oh_modules/
+/build/
+**/build/
+local.properties
+/build-profile.json5
