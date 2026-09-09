@@ -6,6 +6,8 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct GlobalToolbar {
   @Prop compact: boolean = false;
+  @Prop selectedEnvironmentId: string = 'development';
+  onEnvironmentChange: (id: string) => void = () => {};
   onSettings: () => void = () => {};
 
   build() {
@@ -40,7 +42,7 @@ export struct GlobalToolbar {
       .borderRadius(RadiusTokens.medium)
 
       Row({ space: SpacingTokens.x3 }) {
-        EnvironmentSwitcher()
+        EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, onChange: this.onEnvironmentChange })
         Text('⚙')
           .fontSize(18)
           .fontColor(ColorTokens.textSecondary)

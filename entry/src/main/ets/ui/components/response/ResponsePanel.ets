@@ -106,7 +106,7 @@ export struct ResponsePanel {
             this.bodyMode = 'raw';
           })
         Blank()
-        Text('JSON')
+        Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : 'Text')
           .fontSize(11)
           .fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textSecondary)
@@ -115,7 +115,7 @@ export struct ResponsePanel {
       .width('100%')
       .padding({ left: SpacingTokens.x2, right: SpacingTokens.x3 })
 
-      if (this.bodyMode === 'pretty') {
+      if (this.bodyMode === 'pretty' && this.response.contentType.toLowerCase().includes('json')) {
         JsonViewer({ value: this.response.body })
           .layoutWeight(1)
       } else {
@@ -185,7 +185,7 @@ export struct ResponsePanel {
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor(ColorTokens.textPrimary)
-            Text('This mock response does not include network timing data.')
+            Text('Detailed DNS, connection, TLS, and download timing is not available yet.')
               .fontSize(12)
               .fontColor(ColorTokens.textTertiary)
           }

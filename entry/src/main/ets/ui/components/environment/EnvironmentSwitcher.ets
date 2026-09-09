@@ -3,17 +3,30 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 
 @Component
 export struct EnvironmentSwitcher {
-  @State selectedIndex: number = 0;
+  @Prop selectedId: string = 'development';
+  onChange: (id: string) => void = () => {};
   private environments: SelectOption[] = [
     { value: 'Development' },
     { value: 'Staging' },
     { value: 'Production' }
   ];
 
+  private selectedIndex(): number {
+    if (this.selectedId === 'staging') return 1;
+    if (this.selectedId === 'production') return 2;
+    return 0;
+  }
+
+  private environmentId(index: number): string {
+    if (index === 1) return 'staging';
+    if (index === 2) return 'production';
+    return 'development';
+  }
+
   build() {
     Select(this.environments)
-      .selected(this.selectedIndex)
-      .value(this.environments[this.selectedIndex].value)
+      .selected(this.selectedIndex())
+      .value(this.environments[this.selectedIndex()].value)
       .font({ size: 13 })
       .fontColor(ColorTokens.textPrimary)
       .height(SizeTokens.controlMedium)
@@ -22,7 +35,7 @@ export struct EnvironmentSwitcher {
       .border({ width: 1, color: ColorTokens.borderDefault })
       .borderRadius(RadiusTokens.medium)
       .onSelect((index: number) => {
-        this.selectedIndex = index;
+        this.onChange(this.environmentId(index));
       })
   }
 }

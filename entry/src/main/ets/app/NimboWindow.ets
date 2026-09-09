@@ -9,6 +9,7 @@ import {
 } from '../models/ShellModels';
 import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import { ShellState } from '../state/ShellState';
+import { RequestController } from '../controller/RequestController';
 import {
   createBinaryResponse,
   createCancelledResponse,
@@ -45,7 +46,10 @@ export struct NimboWindow {
   @State activeOverlay: string = '';
   @State toastMessage: string = '';
   @State lastDeletedHistory: HistoryItemModel[] = [];
+  @State selectedEnvironmentId: string = 'development';
   private nextTabNumber: number = 1;
+  private requestController: RequestController = new RequestController();
+  private requestSerials: Map<string, number> = new Map<string, number>();
 
   private isCompact(): boolean {
     return this.windowWidth < BreakpointTokens.desktop;
@@ -101,18 +105,11 @@ export struct NimboWindow {
     };
   }
 
-  private mockResponseForUrl(url: string): ResponseModel {
-    const normalized = url.toLowerCase();
-    if (normalized.includes('localhost') || normalized.includes('error')) return createErrorResponse();
-    if (normalized.includes('large')) return createLargeResponse();
-    if (normalized.includes('binary') || normalized.includes('download')) return createBinaryResponse();
-    return createSuccessResponse();
-  }
-
-  private completeMockRequest(id: string): void {
+  private applyRealResponse(id: string, response: ResponseModel): void {
+    let completedRequest: RequestTabModel | undefined = undefined;
     this.tabs = this.tabs.map((tab: RequestTabModel) => {
       if (tab.id !== id || tab.request.lifecycle !== 'sending') return tab;
-      return {
+      const completed: RequestTabModel = {
         id: tab.id,
         name: tab.name,
         method: tab.method,
@@ -120,18 +117,56 @@ export struct NimboWindow {
         pinned: tab.pinned,
         loading: false,
         request: this.requestWithLifecycle(tab.request, 'idle'),
-        response: this.mockResponseForUrl(tab.request.url)
+        response
       };
+      completedRequest = completed;
+      return completed;
     });
+    if (completedRequest && response.status !== 'cancelled') {
+      const completed = completedRequest as RequestTabModel;
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      this.historyItems = [{
+        id: `history-${Date.now()}`,
+        group: 'Today',
+        time: `${hours}:${minutes}`,
+        method: completed.request.method,
+        url: completed.request.url,
+        status: response.statusCode,
+        duration: response.duration.length > 0 ? response.duration : '—'
+      }, ...this.historyItems];
+    }
+  }
+
+  private activeEnvironment(): EnvironmentModel {
+    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
+    if (environment) return environment;
+    return { id: '', name: 'No Environment', kind: 'development', variables: [] };
+  }
+
+  private async sendRealRequest(id: string, request: RequestDraft, serial: number): Promise<void> {
+    const response = await this.requestController.send(id, request, this.activeEnvironment());
+    if (this.requestSerials.get(id) !== serial) return;
+    this.applyRealResponse(id, response);
   }
 
   private updateRequest(id: string, request: RequestDraft): void {
     let shouldComplete = false;
+    let requestSerial = 0;
     this.tabs = this.tabs.map((tab: RequestTabModel) => {
       if (tab.id !== id) return tab;
       const started = tab.request.lifecycle !== 'sending' && request.lifecycle === 'sending';
       const cancelled = tab.request.lifecycle === 'sending' && request.lifecycle === 'idle';
       shouldComplete = started;
+      if (started) {
+        requestSerial = (this.requestSerials.get(id) ?? 0) + 1;
+        this.requestSerials.set(id, requestSerial);
+      }
+      if (cancelled) {
+        this.requestSerials.set(id, (this.requestSerials.get(id) ?? 0) + 1);
+        this.requestController.cancel(id);
+      }
       return {
         id: tab.id,
         name: tab.name,
@@ -145,15 +180,28 @@ export struct NimboWindow {
       };
     });
     if (shouldComplete) {
-      setTimeout(() => this.completeMockRequest(id), 800);
+      this.sendRealRequest(id, request, requestSerial);
     }
   }
 
   private previewLargeResponse(id: string): void {
     this.tabs = this.tabs.map((tab: RequestTabModel) => {
       if (tab.id !== id) return tab;
-      const response = createSuccessResponse();
-      response.size = '1.0 MB preview';
+      const response = tab.response;
+      const preview: ResponseModel = {
+        status: 'success',
+        statusCode: response.statusCode,
+        statusText: response.statusText,
+        headers: response.headers,
+        cookies: response.cookies,
+        body: response.body.substring(0, 1024 * 1024),
+        contentType: response.contentType,
+        size: `${response.size} · 1.0 MB preview`,
+        duration: response.duration,
+        protocol: response.protocol,
+        error: response.error,
+        previewAvailable: false
+      };
       return {
         id: tab.id,
         name: tab.name,
@@ -162,7 +210,7 @@ export struct NimboWindow {
         pinned: tab.pinned,
         loading: tab.loading,
         request: tab.request,
-        response
+        response: preview
       };
     });
   }
@@ -299,6 +347,8 @@ export struct NimboWindow {
   }
 
   private closeTab(id: string): void {
+    this.requestSerials.set(id, (this.requestSerials.get(id) ?? 0) + 1);
+    this.requestController.cancel(id);
     const closingIndex = this.tabs.findIndex((tab: RequestTabModel) => tab.id === id);
     this.tabs = this.tabs.filter((tab: RequestTabModel) => tab.id !== id);
     if (this.activeTabId === id) {
@@ -356,7 +406,12 @@ export struct NimboWindow {
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Column() {
-        GlobalToolbar({ compact: this.isCompact(), onSettings: () => { this.activeDestination = 'settings'; } })
+        GlobalToolbar({
+          compact: this.isCompact(),
+          selectedEnvironmentId: this.selectedEnvironmentId,
+          onEnvironmentChange: (id: string) => { this.selectedEnvironmentId = id; },
+          onSettings: () => { this.activeDestination = 'settings'; }
+        })
 
         Row() {
           PrimarySidebar({
