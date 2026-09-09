@@ -7,6 +7,7 @@ import {
   ResponseModel,
   ResponseStatus
 } from '../models/ShellModels';
+import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import { ShellState } from '../state/ShellState';
 import {
   createBinaryResponse,
@@ -17,12 +18,20 @@ import {
   createLargeResponse,
   createSuccessResponse
 } from '../mock/ShellMockData';
+import { DEMO_ENVIRONMENTS, DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
+import { NimboDialog } from '../ui/components/common/NimboDialog';
+import { NimboToast } from '../ui/components/common/NimboToast';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
+import { EnvironmentPage } from '../ui/components/environment/EnvironmentPage';
+import { HistoryPage } from '../ui/components/history/HistoryPage';
+import { ImportCurlDialog } from '../ui/components/importer/ImportCurlDialog';
+import { PostmanImportDialog } from '../ui/components/importer/PostmanImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
+import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { ColorTokens } from '../ui/tokens/ColorTokens';
-import { BreakpointTokens, SizeTokens } from '../ui/tokens/LayoutTokens';
+import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
 
 @Component
 export struct NimboWindow {
@@ -31,6 +40,11 @@ export struct NimboWindow {
   @State collections: CollectionNode[] = ShellState.createInitialCollections();
   @State tabs: RequestTabModel[] = ShellState.createInitialTabs();
   @State activeTabId: string = 'get-users';
+  @State environments: EnvironmentModel[] = DEMO_ENVIRONMENTS;
+  @State historyItems: HistoryItemModel[] = DEMO_HISTORY;
+  @State activeOverlay: string = '';
+  @State toastMessage: string = '';
+  @State lastDeletedHistory: HistoryItemModel[] = [];
   private nextTabNumber: number = 1;
 
   private isCompact(): boolean {
@@ -168,6 +182,120 @@ export struct NimboWindow {
     }];
     this.nextTabNumber += 1;
     this.activeTabId = id;
+    this.activeDestination = 'workspace';
+  }
+
+  private showToast(message: string): void {
+    this.toastMessage = message;
+    setTimeout(() => {
+      if (this.toastMessage === message) this.toastMessage = '';
+    }, 1800);
+  }
+
+  private updateEnvironment(id: string, variables: KeyValueItem[]): void {
+    this.environments = this.environments.map((environment: EnvironmentModel) => {
+      if (environment.id !== id) return environment;
+      return { id: environment.id, name: environment.name, kind: environment.kind, variables };
+    });
+  }
+
+  private createImportedRequest(method: HttpMethod, url: string, name: string): void {
+    const id = `imported-${Date.now()}`;
+    const request = createEmptyRequest(method);
+    request.url = url;
+    this.tabs = [...this.tabs, {
+      id,
+      name,
+      method,
+      dirty: true,
+      pinned: false,
+      loading: false,
+      request,
+      response: createEmptyResponse()
+    }];
+    this.activeTabId = id;
+    this.activeDestination = 'workspace';
+  }
+
+  private openHistoryItem(item: HistoryItemModel): void {
+    const existing = this.tabs.find((tab: RequestTabModel) => tab.id === item.id);
+    if (existing) {
+      this.activeTabId = existing.id;
+    } else {
+      const request = createEmptyRequest(item.method);
+      request.url = item.url;
+      this.tabs = [...this.tabs, {
+        id: item.id,
+        name: `${item.method} Request`,
+        method: item.method,
+        dirty: false,
+        pinned: false,
+        loading: false,
+        request,
+        response: createEmptyResponse()
+      }];
+      this.activeTabId = item.id;
+    }
+    this.activeDestination = 'workspace';
+  }
+
+  private deleteHistoryItem(id: string): void {
+    this.lastDeletedHistory = this.historyItems.filter((item: HistoryItemModel) => item.id === id);
+    this.historyItems = this.historyItems.filter((item: HistoryItemModel) => item.id !== id);
+    this.showToast('Deleted — Undo');
+  }
+
+  private undoHistoryDelete(): void {
+    if (this.lastDeletedHistory.length === 0) return;
+    this.historyItems = [...this.lastDeletedHistory, ...this.historyItems];
+    this.lastDeletedHistory = [];
+    this.toastMessage = '';
+  }
+
+  @Builder
+  mainContent() {
+    if (this.activeDestination === 'environments') {
+      EnvironmentPage({
+        environments: this.environments,
+        onChange: (id: string, variables: KeyValueItem[]) => this.updateEnvironment(id, variables),
+        onSaved: () => this.showToast('Saved')
+      })
+      .layoutWeight(1)
+    } else if (this.activeDestination === 'history') {
+      HistoryPage({
+        items: this.historyItems,
+        onOpen: (item: HistoryItemModel) => this.openHistoryItem(item),
+        onCopy: (message: string) => this.showToast(message),
+        onDelete: (id: string) => this.deleteHistoryItem(id),
+        onClear: () => { this.activeOverlay = 'clear-history'; }
+      })
+      .layoutWeight(1)
+    } else if (this.activeDestination === 'settings') {
+      SettingsPage({
+        onSaved: () => this.showToast('Saved'),
+        onReset: () => { this.activeOverlay = 'reset-app'; }
+      })
+      .layoutWeight(1)
+    } else {
+      if (this.showCollectionSidebar()) {
+        CollectionSidebar({
+          widthValue: this.collectionWidth(),
+          nodes: $collections,
+          onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node)
+        })
+      }
+
+      Workspace({
+        tabs: $tabs,
+        activeTabId: $activeTabId,
+        onSelectTab: (id: string) => { this.activeTabId = id; },
+        onCloseTab: (id: string) => this.closeTab(id),
+        onCreateTab: () => this.createTab(),
+        onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
+        onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id)
+      })
+      .layoutWeight(1)
+    }
   }
 
   private closeTab(id: string): void {
@@ -226,46 +354,82 @@ export struct NimboWindow {
   }
 
   build() {
-    Column() {
-      GlobalToolbar({ compact: this.isCompact() })
+    Stack({ alignContent: Alignment.Bottom }) {
+      Column() {
+        GlobalToolbar({ compact: this.isCompact(), onSettings: () => { this.activeDestination = 'settings'; } })
 
-      Row() {
-        PrimarySidebar({
-          compact: this.isCompact(),
-          activeDestination: this.activeDestination,
-          onDestinationChange: (destination: NavigationDestination) => {
-            this.activeDestination = destination;
-          },
-          onCreateRequest: () => this.createTab()
-        })
-
-        if (this.showCollectionSidebar()) {
-          CollectionSidebar({
-            widthValue: this.collectionWidth(),
-            nodes: $collections,
-            onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node)
+        Row() {
+          PrimarySidebar({
+            compact: this.isCompact(),
+            activeDestination: this.activeDestination,
+            onDestinationChange: (destination: NavigationDestination) => { this.activeDestination = destination; },
+            onCreateRequest: () => this.createTab(),
+            onImportCurl: () => { this.activeOverlay = 'curl'; },
+            onImportPostman: () => { this.activeOverlay = 'postman'; }
           })
-        }
 
-        Workspace({
-          tabs: $tabs,
-          activeTabId: $activeTabId,
-          onSelectTab: (id: string) => {
-            this.activeTabId = id;
-          },
-          onCloseTab: (id: string) => this.closeTab(id),
-          onCreateTab: () => this.createTab(),
-          onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
-          onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id)
-        })
-          .layoutWeight(1)
+          this.mainContent()
+        }
+        .layoutWeight(1)
+        .width('100%')
       }
-      .layoutWeight(1)
       .width('100%')
+      .height('100%')
+      .backgroundColor(ColorTokens.bgApp)
+
+      if (this.activeOverlay === 'curl') {
+        ImportCurlDialog({
+          onCancel: () => { this.activeOverlay = ''; },
+          onImport: (method: HttpMethod, url: string) => {
+            this.activeOverlay = '';
+            this.createImportedRequest(method, url, 'Imported cURL');
+            this.showToast('Imported');
+          }
+        })
+      }
+      if (this.activeOverlay === 'postman') {
+        PostmanImportDialog({
+          onCancel: () => { this.activeOverlay = ''; },
+          onComplete: () => { this.activeOverlay = ''; this.showToast('Imported'); }
+        })
+      }
+      if (this.activeOverlay === 'clear-history') {
+        NimboDialog({
+          title: 'Clear History',
+          message: 'Delete all local request history? This action can be undone briefly.',
+          confirmLabel: 'Clear History',
+          dangerous: true,
+          onCancel: () => { this.activeOverlay = ''; },
+          onConfirm: () => {
+            this.lastDeletedHistory = this.historyItems;
+            this.historyItems = [];
+            this.activeOverlay = '';
+            this.showToast('Deleted — Undo');
+          }
+        })
+      }
+      if (this.activeOverlay === 'reset-app') {
+        NimboDialog({
+          title: 'Reset Nimbo',
+          message: 'Reset local demo data and settings to their defaults?',
+          confirmLabel: 'Reset App',
+          dangerous: true,
+          onCancel: () => { this.activeOverlay = ''; },
+          onConfirm: () => {
+            this.environments = DEMO_ENVIRONMENTS;
+            this.historyItems = DEMO_HISTORY;
+            this.activeOverlay = '';
+            this.showToast('Saved');
+          }
+        })
+      }
+      if (this.toastMessage.length > 0) {
+        NimboToast({ message: this.toastMessage, onAction: () => this.undoHistoryDelete() })
+          .margin({ bottom: SpacingTokens.x5 })
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(ColorTokens.bgApp)
     .onAreaChange((_oldValue: Area, newValue: Area) => {
       const measuredWidth = Number.parseFloat(newValue.width.toString());
       if (!Number.isNaN(measuredWidth)) {

@@ -8,6 +8,7 @@ export struct KeyValueEditor {
   @Prop mode: KeyValueMode = 'params';
   @Prop showDescription: boolean = true;
   @Prop showType: boolean = false;
+  @Prop showSecret: boolean = false;
   @State bulkMode: boolean = false;
   @State bulkValue: string = '';
   @State bulkError: string = '';
@@ -18,7 +19,23 @@ export struct KeyValueEditor {
     if (this.mode === 'headers') return 'header';
     if (this.mode === 'form') return 'field';
     if (this.mode === 'multipart') return 'part';
+    if (this.mode === 'environment') return 'variable';
     return 'parameter';
+  }
+
+  private toggleSecret(id: string, secret: boolean): void {
+    this.onChange(this.items.map((item: KeyValueItem) => {
+      if (item.id !== id) return item;
+      return {
+        id: item.id,
+        enabled: item.enabled,
+        key: item.key,
+        value: item.value,
+        description: item.description,
+        type: item.type,
+        secret
+      };
+    }));
   }
 
   private updateItem(id: string, key: string, value: string, description: string,
@@ -169,6 +186,9 @@ export struct KeyValueEditor {
           Text('✓').width(34).textAlign(TextAlign.Center).fontSize(10).fontColor(ColorTokens.textTertiary)
           Text('KEY').layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
           Text('VALUE').layoutWeight(4).fontSize(10).fontColor(ColorTokens.textTertiary)
+          if (this.showSecret) {
+            Text('SECRET').width(58).fontSize(10).fontColor(ColorTokens.textTertiary).textAlign(TextAlign.Center)
+          }
           if (this.showType) {
             Text('TYPE').width(76).fontSize(10).fontColor(ColorTokens.textTertiary)
           }
@@ -200,12 +220,21 @@ export struct KeyValueEditor {
               .onChange((value: string) => this.updateItem(item.id, value, item.value,
                 item.description, item.enabled, item.type))
             TextInput({ text: item.value, placeholder: 'Value' })
+              .type(item.secret ? InputType.Password : InputType.Normal)
               .fontSize(13)
               .height(SizeTokens.controlMedium)
               .backgroundColor(ColorTokens.bgWorkspace)
               .layoutWeight(4)
               .onChange((value: string) => this.updateItem(item.id, item.key, value,
                 item.description, item.enabled, item.type))
+            if (this.showSecret) {
+              Checkbox({ name: `${item.id}-secret` })
+                .select(item.secret)
+                .selectedColor(ColorTokens.brand500)
+                .width(58)
+                .height(18)
+                .onChange((secret: boolean) => this.toggleSecret(item.id, secret))
+            }
             if (this.showType) {
               Select([{ value: 'Text' }, { value: 'File' }])
                 .selected(item.type === 'file' ? 1 : 0)

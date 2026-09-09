@@ -3,7 +3,7 @@ export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body';
 export type RequestLifecycle = 'idle' | 'sending';
-export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart';
+export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
 export type BodyType = 'none' | 'json' | 'text' | 'form' | 'multipart' | 'binary';
 export type ResponseStatus = 'empty' | 'sending' | 'success' | 'error' | 'large' | 'binary' | 'cancelled';
@@ -94,4 +94,38 @@ export interface ResponseModel {
   protocol: string;
   error: ResponseErrorModel;
   previewAvailable: boolean;
+}
+
+export type EnvironmentKind = 'development' | 'staging' | 'production';
+export type HistoryGroup = 'Today' | 'Yesterday' | 'Previous 7 Days' | 'Older';
+export type SettingsSection = 'General' | 'Appearance' | 'Network' | 'Data' | 'Privacy' | 'About';
+
+export interface EnvironmentModel {
+  id: string;
+  name: string;
+  kind: EnvironmentKind;
+  variables: KeyValueItem[];
+}
+
+export interface HistoryItemModel {
+  id: string;
+  group: HistoryGroup;
+  time: string;
+  method: HttpMethod;
+  url: string;
+  status: number;
+  duration: string;
+}
+
+export interface SettingsSectionModel {
+  id: SettingsSection;
+  label: string;
+  icon: string;
+}
+
+export interface ContextMenuItemModel {
+  id: string;
+  label: string;
+  icon: string;
+  dangerous: boolean;
 }

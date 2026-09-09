@@ -1,7 +1,8 @@
-import { NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
+import { ContextMenuItemModel, NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { NimboButton } from './NimboButton';
+import { NimboContextMenu } from './NimboContextMenu';
 
 @Component
 export struct PrimarySidebar {
@@ -9,6 +10,19 @@ export struct PrimarySidebar {
   @Prop activeDestination: NavigationDestination = 'collections';
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   onCreateRequest: () => void = () => {};
+  onImportCurl: () => void = () => {};
+  onImportPostman: () => void = () => {};
+  @State importMenuOpen: boolean = false;
+  private importItems: ContextMenuItemModel[] = [
+    { id: 'curl', label: 'Import cURL', icon: '⌘', dangerous: false },
+    { id: 'postman', label: 'Import Postman', icon: '⇧', dangerous: false }
+  ];
+
+  private handleImport(action: string): void {
+    this.importMenuOpen = false;
+    if (action === 'curl') this.onImportCurl();
+    if (action === 'postman') this.onImportPostman();
+  }
 
   private mainItems: NavigationItemModel[] = [
     { id: 'workspace', label: 'Workspace', icon: '⌂' },
@@ -53,8 +67,23 @@ export struct PrimarySidebar {
           .borderRadius(RadiusTokens.medium)
           .onClick(this.onCreateRequest)
       } else {
-        NimboButton({ label: 'New', icon: '+', primary: true, onPress: this.onCreateRequest })
-          .width('100%')
+        Row({ space: SpacingTokens.x1 }) {
+          NimboButton({ label: 'New', icon: '+', primary: true, onPress: this.onCreateRequest })
+            .layoutWeight(1)
+          Button('⌄')
+            .width(34)
+            .height(SizeTokens.controlLarge)
+            .fontSize(14)
+            .fontColor(ColorTokens.textOnBrand)
+            .backgroundColor(ColorTokens.brand500)
+            .borderRadius(RadiusTokens.medium)
+            .onClick(() => { this.importMenuOpen = !this.importMenuOpen; })
+        }
+        .width('100%')
+        if (this.importMenuOpen) {
+          NimboContextMenu({ items: this.importItems, onSelect: (action: string) => this.handleImport(action) })
+            .margin({ top: SpacingTokens.x2 })
+        }
       }
 
       Column({ space: SpacingTokens.x1 }) {
@@ -80,4 +109,3 @@ export struct PrimarySidebar {
     .backgroundColor(ColorTokens.bgSidebar)
   }
 }
-

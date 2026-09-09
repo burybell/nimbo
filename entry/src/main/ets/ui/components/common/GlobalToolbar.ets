@@ -6,6 +6,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct GlobalToolbar {
   @Prop compact: boolean = false;
+  onSettings: () => void = () => {};
 
   build() {
     Row() {
@@ -46,6 +47,7 @@ export struct GlobalToolbar {
           .width(SizeTokens.controlMedium)
           .height(SizeTokens.controlMedium)
           .textAlign(TextAlign.Center)
+          .onClick(this.onSettings)
       }
       .padding({ left: SpacingTokens.x4, right: SpacingTokens.x5 })
     }
@@ -55,4 +57,3 @@ export struct GlobalToolbar {
     .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
   }
 }
-
