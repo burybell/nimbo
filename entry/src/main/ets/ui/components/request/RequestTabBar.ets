@@ -61,9 +61,11 @@ export struct RequestTabBar {
             .onClick(() => this.onSelect(tab.id))
           }, (tab: RequestTabModel) => tab.id)
         }
+        .justifyContent(FlexAlign.Start)
       }
       .scrollable(ScrollDirection.Horizontal)
       .scrollBar(BarState.Off)
+      .align(Alignment.TopStart)
       .layoutWeight(1)
 
       Text('+')

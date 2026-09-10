@@ -5,6 +5,7 @@ import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 @Component
 export struct NimboContextMenu {
   @Prop items: ContextMenuItemModel[] = [];
+  @Prop accentIcons: boolean = false;
   @State hoveredItemId: string = '';
   onSelect: (id: string) => void = () => {};
 
@@ -16,10 +17,15 @@ export struct NimboContextMenu {
         }
         Row({ space: SpacingTokens.x3 }) {
           Text(item.icon)
-            .width(18)
-            .fontSize(14)
-            .fontColor(item.dangerous ? ColorTokens.httpDelete : ColorTokens.textSecondary)
+            .width(this.accentIcons ? 24 : 18)
+            .height(this.accentIcons ? 24 : 18)
+            .fontSize(this.accentIcons ? 11 : 14)
+            .fontWeight(this.accentIcons ? FontWeight.Bold : FontWeight.Regular)
+            .fontColor(item.dangerous ? ColorTokens.httpDelete :
+              (this.accentIcons ? ColorTokens.brand600 : ColorTokens.textSecondary))
             .textAlign(TextAlign.Center)
+            .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
+            .borderRadius(RadiusTokens.small)
           Text(item.label)
             .fontSize(13)
             .fontColor(item.dangerous ? ColorTokens.httpDelete : ColorTokens.textPrimary)

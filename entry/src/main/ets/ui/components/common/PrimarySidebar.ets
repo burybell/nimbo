@@ -15,8 +15,8 @@ export struct PrimarySidebar {
   @State importMenuOpen: boolean = false;
   @State hoveredItemId: string = '';
   private importItems: ContextMenuItemModel[] = [
-    { id: 'curl', label: $r('app.string.import_curl'), icon: '⌘', dangerous: false },
-    { id: 'postman', label: $r('app.string.import_postman'), icon: '⇧', dangerous: false }
+    { id: 'curl', label: $r('app.string.import_curl'), icon: '>_', dangerous: false },
+    { id: 'postman', label: $r('app.string.import_postman'), icon: 'P', dangerous: false }
   ];
 
   private handleImport(action: string): void {
@@ -70,23 +70,40 @@ export struct PrimarySidebar {
           .borderRadius(RadiusTokens.medium)
           .onClick(this.onCreateRequest)
       } else {
-        Row({ space: SpacingTokens.x1 }) {
-          NimboButton({ label: $r('app.string.action_new'), icon: '+', primary: true, onPress: this.onCreateRequest })
-            .layoutWeight(1)
-          Button('⌄')
-            .width(34)
-            .height(SizeTokens.controlLarge)
-            .fontSize(14)
-            .fontColor(ColorTokens.textOnBrand)
-            .backgroundColor(ColorTokens.brand500)
-            .borderRadius(RadiusTokens.medium)
-            .onClick(() => { this.importMenuOpen = !this.importMenuOpen; })
+        Stack({ alignContent: Alignment.TopStart }) {
+          Row({ space: SpacingTokens.x1 }) {
+            NimboButton({ label: $r('app.string.action_new'), icon: '+', primary: true,
+              onPress: this.onCreateRequest })
+              .layoutWeight(1)
+            Button() {
+              Image($r('app.media.chevron_down'))
+                .width(16)
+                .height(16)
+                .objectFit(ImageFit.Contain)
+            }
+              .width(34)
+              .height(SizeTokens.controlLarge)
+              .backgroundColor(ColorTokens.brand500)
+              .borderRadius(RadiusTokens.medium)
+              .stateStyles({
+                normal: { .opacity(1) },
+                pressed: { .opacity(0.82) }
+              })
+              .onClick(() => { this.importMenuOpen = !this.importMenuOpen; })
+          }
+          .width('100%')
+
+          if (this.importMenuOpen) {
+            NimboContextMenu({ items: this.importItems, accentIcons: true,
+              onSelect: (action: string) => this.handleImport(action) })
+              .position({ x: 0, y: SizeTokens.controlLarge + SpacingTokens.x2 })
+              .zIndex(10)
+          }
         }
         .width('100%')
-        if (this.importMenuOpen) {
-          NimboContextMenu({ items: this.importItems, onSelect: (action: string) => this.handleImport(action) })
-            .margin({ top: SpacingTokens.x2 })
-        }
+        .height(SizeTokens.controlLarge)
+        .clip(false)
+        .zIndex(10)
       }
 
       Column({ space: SpacingTokens.x1 }) {
