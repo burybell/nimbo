@@ -10,6 +10,7 @@ import {
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 import { AuthEditor } from './AuthEditor';
 import { BodyEditor } from './BodyEditor';
 import { KeyValueEditor } from './KeyValueEditor';
@@ -108,6 +109,8 @@ export struct RequestPanel {
         .width('100%')
         .align(Alignment.TopStart)
         .scrollBar(BarState.Auto)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       } else if (this.request.activeConfigTab === 'headers') {
         Scroll() {
           KeyValueEditor({
@@ -125,6 +128,8 @@ export struct RequestPanel {
         .width('100%')
         .align(Alignment.TopStart)
         .scrollBar(BarState.Auto)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       } else if (this.request.activeConfigTab === 'auth') {
         AuthEditor({
           config: this.request.auth,
@@ -134,6 +139,8 @@ export struct RequestPanel {
             this.request.multipartItems, this.request.binaryFileName)
         })
           .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       } else if (this.request.activeConfigTab === 'body') {
         BodyEditor({
           bodyType: this.request.bodyType,
@@ -163,6 +170,8 @@ export struct RequestPanel {
             this.request.multipartItems, binaryFileName)
         })
           .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       } else {
         RequestSettingsEditor({
           settings: this.request.settings,
@@ -172,6 +181,8 @@ export struct RequestPanel {
             this.request.multipartItems, this.request.binaryFileName, settings)
         })
           .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       }
     }
     .width('100%')

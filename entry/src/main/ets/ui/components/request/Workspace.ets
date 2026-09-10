@@ -6,6 +6,7 @@ import { NimboSplitter } from '../common/NimboSplitter';
 import { ResponsePanel } from '../response/ResponsePanel';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct Workspace {
@@ -14,6 +15,7 @@ export struct Workspace {
   @StorageLink('workspace.splitRatio') splitRatio: number = 0.48;
   @State panelHeight: number = 600;
   @State mobilePage: string = 'request';
+  @State contentOpacity: number = 1;
   @Prop phone: boolean = false;
   onSelectTab: (id: string) => void = () => {};
   onCloseTab: (id: string) => void = () => {};
@@ -21,6 +23,7 @@ export struct Workspace {
   onUpdateRequest: (id: string, request: RequestDraft) => void = () => {};
   onPreviewLargeResponse: (id: string) => void = () => {};
   onSaveBinary: (response: ResponseModel) => void = () => {};
+  private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
     return this.tabs.findIndex((tab: RequestTabModel) => tab.id === this.activeTabId);
@@ -42,6 +45,28 @@ export struct Workspace {
       binaryFileName: request.binaryFileName,
       settings: request.settings
     };
+  }
+
+  private selectTab(id: string): void {
+    if (id === this.activeTabId) return;
+    this.tabSwitchSerial += 1;
+    const serial = this.tabSwitchSerial;
+    this.getUIContext().animateTo({ duration: MotionTokens.hover, curve: MotionTokens.exitCurve }, () => {
+      this.contentOpacity = 0.72;
+    });
+    setTimeout(() => {
+      if (serial !== this.tabSwitchSerial) return;
+      if (!this.tabs.some((tab: RequestTabModel) => tab.id === id)) {
+        this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+          this.contentOpacity = 1;
+        });
+        return;
+      }
+      this.onSelectTab(id);
+      this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+        this.contentOpacity = 1;
+      });
+    }, MotionTokens.hover);
   }
 
   build() {
@@ -100,7 +125,7 @@ export struct Workspace {
         RequestTabBar({
           tabs: $tabs,
           activeTabId: $activeTabId,
-          onSelect: this.onSelectTab,
+          onSelect: (id: string) => this.selectTab(id),
           onClose: this.onCloseTab,
           onCreate: this.onCreateTab
         })
@@ -120,6 +145,7 @@ export struct Workspace {
             onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
           })
           .layoutWeight(1)
+          .opacity(this.contentOpacity)
         } else {
           ResponsePanel({
             response: this.tabs[this.activeIndex()].response,
@@ -129,6 +155,7 @@ export struct Workspace {
             onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response)
           })
           .layoutWeight(1)
+          .opacity(this.contentOpacity)
         }
       } else {
         Column() {
@@ -159,6 +186,7 @@ export struct Workspace {
         }
           .layoutWeight(1)
           .width('100%')
+          .opacity(this.contentOpacity)
           .onAreaChange((_oldValue: Area, newValue: Area) => {
             const height = Number.parseFloat(newValue.height.toString());
             if (!Number.isNaN(height)) this.panelHeight = height;

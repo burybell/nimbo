@@ -132,6 +132,8 @@ export struct HistoryPage {
                 }
                 .width('100%').height(64).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
                 .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+                .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -4 }))
+                  .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
                 .onClick(() => this.onOpen(item))
               }, (item: HistoryItemModel) => item.id)
           }
@@ -245,6 +247,8 @@ export struct HistoryPage {
                   }
                 }
                 .width('100%')
+                .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -4 }))
+                  .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
               }, (item: HistoryItemModel) => item.id)
           }
           .width('100%')

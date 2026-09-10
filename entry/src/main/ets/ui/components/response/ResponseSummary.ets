@@ -1,5 +1,6 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct ResponseSummary {
@@ -32,5 +33,7 @@ export struct ResponseSummary {
       Text(this.responseSize).fontSize(11).fontColor(ColorTokens.textSecondary)
       Text(this.protocol).fontSize(11).fontColor(ColorTokens.textSecondary)
     }
+    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -3 }))
+      .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
   }
 }

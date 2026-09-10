@@ -1,5 +1,6 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct NimboEmptyState {
@@ -30,5 +31,7 @@ export struct NimboEmptyState {
     }
     .width('100%')
     .justifyContent(FlexAlign.Center)
+    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.scale({ x: 0.97, y: 0.97 }))
+      .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
   }
 }

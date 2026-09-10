@@ -1,6 +1,7 @@
 import { CollectionNode } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct CollectionTree {
@@ -23,8 +24,10 @@ export struct CollectionTree {
       this.onOpenRequest(node);
       return;
     }
-    node.expanded = !node.expanded;
-    this.nodes = [...this.nodes];
+    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+      node.expanded = !node.expanded;
+      this.nodes = [...this.nodes];
+    });
     this.onChange();
   }
 
@@ -39,10 +42,12 @@ export struct CollectionTree {
             .fontColor(this.methodColor(node.method ?? 'GET'))
             .width(42)
         } else {
-          Text(node.expanded ? '⌄' : '›')
+          Text('›')
             .fontSize(15)
             .fontColor(ColorTokens.textSecondary)
             .width(14)
+            .rotate({ angle: node.expanded ? 90 : 0 })
+            .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve })
           Text(node.type === 'collection' ? '▣' : '□')
             .fontSize(14)
             .fontColor(ColorTokens.textSecondary)
@@ -71,6 +76,8 @@ export struct CollectionTree {
       }
     }
     .width('100%')
+    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -4 }))
+      .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
   }
 
   build() {

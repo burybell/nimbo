@@ -2,6 +2,7 @@ import { KeyValueItem, KeyValueMode } from '../../../models/ShellModels';
 import filePicker from '@ohos.file.picker';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct KeyValueEditor {
@@ -59,33 +60,39 @@ export struct KeyValueEditor {
   private addItem(): void {
     const id = `${this.mode}-${Date.now()}-${this.nextItemNumber}`;
     this.nextItemNumber += 1;
-    this.onChange([...this.items, {
-      id,
-      enabled: true,
-      key: '',
-      value: '',
-      description: '',
-      type: 'text',
-      secret: false
-    }]);
+    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+      this.onChange([...this.items, {
+        id,
+        enabled: true,
+        key: '',
+        value: '',
+        description: '',
+        type: 'text',
+        secret: false
+      }]);
+    });
   }
 
   private duplicateItem(item: KeyValueItem): void {
     const id = `${this.mode}-copy-${Date.now()}-${this.nextItemNumber}`;
     this.nextItemNumber += 1;
-    this.onChange([...this.items, {
-      id,
-      enabled: item.enabled,
-      key: item.key,
-      value: item.value,
-      description: item.description,
-      type: item.type,
-      secret: item.secret
-    }]);
+    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+      this.onChange([...this.items, {
+        id,
+        enabled: item.enabled,
+        key: item.key,
+        value: item.value,
+        description: item.description,
+        type: item.type,
+        secret: item.secret
+      }]);
+    });
   }
 
   private removeItem(id: string): void {
-    this.onChange(this.items.filter((item: KeyValueItem) => item.id !== id));
+    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.exitCurve }, () => {
+      this.onChange(this.items.filter((item: KeyValueItem) => item.id !== id));
+    });
   }
 
   private async selectItemFile(item: KeyValueItem): Promise<void> {
@@ -133,10 +140,12 @@ export struct KeyValueEditor {
         secret: false
       });
     }
-    this.onChange(nextItems);
-    this.bulkError = '';
-    this.bulkErrorVisible = false;
-    this.bulkMode = false;
+    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+      this.onChange(nextItems);
+      this.bulkError = '';
+      this.bulkErrorVisible = false;
+      this.bulkMode = false;
+    });
   }
 
   build() {
@@ -156,11 +165,15 @@ export struct KeyValueEditor {
           .borderRadius(RadiusTokens.small)
           .onClick(() => {
             if (this.bulkMode) {
-              this.bulkMode = false;
-              this.bulkError = '';
-              this.bulkErrorVisible = false;
+              this.getUIContext().animateTo({ duration: MotionTokens.normal,
+                curve: MotionTokens.standardCurve }, () => {
+                this.bulkMode = false;
+                this.bulkError = '';
+                this.bulkErrorVisible = false;
+              });
             } else {
-              this.enterBulkMode();
+              this.getUIContext().animateTo({ duration: MotionTokens.normal,
+                curve: MotionTokens.standardCurve }, () => this.enterBulkMode());
             }
           })
       }
@@ -201,6 +214,8 @@ export struct KeyValueEditor {
           .width('100%')
         }
         .width('100%')
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -6 }))
+          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else {
         Row() {
           Text('✓').width(34).textAlign(TextAlign.Center).fontSize(10).fontColor(ColorTokens.textTertiary)
@@ -305,6 +320,9 @@ export struct KeyValueEditor {
           .width('100%')
           .padding({ left: SpacingTokens.x2, right: SpacingTokens.x1 })
           .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+          .transition(TransitionEffect.OPACITY
+            .combine(TransitionEffect.scale({ x: 1, y: 0.82, centerY: '0%' }))
+            .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
         }, (item: KeyValueItem) => `${item.id}-${item.type}-${item.secret}`)
 
         Row({ space: SpacingTokens.x2 }) {

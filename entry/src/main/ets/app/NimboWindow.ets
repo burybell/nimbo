@@ -601,14 +601,18 @@ export struct NimboWindow {
 
   private deleteHistoryItem(id: string): void {
     this.lastDeletedHistory = this.historyItems.filter((item: HistoryItemModel) => item.id === id);
-    this.historyItems = this.historyItems.filter((item: HistoryItemModel) => item.id !== id);
+    this.animateState(() => {
+      this.historyItems = this.historyItems.filter((item: HistoryItemModel) => item.id !== id);
+    });
     this.persistLocalData();
     this.showToast($r('app.string.toast_deleted'), true);
   }
 
   private undoHistoryDelete(): void {
     if (this.lastDeletedHistory.length === 0) return;
-    this.historyItems = [...this.lastDeletedHistory, ...this.historyItems];
+    this.animateState(() => {
+      this.historyItems = [...this.lastDeletedHistory, ...this.historyItems];
+    });
     this.lastDeletedHistory = [];
     this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
       this.toastVisible = false;

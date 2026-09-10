@@ -6,6 +6,7 @@ import { JsonViewer } from './JsonViewer';
 import { LargeResponseViewer } from './LargeResponseViewer';
 import { RawViewer } from './RawViewer';
 import { ResponseHeader } from './ResponseHeader';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct ResponsePanel {
@@ -17,8 +18,16 @@ export struct ResponsePanel {
   onSaveBinary: () => void = () => {};
 
   @Builder
-  private emptyState(title: ResourceStr, description: ResourceStr) {
+  private emptyState(title: ResourceStr, description: ResourceStr, loading: boolean = false) {
     Column({ space: SpacingTokens.x2 }) {
+      if (loading) {
+        LoadingProgress()
+          .width(24)
+          .height(24)
+          .color(ColorTokens.brand500)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.scale({ x: 0.7, y: 0.7 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      }
       Text(title)
         .fontSize(15)
         .fontWeight(FontWeight.Medium)
@@ -36,6 +45,8 @@ export struct ResponsePanel {
     .width('100%')
     .height('100%')
     .justifyContent(FlexAlign.Center)
+    .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+      .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
   }
 
   @Builder
@@ -49,6 +60,8 @@ export struct ResponsePanel {
       .width('100%')
       .height('100%')
       .justifyContent(FlexAlign.Center)
+      .transition(TransitionEffect.OPACITY
+        .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
     } else {
       Scroll() {
         Column() {
@@ -77,6 +90,8 @@ export struct ResponsePanel {
       .height('100%')
       .align(Alignment.TopStart)
       .scrollBar(BarState.Auto)
+      .transition(TransitionEffect.OPACITY
+        .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
     }
   }
 
@@ -92,8 +107,10 @@ export struct ResponsePanel {
           .textAlign(TextAlign.Center)
           .backgroundColor(this.bodyMode === 'pretty' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
           .borderRadius(RadiusTokens.small)
+          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
           .onClick(() => {
-            this.bodyMode = 'pretty';
+            this.getUIContext().animateTo({ duration: MotionTokens.fast,
+              curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'pretty'; });
           })
         Text($r('app.string.response_raw'))
           .fontSize(11)
@@ -103,8 +120,10 @@ export struct ResponsePanel {
           .textAlign(TextAlign.Center)
           .backgroundColor(this.bodyMode === 'raw' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
           .borderRadius(RadiusTokens.small)
+          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
           .onClick(() => {
-            this.bodyMode = 'raw';
+            this.getUIContext().animateTo({ duration: MotionTokens.fast,
+              curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'raw'; });
           })
         Blank()
         Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : $r('app.string.body_text'))
@@ -127,6 +146,8 @@ export struct ResponsePanel {
     .width('100%')
     .height('100%')
     .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, bottom: SpacingTokens.x2 })
+    .transition(TransitionEffect.OPACITY
+      .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
   }
 
   build() {
@@ -141,6 +162,8 @@ export struct ResponsePanel {
         .height('100%')
         .padding(SpacingTokens.x4)
         .justifyContent(FlexAlign.Center)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else if (this.response.status === 'large') {
         LargeResponseViewer({
           responseSize: this.response.size,
@@ -148,6 +171,8 @@ export struct ResponsePanel {
           previewAvailable: this.response.previewAvailable,
           onPreview: this.onPreviewLarge
         })
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+            .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else if (this.response.status === 'binary') {
         Column({ space: SpacingTokens.x3 }) {
           Text($r('app.string.response_binary'))
@@ -170,8 +195,10 @@ export struct ResponsePanel {
         .width('100%')
         .height('100%')
         .justifyContent(FlexAlign.Center)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else if (this.response.status === 'sending' && this.response.body.length === 0) {
-        this.emptyState($r('app.string.response_waiting_title'), $r('app.string.response_waiting_description'))
+        this.emptyState($r('app.string.response_waiting_title'), $r('app.string.response_waiting_description'), true)
       } else {
         ResponseHeader({
           response: this.response,
@@ -199,6 +226,8 @@ export struct ResponsePanel {
           .layoutWeight(1)
           .width('100%')
           .justifyContent(FlexAlign.Center)
+          .transition(TransitionEffect.OPACITY
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
         }
       }
     }
