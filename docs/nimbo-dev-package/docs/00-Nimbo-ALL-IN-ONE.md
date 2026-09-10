@@ -9,7 +9,7 @@
 > **产品名称：** Nimbo  
 > **产品定位：** HarmonyOS 原生 API 调试工具  
 > **产品形态：** HarmonyOS PC 优先，兼容平板与手机  
-> **商业模式：** 永久免费  
+> **商业模式：** AGPL 开源社区版，保留商业授权可能
 > **核心理念：** Local First / No Login / Fast / Native  
 > **版本：** v0.1
 
@@ -52,7 +52,7 @@ Nimbo 不与 Postman 在跨平台、团队协作、云服务层面竞争。
 | HarmonyOS PC 优化 | ✅ |
 | 无需登录 | ✅ |
 | 完全本地 | ✅ |
-| 永久免费 | ✅ |
+| 开源社区版 | ✅ |
 | 无广告 | ✅ |
 | REST API | ✅ |
 | cURL 导入 | ✅ |
@@ -1373,7 +1373,7 @@ HarmonyOS 原生体验
         +
 WebSocket / SSE / gRPC
         +
-长期永久免费
+开放源码与本地优先
 ```
 
 最终用户认知：
@@ -1407,7 +1407,7 @@ Local Workspace
 但核心原则始终不变：
 
 ```text
-Free
+Open Source
 Local
 Fast
 Native

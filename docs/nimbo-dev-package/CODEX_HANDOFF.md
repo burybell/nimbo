@@ -259,6 +259,22 @@ Milestone 8 只完善 Nimbo 1.0 已有功能，不新增 1.1/1.2 能力。目标
 
 集合可用性补完（2026-09-10）：恢复并接通集合创建入口；集合与文件夹节点可创建嵌套文件夹；Collection Tree 改为不可变状态更新并使用递归刷新键，任意层级均可即时展开/折叠或显示新增子项；请求工具栏提供保存入口，首次保存可选择集合/文件夹并命名，保存后请求内容与 Method 修改自动持久化。以上状态均进入现有本地持久化，不新增在线分享、Runner、脚本、拖拽等暂缓能力。
 
+### Milestone 9 — Open Source Release Readiness
+
+Milestone 9 只完成 Nimbo 对外开源和首次公开发布所需的工程、治理与仓库配置，不新增产品功能，不进入 1.1/1.2 暂缓范围。
+
+按顺序完成：
+
+1. 确立 AGPL-3.0-only 开源许可和可选商业授权路径，补齐 CLA、贡献指南、行为准则与安全政策
+2. 补齐 Issue / Pull Request 模板、CODEOWNERS、变更日志和中英文仓库入口
+3. 增加 GitHub Actions 质量门禁，检查 JSON、语言资源键、敏感信息、文档链接和治理文件
+4. 从清洁 clone 生成本地构建配置并完成无签名 HAP 构建，确保仓库不依赖本机密钥或凭据
+5. 完成 GitHub 描述、Topics、依赖安全与私密漏洞报告配置，发布 `v0.1.0-alpha`
+
+验收要求：公开文档不泄露签名资料、密钥、Token 或本机路径；新贡献者能从 README 找到构建与贡献入口；清洁 clone 能通过仓库检查并生成 unsigned HAP；主分支 GitHub Actions 通过；版本标签、Changelog 与 GitHub Release 一致。
+
+当前进度（2026-09-10）：Milestone 9 已完成。仓库已采用 AGPL-3.0-only，并明确版权持有人可另行提供商业授权；已补齐 `LICENSE`、`CLA.md`、`CONTRIBUTING.md`、`CODE_OF_CONDUCT.md`、`SECURITY.md`、`CHANGELOG.md`、CODEOWNERS 及 Issue / PR 模板。本地质量脚本与 GitHub Actions 共用同一组仓库检查；从无构建缓存的清洁 clone 已成功产出 `entry-default-unsigned.hap`，不需要官方应用的签名凭据。GitHub 已配置仓库描述与 Topics，并开启依赖图、Dependabot 告警/安全更新和私密漏洞报告；首个公开预发布版本为 `v0.1.0-alpha`。命令行构建仍会报告无签名配置，以及 `HttpEngine` 的 SDK 22 Redirect Interceptor / API 20 兼容下限告警；前者符合开源 clone 的预期，后者是 Milestone 5 已验收的已知兼容提示。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

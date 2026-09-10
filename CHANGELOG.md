@@ -21,3 +21,10 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 
 - Signing profiles and machine-specific build credentials are excluded from version control
 - Public build configuration is provided without credentials
+- Private vulnerability reporting, dependency alerts, and automated security updates are enabled
+
+### Project
+
+- Added AGPL-3.0-only licensing, contributor governance, security policy, issue and pull request templates
+- Added local repository checks and a GitHub Actions quality gate
+- Verified a clean-clone unsigned HAP build without official signing credentials
