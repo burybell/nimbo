@@ -114,6 +114,7 @@ export interface EnvironmentModel {
   name: string;
   kind: EnvironmentKind;
   variables: KeyValueItem[];
+  system?: boolean;
 }
 
 export interface HistoryItemModel {

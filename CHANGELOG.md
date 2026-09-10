@@ -4,6 +4,20 @@ All notable changes to Nimbo will be documented in this file.
 
 The project follows [Semantic Versioning](https://semver.org/) for published releases.
 
+## [Unreleased]
+
+### Added
+
+- Editable request and read-only response JSON code surfaces with native selection, caret, and syntax highlighting
+- Global search for requests, collections, history, environments, and primary commands, available from the toolbar and `Ctrl+K`
+- Persistent built-in Development, Staging, and Production environments
+
+### Changed
+
+- Reworked the HTTP method picker with method-specific colors and a top-layer menu
+- Combined New and import actions into a single split button and removed the duplicate settings entry
+- Migrated local data to schema v4 while preserving existing environment values and imported environments
+
 ## [0.1.0-alpha] - 2026-09-10
 
 ### Added

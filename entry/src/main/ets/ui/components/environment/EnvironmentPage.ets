@@ -7,8 +7,9 @@ import { KeyValueEditor } from '../request/KeyValueEditor';
 export struct EnvironmentPage {
   @Prop environments: EnvironmentModel[] = [];
   @Prop phone: boolean = false;
-  @State selectedId: string = 'development';
+  @Prop selectedId: string = 'development';
   onChange: (id: string, variables: KeyValueItem[]) => void = () => {};
+  onSelect: (id: string) => void = () => {};
   onSaved: () => void = () => {};
 
   private selectedEnvironment(): EnvironmentModel {
@@ -39,12 +40,15 @@ export struct EnvironmentPage {
                   .fontColor(environment.id === this.selectedId ? ColorTokens.brand500 : ColorTokens.textTertiary)
                 Text(environment.name).fontSize(12).maxLines(1)
                   .fontColor(environment.id === this.selectedId ? ColorTokens.brand600 : ColorTokens.textSecondary)
+                if (environment.system) {
+                  Text($r('app.string.environment_system')).fontSize(9).fontColor(ColorTokens.textTertiary)
+                }
               }
               .height(40)
               .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
               .backgroundColor(environment.id === this.selectedId ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
               .borderRadius(RadiusTokens.medium)
-              .onClick(() => { this.selectedId = environment.id; })
+              .onClick(() => this.onSelect(environment.id))
             }, (environment: EnvironmentModel) => environment.id)
           }
           .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
@@ -111,6 +115,9 @@ export struct EnvironmentPage {
                 .fontColor(ColorTokens.textPrimary)
                 .width('100%')
               Row({ space: SpacingTokens.x1 }) {
+                if (environment.system) {
+                  Text($r('app.string.environment_system')).fontSize(10).fontColor(ColorTokens.brand500)
+                }
                 Text(`${environment.variables.length}`).fontSize(11).fontColor(ColorTokens.textTertiary)
                 Text($r('app.string.variables')).fontSize(11).fontColor(ColorTokens.textTertiary)
               }.width('100%')
@@ -122,7 +129,7 @@ export struct EnvironmentPage {
           .padding({ left: SpacingTokens.x4, right: SpacingTokens.x3 })
           .backgroundColor(environment.id === this.selectedId ? ColorTokens.bgSurfaceActive : ColorTokens.bgSidebar)
           .borderRadius(RadiusTokens.medium)
-          .onClick(() => { this.selectedId = environment.id; })
+          .onClick(() => this.onSelect(environment.id))
         }, (environment: EnvironmentModel) => environment.id)
         Blank()
       }

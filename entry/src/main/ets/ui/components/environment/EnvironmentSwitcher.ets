@@ -1,32 +1,26 @@
+import { EnvironmentModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct EnvironmentSwitcher {
   @Prop selectedId: string = 'development';
+  @Prop environments: EnvironmentModel[] = [];
   onChange: (id: string) => void = () => {};
-  private environments: SelectOption[] = [
-    { value: $r('app.string.environment_development') },
-    { value: $r('app.string.environment_staging') },
-    { value: $r('app.string.environment_production') }
-  ];
 
-  private selectedIndex(): number {
-    if (this.selectedId === 'staging') return 1;
-    if (this.selectedId === 'production') return 2;
-    return 0;
+  private options(): SelectOption[] {
+    return this.environments.map((environment: EnvironmentModel): SelectOption => ({ value: environment.name }));
   }
 
-  private environmentId(index: number): string {
-    if (index === 1) return 'staging';
-    if (index === 2) return 'production';
-    return 'development';
+  private selectedIndex(): number {
+    const index = this.environments.findIndex((environment: EnvironmentModel) => environment.id === this.selectedId);
+    return index >= 0 ? index : 0;
   }
 
   build() {
-    Select(this.environments)
+    Select(this.options())
       .selected(this.selectedIndex())
-      .value(this.environments[this.selectedIndex()].value)
+      .value(this.environments.length > 0 ? this.environments[this.selectedIndex()].name : '')
       .font({ size: 13 })
       .fontColor(ColorTokens.textPrimary)
       .height(SizeTokens.controlMedium)
@@ -35,7 +29,7 @@ export struct EnvironmentSwitcher {
       .border({ width: 1, color: ColorTokens.borderDefault })
       .borderRadius(RadiusTokens.medium)
       .onSelect((index: number) => {
-        this.onChange(this.environmentId(index));
+        if (index >= 0 && index < this.environments.length) this.onChange(this.environments[index].id);
       })
   }
 }

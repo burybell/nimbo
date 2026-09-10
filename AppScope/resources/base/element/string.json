@@ -819,6 +819,12 @@
     { "name": "error_cancelled", "value": "Request cancelled" },
     { "name": "error_cancelled_message", "value": "The request was cancelled before it completed." },
     { "name": "collection_empty_title", "value": "No collections" },
-    { "name": "collection_empty_description", "value": "Import a Postman collection to add saved requests." }
+    { "name": "collection_empty_description", "value": "Import a Postman collection to add saved requests." },
+    { "name": "global_search_placeholder", "value": "Search requests, collections, and commands" },
+    { "name": "global_search_empty", "value": "No matching results" },
+    { "name": "search_new_request", "value": "New request" },
+    { "name": "search_manage_environments", "value": "Manage environments" },
+    { "name": "search_command", "value": "Command" },
+    { "name": "environment_system", "value": "System" }
   ]
 }

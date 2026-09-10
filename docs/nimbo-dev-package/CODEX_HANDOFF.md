@@ -275,6 +275,20 @@ Milestone 9 只完成 Nimbo 对外开源和首次公开发布所需的工程、�
 
 当前进度（2026-09-10）：Milestone 9 已完成。仓库已采用 AGPL-3.0-only，并明确版权持有人可另行提供商业授权；已补齐 `LICENSE`、`CLA.md`、`CONTRIBUTING.md`、`CODE_OF_CONDUCT.md`、`SECURITY.md`、`CHANGELOG.md`、CODEOWNERS 及 Issue / PR 模板。本地质量脚本与 GitHub Actions 共用同一组仓库检查；从无构建缓存的清洁 clone 已成功产出 `entry-default-unsigned.hap`，不需要官方应用的签名凭据。GitHub 已配置仓库描述与 Topics，并开启依赖图、Dependabot 告警/安全更新和私密漏洞报告；首个公开预发布版本为 `v0.1.0-alpha`。命令行构建仍会报告无签名配置，以及 `HttpEngine` 的 SDK 22 Redirect Interceptor / API 20 兼容下限告警；前者符合开源 clone 的预期，后者是 Milestone 5 已验收的已知兼容提示。
 
+### Milestone 10 — Core Editor & Shell Consistency
+
+Milestone 10 只修复公开 Alpha 中已经存在的核心编辑与 Shell 一致性问题，不扩展协议、Runner、脚本、账户或云端范围。
+
+分三批完成并分别提交：
+
+1. 统一请求与响应 JSON 代码表面：请求正文可编辑且具备语法高亮；响应 JSON 使用同一视觉体系，保留光标、选择和复制能力但禁止修改
+2. 收口请求主控件：Method 使用方法色和独立顶层菜单；新建与导入入口合并为一体式 Split Button；删除重复的侧栏设置入口
+3. 统一环境与全局导航：Development / Staging / Production 作为不可删除的系统环境进入真实持久化数据；顶部选择器读取同一数据源；实现可检索请求、集合、历史、环境和常用命令的全局搜索及 `Ctrl+K`
+
+验收要求：编辑与只读 JSON 均有稳定代码样式；Method 菜单不被工作区遮挡；新建菜单不挤压侧栏；设置只有一个主入口；首次安装、旧 schema 和重置后均存在三个空变量系统环境，旧环境值与 Postman 导入环境不丢失；全局搜索可过滤并打开结果或执行命令；中英文、深浅主题和响应式布局不退化；构建无新增 warning。
+
+当前进度（2026-09-10）：Milestone 10 已完成。新增共享原生 RichEditor JSON 代码表面，请求端可编辑，响应端可移动光标、选择和复制但不可修改；JSON key、string、number、literal 与标点均使用主题 Token 高亮。Method 选择器改为方法色顶层弹层，新建/导入改为一体式分段按钮，重复设置入口已移除。持久化 schema 升级至 v4，三个系统环境会在首次安装、旧数据迁移和重置时自动补齐，已有变量和导入环境保留；环境页与顶部选择器使用同一状态。顶部全局搜索已接通请求、集合/文件夹、历史、环境及新建、导入、设置命令，支持点击和 `Ctrl+K`。仓库质量检查、签名 HAP 构建与 HarmonyOS PC 模拟器运行时验收通过；未新增 ArkTS warning，仍仅保留 Milestone 5 的两条 Redirect Interceptor 兼容提示。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

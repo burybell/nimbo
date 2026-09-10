@@ -16,7 +16,7 @@ import {
   PersistedTabModel
 } from '../models/PersistenceModels';
 import { ShellState } from '../state/ShellState';
-import { createDefaultPreferences } from '../state/AppDefaults';
+import { createDefaultEnvironments, createDefaultPreferences, normalizeEnvironments } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
 import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
 import { PostmanImportResult } from '../services/PostmanCodec';
@@ -32,7 +32,7 @@ import {
   createLargeResponse,
   createSuccessResponse
 } from '../mock/ShellMockData';
-import { DEMO_ENVIRONMENTS, DEMO_HISTORY } from '../mock/SupportingMockData';
+import { DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { CollectionNameDialog } from '../ui/components/collection/CollectionNameDialog';
 import { CollectionTarget, SaveRequestDialog } from '../ui/components/collection/SaveRequestDialog';
@@ -47,6 +47,7 @@ import { ImportCurlDialog } from '../ui/components/importer/ImportCurlDialog';
 import { PostmanImportDialog } from '../ui/components/importer/PostmanImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
+import { GlobalSearchDialog, GlobalSearchItem } from '../ui/components/search/GlobalSearchDialog';
 import { ColorTokens } from '../ui/tokens/ColorTokens';
 import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
 import { MotionTokens } from '../ui/tokens/MotionTokens';
@@ -62,7 +63,7 @@ export struct NimboWindow {
   @State collections: CollectionNode[] = ShellState.createInitialCollections();
   @State tabs: RequestTabModel[] = ShellState.createInitialTabs();
   @State activeTabId: string = 'get-users';
-  @State environments: EnvironmentModel[] = DEMO_ENVIRONMENTS;
+  @State environments: EnvironmentModel[] = createDefaultEnvironments();
   @State historyItems: HistoryItemModel[] = DEMO_HISTORY;
   @State activeOverlay: string = '';
   @State toastMessage: ResourceStr = '';
@@ -142,8 +143,9 @@ export struct NimboWindow {
       this.collections = state.collections;
       this.savedRequests = state.requests;
       this.restoreNextTabNumber();
-      this.environments = state.environments;
-      this.selectedEnvironmentId = state.activeEnvironmentId;
+      this.environments = normalizeEnvironments(state.environments);
+      this.selectedEnvironmentId = this.environments.some((item: EnvironmentModel) =>
+        item.id === state.activeEnvironmentId) ? state.activeEnvironmentId : 'development';
       this.preferences = state.preferences;
       this.historyItems = this.normalizeHistory(state.history);
       if (state.preferences.restoreWorkspace) {
@@ -178,10 +180,10 @@ export struct NimboWindow {
     this.collections = [];
     this.tabs = [tab];
     this.activeTabId = tab.id;
-    this.environments = [];
+    this.environments = createDefaultEnvironments();
     this.historyItems = [];
     this.lastDeletedHistory = [];
-    this.selectedEnvironmentId = '';
+    this.selectedEnvironmentId = 'development';
     this.savedRequests = [{ id: tab.id, name: tab.name, method: tab.method, request: this.idleRequest(request) }];
     this.preferences = preferences;
     this.nextTabNumber = 2;
@@ -268,6 +270,134 @@ export struct NimboWindow {
 
   private showOverlay(name: string): void {
     this.animateState(() => { this.activeOverlay = name; });
+  }
+
+  private appendCollectionSearchItems(nodes: CollectionNode[], items: GlobalSearchItem[]): void {
+    nodes.forEach((node: CollectionNode) => {
+      if (node.type === 'request') {
+        items.push({ id: `request:${node.id}`, title: node.name,
+          subtitle: node.method ?? 'GET', keywords: `${node.name} ${node.method ?? ''} request 请求`, icon: '□' });
+      } else {
+        items.push({ id: `collection:${node.id}`, title: node.name,
+          subtitle: node.type === 'collection' ? $r('app.string.nav_collections') : $r('app.string.folders'),
+          keywords: `${node.name} collection folder 集合 文件夹`, icon: node.type === 'collection' ? '▣' : '◇' });
+        this.appendCollectionSearchItems(node.children, items);
+      }
+    });
+  }
+
+  private globalSearchItems(): GlobalSearchItem[] {
+    const items: GlobalSearchItem[] = [
+      { id: 'command:new', title: $r('app.string.search_new_request'),
+        subtitle: $r('app.string.search_command'), keywords: 'new request create 新建 请求', icon: '+' },
+      { id: 'command:curl', title: $r('app.string.import_curl'),
+        subtitle: $r('app.string.search_command'), keywords: 'import curl 导入', icon: '↗' },
+      { id: 'command:postman', title: $r('app.string.import_postman'),
+        subtitle: $r('app.string.search_command'), keywords: 'import postman collection 导入 集合', icon: '⇥' },
+      { id: 'command:environments', title: $r('app.string.search_manage_environments'),
+        subtitle: $r('app.string.search_command'), keywords: 'environment manage 环境 管理', icon: '◎' },
+      { id: 'command:settings', title: $r('app.string.nav_settings'),
+        subtitle: $r('app.string.search_command'), keywords: 'settings preferences 设置 偏好', icon: '⚙' }
+    ];
+    this.appendCollectionSearchItems(this.collections, items);
+    this.savedRequests.forEach((request: PersistedRequestModel) => {
+      if (!this.findCollectionNode(this.collections, request.id)) {
+        items.push({ id: `request:${request.id}`, title: request.name,
+          subtitle: request.request.url.length > 0 ? request.request.url : request.method,
+          keywords: `${request.name} ${request.method} ${request.request.url} request 请求`, icon: '□' });
+      }
+    });
+    this.historyItems.forEach((history: HistoryItemModel) => {
+      items.push({ id: `history:${history.id}`, title: `${history.method} ${history.url}`,
+        subtitle: $r('app.string.nav_history'), keywords: `${history.method} ${history.url} history 历史`, icon: '◷' });
+    });
+    this.environments.forEach((environment: EnvironmentModel) => {
+      items.push({ id: `environment:${environment.id}`, title: environment.name,
+        subtitle: $r('app.string.nav_environments'),
+        keywords: `${environment.name} ${environment.id} environment 环境`, icon: '◎' });
+    });
+    return items;
+  }
+
+  private containsCollectionNode(nodes: CollectionNode[], id: string): boolean {
+    return nodes.some((node: CollectionNode) => node.id === id || this.containsCollectionNode(node.children, id));
+  }
+
+  private revealCollectionNode(nodes: CollectionNode[], id: string): CollectionNode[] {
+    return nodes.map((node: CollectionNode): CollectionNode => ({
+      id: node.id,
+      type: node.type,
+      name: node.name,
+      method: node.method,
+      expanded: node.id === id || this.containsCollectionNode(node.children, id) ? true : node.expanded,
+      children: this.revealCollectionNode(node.children, id)
+    }));
+  }
+
+  private selectSearchItem(item: GlobalSearchItem): void {
+    this.activeOverlay = '';
+    if (item.id === 'command:new') {
+      this.createTab();
+      return;
+    }
+    if (item.id === 'command:curl') {
+      this.showOverlay('curl');
+      return;
+    }
+    if (item.id === 'command:postman') {
+      this.showOverlay('postman');
+      return;
+    }
+    if (item.id === 'command:settings') {
+      this.selectDestination('settings');
+      return;
+    }
+    if (item.id === 'command:environments') {
+      this.selectDestination('environments');
+      return;
+    }
+    if (item.id.startsWith('environment:')) {
+      this.selectedEnvironmentId = item.id.substring('environment:'.length);
+      this.selectDestination('environments');
+      this.persistLocalData();
+      return;
+    }
+    if (item.id.startsWith('history:')) {
+      const id = item.id.substring('history:'.length);
+      const history = this.historyItems.find((candidate: HistoryItemModel) => candidate.id === id);
+      if (history) this.openHistoryItem(history);
+      return;
+    }
+    if (item.id.startsWith('request:')) {
+      const id = item.id.substring('request:'.length);
+      const node = this.findCollectionNode(this.collections, id);
+      if (node) {
+        this.openCollectionRequest(node);
+      } else {
+        const saved = this.savedRequests.find((candidate: PersistedRequestModel) => candidate.id === id);
+        if (saved) {
+          this.openCollectionRequest({ id: saved.id, type: 'request', name: saved.name,
+            method: saved.method, expanded: false, children: [] });
+        }
+      }
+      this.selectDestination('workspace');
+      return;
+    }
+    if (item.id.startsWith('collection:')) {
+      const id = item.id.substring('collection:'.length);
+      this.collections = this.revealCollectionNode(this.collections, id);
+      this.selectDestination('collections');
+      this.persistLocalData();
+    }
+  }
+
+  private findCollectionNode(nodes: CollectionNode[], id: string): CollectionNode | undefined {
+    for (let index = 0; index < nodes.length; index += 1) {
+      if (nodes[index].id === id) return nodes[index];
+      const nested = this.findCollectionNode(nodes[index].children, id);
+      if (nested) return nested;
+    }
+    return undefined;
   }
 
   private updateCollectionNode(nodes: CollectionNode[], id: string,
@@ -644,7 +774,8 @@ export struct NimboWindow {
   private updateEnvironment(id: string, variables: KeyValueItem[]): void {
     this.environments = this.environments.map((environment: EnvironmentModel) => {
       if (environment.id !== id) return environment;
-      return { id: environment.id, name: environment.name, kind: environment.kind, variables };
+      return { id: environment.id, name: environment.name, kind: environment.kind, variables,
+        system: environment.system };
     });
     this.persistLocalData();
   }
@@ -836,6 +967,11 @@ export struct NimboWindow {
       EnvironmentPage({
         environments: this.environments,
         phone: this.isPhone(),
+        selectedId: this.selectedEnvironmentId,
+        onSelect: (id: string) => {
+          this.selectedEnvironmentId = id;
+          this.persistLocalData();
+        },
         onChange: (id: string, variables: KeyValueItem[]) => this.updateEnvironment(id, variables),
         onSaved: () => this.showToast($r('app.string.toast_saved'))
       })
@@ -1013,11 +1149,13 @@ export struct NimboWindow {
           compact: this.isCompact(),
           phone: this.isPhone(),
           selectedEnvironmentId: this.selectedEnvironmentId,
+          environments: this.environments,
           onEnvironmentChange: (id: string) => {
             this.selectedEnvironmentId = id;
             this.persistLocalData();
           },
-          onSettings: () => this.selectDestination('settings')
+          onSettings: () => this.selectDestination('settings'),
+          onSearch: () => this.showOverlay('global-search')
         })
 
         if (this.isPhone()) {
@@ -1057,6 +1195,13 @@ export struct NimboWindow {
           placeholder: $r('app.string.collection_name_placeholder'),
           onCancel: () => { this.pendingSaveTabId = ''; this.hideOverlay(); },
           onConfirm: (name: string) => this.createCollection(name)
+        })
+      }
+      if (this.activeOverlay === 'global-search') {
+        GlobalSearchDialog({
+          items: this.globalSearchItems(),
+          onCancel: () => this.hideOverlay(),
+          onSelect: (item: GlobalSearchItem) => this.selectSearchItem(item)
         })
       }
       if (this.activeOverlay === 'create-folder') {
@@ -1149,6 +1294,8 @@ export struct NimboWindow {
     }
     .width('100%')
     .height('100%')
+    .focusable(true)
+    .defaultFocus(true)
     .onAreaChange((_oldValue: Area, newValue: Area) => {
       const measuredWidth = Number.parseFloat(newValue.width.toString());
       if (!Number.isNaN(measuredWidth)) {
@@ -1157,6 +1304,15 @@ export struct NimboWindow {
         if (measuredWidth >= BreakpointTokens.tablet) this.collectionDrawerOpen = false;
         this.windowWidth = measuredWidth;
       }
+    })
+    .onKeyEvent((event: KeyEvent) => {
+      if (event.type === KeyType.Down && event.keyCode === 2027 &&
+        event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
+        if (this.activeOverlay === 'global-search') this.hideOverlay();
+        else this.showOverlay('global-search');
+        return true;
+      }
+      return false;
     })
   }
 }

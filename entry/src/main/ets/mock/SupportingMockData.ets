@@ -1,34 +1,6 @@
-import { EnvironmentModel, HistoryItemModel, SettingsSectionModel } from '../models/ShellModels';
+import { HistoryItemModel, SettingsSectionModel } from '../models/ShellModels';
 
 const NOW: number = Date.now();
-
-export const DEMO_ENVIRONMENTS: EnvironmentModel[] = [
-  {
-    id: 'development',
-    name: 'Development',
-    kind: 'development',
-    variables: [
-      { id: 'dev-base-url', enabled: true, key: 'baseUrl', value: 'https://dev.api.example.com', description: 'Development API base URL', type: 'text', secret: false },
-      { id: 'dev-api-token', enabled: true, key: 'apiToken', value: 'nimbo_demo_token', description: 'Bearer token', type: 'text', secret: true }
-    ]
-  },
-  {
-    id: 'staging',
-    name: 'Staging',
-    kind: 'staging',
-    variables: [
-      { id: 'staging-base-url', enabled: true, key: 'baseUrl', value: 'https://staging.api.example.com', description: 'Staging API base URL', type: 'text', secret: false }
-    ]
-  },
-  {
-    id: 'production',
-    name: 'Production',
-    kind: 'production',
-    variables: [
-      { id: 'prod-base-url', enabled: true, key: 'baseUrl', value: 'https://api.example.com', description: 'Production API base URL', type: 'text', secret: false }
-    ]
-  }
-];
 
 export const DEMO_HISTORY: HistoryItemModel[] = [
   { id: 'history-1', group: 'Today', createdAt: NOW, time: '12:31', method: 'GET', url: 'https://jsonplaceholder.typicode.com/users', status: 200, duration: '183 ms' },

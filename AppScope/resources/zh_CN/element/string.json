@@ -819,6 +819,12 @@
     { "name": "error_cancelled", "value": "请求已取消" },
     { "name": "error_cancelled_message", "value": "请求在完成前已被取消。" },
     { "name": "collection_empty_title", "value": "暂无集合" },
-    { "name": "collection_empty_description", "value": "可通过导入 Postman 集合添加已保存的请求。" }
+    { "name": "collection_empty_description", "value": "可通过导入 Postman 集合添加已保存的请求。" },
+    { "name": "global_search_placeholder", "value": "搜索请求、集合和命令" },
+    { "name": "global_search_empty", "value": "没有匹配的结果" },
+    { "name": "search_new_request", "value": "新建请求" },
+    { "name": "search_manage_environments", "value": "管理环境" },
+    { "name": "search_command", "value": "命令" },
+    { "name": "environment_system", "value": "系统" }
   ]
 }
