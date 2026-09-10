@@ -23,6 +23,7 @@ export struct RequestPanel {
   @Prop request: RequestDraft;
   @Prop phone: boolean = false;
   onChange: (request: RequestDraft) => void = () => {};
+  onSave: () => void = () => {};
 
   private emit(method: HttpMethod, url: string, lifecycle: RequestLifecycle,
     activeConfigTab: RequestConfigTab, params: KeyValueItem[], headers: KeyValueItem[],
@@ -78,7 +79,8 @@ export struct RequestPanel {
         onSend: () => this.emitCore(this.request.method, this.request.url, 'sending',
           this.request.activeConfigTab),
         onCancel: () => this.emitCore(this.request.method, this.request.url, 'idle',
-          this.request.activeConfigTab)
+          this.request.activeConfigTab),
+        onSave: this.onSave
       })
         .padding({ left: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,
           right: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,

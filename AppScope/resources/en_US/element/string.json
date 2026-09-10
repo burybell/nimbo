@@ -57,6 +57,50 @@
       "value": "Save"
     },
     {
+      "name": "action_create",
+      "value": "Create"
+    },
+    {
+      "name": "collection_create",
+      "value": "Create Collection"
+    },
+    {
+      "name": "folder_create",
+      "value": "Create Folder"
+    },
+    {
+      "name": "collection_name_placeholder",
+      "value": "Collection name"
+    },
+    {
+      "name": "folder_name_placeholder",
+      "value": "Folder name"
+    },
+    {
+      "name": "collection_save_request",
+      "value": "Save Request to Collection"
+    },
+    {
+      "name": "collection_location",
+      "value": "Save location"
+    },
+    {
+      "name": "request_name_placeholder",
+      "value": "Request name"
+    },
+    {
+      "name": "toast_collection_created",
+      "value": "Collection created"
+    },
+    {
+      "name": "toast_folder_created",
+      "value": "Folder created"
+    },
+    {
+      "name": "toast_request_saved_collection",
+      "value": "Request saved to collection"
+    },
+    {
       "name": "action_send",
       "value": "Send"
     },

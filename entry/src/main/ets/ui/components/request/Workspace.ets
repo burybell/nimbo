@@ -21,6 +21,7 @@ export struct Workspace {
   onCloseTab: (id: string) => void = () => {};
   onCreateTab: () => void = () => {};
   onUpdateRequest: (id: string, request: RequestDraft) => void = () => {};
+  onSaveRequest: (id: string) => void = () => {};
   onPreviewLargeResponse: (id: string) => void = () => {};
   onSaveBinary: (response: ResponseModel) => void = () => {};
   private tabSwitchSerial: number = 0;
@@ -142,7 +143,8 @@ export struct Workspace {
           RequestPanel({
             request: this.tabs[this.activeIndex()].request,
             phone: true,
-            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
+            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
+            onSave: () => this.onSaveRequest(this.activeTabId)
           })
           .layoutWeight(1)
           .opacity(this.contentOpacity)
@@ -161,7 +163,8 @@ export struct Workspace {
         Column() {
           RequestPanel({
             request: this.tabs[this.activeIndex()].request,
-            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
+            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
+            onSave: () => this.onSaveRequest(this.activeTabId)
           })
             .height(`${Math.round(this.splitRatio * 100)}%`)
 

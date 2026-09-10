@@ -6,9 +6,11 @@ import { MotionTokens } from '../../tokens/MotionTokens';
 @Component
 export struct CollectionTree {
   @Link nodes: CollectionNode[];
+  @Prop alwaysShowActions: boolean = false;
   @State hoveredNodeId: string = '';
   onOpenRequest: (node: CollectionNode) => void = () => {};
-  onChange: () => void = () => {};
+  onToggleNode: (id: string) => void = () => {};
+  onCreateFolder: (parentId: string) => void = () => {};
 
   private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
@@ -19,16 +21,18 @@ export struct CollectionTree {
     return ColorTokens.httpOther;
   }
 
+  private treeKey(node: CollectionNode): string {
+    let childrenKey = '';
+    node.children.forEach((child: CollectionNode) => { childrenKey += `|${this.treeKey(child)}`; });
+    return `${node.id}-${node.expanded}-${node.name}-${node.method}-${childrenKey}`;
+  }
+
   private toggleNode(node: CollectionNode): void {
     if (node.type === 'request') {
       this.onOpenRequest(node);
       return;
     }
-    this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
-      node.expanded = !node.expanded;
-      this.nodes = [...this.nodes];
-    });
-    this.onChange();
+    this.onToggleNode(node.id);
   }
 
   @Builder
@@ -60,6 +64,17 @@ export struct CollectionTree {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
+        if (node.type !== 'request' && depth < 10 &&
+          (this.alwaysShowActions || node.id === this.hoveredNodeId)) {
+          Text('+')
+            .fontSize(17)
+            .fontColor(ColorTokens.brand600)
+            .width(SizeTokens.controlSmall)
+            .height(SizeTokens.controlSmall)
+            .textAlign(TextAlign.Center)
+            .borderRadius(RadiusTokens.small)
+            .onClick(() => this.onCreateFolder(node.id))
+        }
       }
       .width('100%')
       .height(SizeTokens.controlMedium)
@@ -72,7 +87,7 @@ export struct CollectionTree {
       if (node.expanded) {
         ForEach(node.children, (child: CollectionNode) => {
           this.treeNode(child, depth + 1)
-        }, (child: CollectionNode) => child.id)
+        }, (child: CollectionNode) => this.treeKey(child))
       }
     }
     .width('100%')
@@ -84,7 +99,7 @@ export struct CollectionTree {
     Column() {
       ForEach(this.nodes, (node: CollectionNode) => {
         this.treeNode(node, 0)
-      }, (node: CollectionNode) => node.id)
+      }, (node: CollectionNode) => this.treeKey(node))
     }
     .width('100%')
   }

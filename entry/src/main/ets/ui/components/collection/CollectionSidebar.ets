@@ -1,7 +1,7 @@
 import { CollectionNode } from '../../../models/ShellModels';
 import { CollectionTree } from './CollectionTree';
 import { ColorTokens } from '../../tokens/ColorTokens';
-import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct CollectionSidebar {
@@ -9,7 +9,9 @@ export struct CollectionSidebar {
   @Link nodes: CollectionNode[];
   @Prop dismissible: boolean = false;
   onOpenRequest: (node: CollectionNode) => void = () => {};
-  onChange: () => void = () => {};
+  onToggleNode: (id: string) => void = () => {};
+  onCreateCollection: () => void = () => {};
+  onCreateFolder: (parentId: string) => void = () => {};
   onDismiss: () => void = () => {};
 
   build() {
@@ -20,6 +22,18 @@ export struct CollectionSidebar {
           .fontWeight(FontWeight.Bold)
           .fontColor(ColorTokens.textPrimary)
         Blank()
+        Text('+')
+          .fontSize(20)
+          .fontColor(ColorTokens.brand600)
+          .width(SizeTokens.controlSmall)
+          .height(SizeTokens.controlSmall)
+          .textAlign(TextAlign.Center)
+          .borderRadius(RadiusTokens.small)
+          .stateStyles({
+            normal: { .backgroundColor(ColorTokens.bgSurface) },
+            pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) }
+          })
+          .onClick(this.onCreateCollection)
         if (this.dismissible) {
           Text('×')
             .fontSize(18)
@@ -44,12 +58,25 @@ export struct CollectionSidebar {
             .fontColor(ColorTokens.textPrimary)
           Text($r('app.string.collection_empty_description')).fontSize(11).fontColor(ColorTokens.textTertiary)
             .textAlign(TextAlign.Center)
+          Button($r('app.string.collection_create'))
+            .height(SizeTokens.controlMedium)
+            .fontSize(12)
+            .fontColor(ColorTokens.textOnBrand)
+            .backgroundColor(ColorTokens.brand500)
+            .borderRadius(RadiusTokens.medium)
+            .onClick(this.onCreateCollection)
         }
         .layoutWeight(1).width('100%').justifyContent(FlexAlign.Center)
         .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
       } else {
         Scroll() {
-          CollectionTree({ nodes: $nodes, onOpenRequest: this.onOpenRequest, onChange: this.onChange })
+          CollectionTree({
+            nodes: $nodes,
+            alwaysShowActions: this.dismissible,
+            onOpenRequest: this.onOpenRequest,
+            onToggleNode: this.onToggleNode,
+            onCreateFolder: this.onCreateFolder
+          })
         }
         .width('100%')
         .layoutWeight(1)

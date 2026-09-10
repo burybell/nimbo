@@ -257,6 +257,8 @@ Milestone 8 只完善 Nimbo 1.0 已有功能，不新增 1.1/1.2 能力。目标
 
 运行时验收已覆盖 1024px PC、800px Tablet 和 360px Phone，Light / Dark 与中英文均通过实际切换；Phone 的 Request / Response、Collection Drawer、Settings 和危险确认弹窗无严重裁切。使用 `https://httpbin.org/image/png` 完成真实 HTTPS GET，得到 `image/png`、7.9 KB 二进制响应，保存入口正常；语言切换重启后集合、请求、环境与偏好可恢复。最终 HAP 已安装至 HarmonyOS PC 模拟器并完成构建，未新增 ArkTS warning。现存的两条 `HttpEngine` warning 来自 Milestone 5 已采用的 API 22 Redirect Interceptor 与项目 API 20 兼容下限；功能在当前设备已验证，不在 Milestone 8 中通过抬高最低系统版本规避。
 
+集合可用性补完（2026-09-10）：恢复并接通集合创建入口；集合与文件夹节点可创建嵌套文件夹；Collection Tree 改为不可变状态更新并使用递归刷新键，任意层级均可即时展开/折叠或显示新增子项；请求工具栏提供保存入口，首次保存可选择集合/文件夹并命名，保存后请求内容与 Method 修改自动持久化。以上状态均进入现有本地持久化，不新增在线分享、Runner、脚本、拖拽等暂缓能力。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---
@@ -428,7 +430,7 @@ Response 是视觉核心。
 - [ ] Light Mode 主界面完成
 - [ ] 主窗口结构与视觉稿方向一致
 - [ ] Sidebar 可切换
-- [ ] Collection Tree 可展开/折叠
+- [x] Collection Tree 可展开/折叠
 - [ ] Request Tab 可新增/关闭/切换
 - [ ] Method 可切换
 - [ ] URL 可编辑

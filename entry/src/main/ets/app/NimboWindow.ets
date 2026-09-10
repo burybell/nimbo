@@ -34,6 +34,8 @@ import {
 } from '../mock/ShellMockData';
 import { DEMO_ENVIRONMENTS, DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
+import { CollectionNameDialog } from '../ui/components/collection/CollectionNameDialog';
+import { CollectionTarget, SaveRequestDialog } from '../ui/components/collection/SaveRequestDialog';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
 import { MobileNavigation } from '../ui/components/common/MobileNavigation';
 import { NimboDialog } from '../ui/components/common/NimboDialog';
@@ -71,7 +73,10 @@ export struct NimboWindow {
   @State savedRequests: PersistedRequestModel[] = [];
   @State preferences: AppPreferencesModel = createDefaultPreferences();
   @State collectionDrawerOpen: boolean = false;
+  @State collectionParentId: string = '';
+  @State pendingSaveTabId: string = '';
   private nextTabNumber: number = 1;
+  private nextCollectionNodeNumber: number = 1;
   private requestController: RequestController = new RequestController();
   private requestSerials: Map<string, number> = new Map<string, number>();
   private stateReady: boolean = false;
@@ -265,6 +270,149 @@ export struct NimboWindow {
     this.animateState(() => { this.activeOverlay = name; });
   }
 
+  private updateCollectionNode(nodes: CollectionNode[], id: string,
+    change: (node: CollectionNode) => CollectionNode): CollectionNode[] {
+    let changed = false;
+    const updated = nodes.map((node: CollectionNode) => {
+      if (node.id === id) {
+        changed = true;
+        return change(node);
+      }
+      const children = this.updateCollectionNode(node.children, id, change);
+      if (children === node.children) return node;
+      changed = true;
+      return { id: node.id, type: node.type, name: node.name, method: node.method,
+        expanded: node.expanded, children };
+    });
+    return changed ? updated : nodes;
+  }
+
+  private toggleCollectionNode(id: string): void {
+    this.animateState(() => {
+      this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
+        id: node.id, type: node.type, name: node.name, method: node.method,
+        expanded: !node.expanded, children: node.children
+      }));
+    });
+    this.persistLocalData();
+  }
+
+  private newCollectionNodeId(prefix: string): string {
+    const id = `${prefix}-${Date.now()}-${this.nextCollectionNodeNumber}`;
+    this.nextCollectionNodeNumber += 1;
+    return id;
+  }
+
+  private beginCreateCollection(forPendingSave: boolean = false): void {
+    if (!forPendingSave) this.pendingSaveTabId = '';
+    this.collectionParentId = '';
+    this.showOverlay('create-collection');
+  }
+
+  private beginCreateFolder(parentId: string): void {
+    this.pendingSaveTabId = '';
+    this.collectionParentId = parentId;
+    this.showOverlay('create-folder');
+  }
+
+  private createCollection(name: string): void {
+    const collection: CollectionNode = {
+      id: this.newCollectionNodeId('collection'), type: 'collection', name,
+      expanded: true, children: []
+    };
+    this.collections = [...this.collections, collection];
+    this.persistLocalData();
+    if (this.pendingSaveTabId.length > 0) {
+      this.activeOverlay = 'save-request';
+    } else {
+      this.hideOverlay();
+      this.showToast($r('app.string.toast_collection_created'));
+    }
+  }
+
+  private createFolder(name: string): void {
+    const parentId = this.collectionParentId;
+    const folder: CollectionNode = {
+      id: this.newCollectionNodeId('folder'), type: 'folder', name, expanded: true, children: []
+    };
+    this.collections = this.updateCollectionNode(this.collections, parentId, (node: CollectionNode) => ({
+      id: node.id, type: node.type, name: node.name, method: node.method,
+      expanded: true, children: [...node.children, folder]
+    }));
+    this.collectionParentId = '';
+    this.hideOverlay();
+    this.persistLocalData();
+    this.showToast($r('app.string.toast_folder_created'));
+  }
+
+  private appendCollectionTargets(nodes: CollectionNode[], depth: number,
+    targets: CollectionTarget[]): void {
+    nodes.forEach((node: CollectionNode) => {
+      if (node.type === 'request') return;
+      targets.push({ id: node.id, name: node.name, depth });
+      this.appendCollectionTargets(node.children, depth + 1, targets);
+    });
+  }
+
+  private collectionTargets(): CollectionTarget[] {
+    const targets: CollectionTarget[] = [];
+    this.appendCollectionTargets(this.collections, 0, targets);
+    return targets;
+  }
+
+  private pendingSaveName(): string {
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === this.pendingSaveTabId);
+    return tab ? tab.name : '';
+  }
+
+  private requestIsCollected(id: string, nodes: CollectionNode[] = this.collections): boolean {
+    return nodes.some((node: CollectionNode) => node.type === 'request' ? node.id === id :
+      this.requestIsCollected(id, node.children));
+  }
+
+  private beginSaveRequest(id: string): void {
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
+    if (!tab) return;
+    if (this.requestIsCollected(id)) {
+      this.rememberRequest(tab.id, tab.name, tab.request);
+      this.tabs = this.tabs.map((item: RequestTabModel) => item.id === id ? {
+        id: item.id, name: item.name, method: item.method, dirty: false,
+        pinned: item.pinned, loading: item.loading, request: item.request, response: item.response
+      } : item);
+      this.persistLocalData();
+      this.showToast($r('app.string.toast_saved'));
+      return;
+    }
+    this.pendingSaveTabId = id;
+    if (this.collectionTargets().length === 0) {
+      this.beginCreateCollection(true);
+    } else {
+      this.showOverlay('save-request');
+    }
+  }
+
+  private saveRequestToCollection(name: string, targetId: string): void {
+    const id = this.pendingSaveTabId;
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
+    if (!tab) return;
+    const requestNode: CollectionNode = {
+      id, type: 'request', name, method: tab.request.method, expanded: false, children: []
+    };
+    this.collections = this.updateCollectionNode(this.collections, targetId, (node: CollectionNode) => ({
+      id: node.id, type: node.type, name: node.name, method: node.method,
+      expanded: true, children: [...node.children, requestNode]
+    }));
+    this.tabs = this.tabs.map((item: RequestTabModel) => item.id === id ? {
+      id: item.id, name, method: item.request.method, dirty: false,
+      pinned: item.pinned, loading: item.loading, request: item.request, response: item.response
+    } : item);
+    this.rememberRequest(id, name, tab.request);
+    this.pendingSaveTabId = '';
+    this.hideOverlay();
+    this.persistLocalData();
+    this.showToast($r('app.string.toast_request_saved_collection'));
+  }
+
   private hideOverlay(): void {
     this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
       this.activeOverlay = '';
@@ -382,6 +530,7 @@ export struct NimboWindow {
   private updateRequest(id: string, request: RequestDraft): void {
     let shouldComplete = false;
     let requestSerial = 0;
+    const collected = this.requestIsCollected(id);
     this.tabs = this.tabs.map((tab: RequestTabModel) => {
       if (tab.id !== id) return tab;
       const started = tab.request.lifecycle !== 'sending' && request.lifecycle === 'sending';
@@ -399,7 +548,7 @@ export struct NimboWindow {
         id: tab.id,
         name: tab.name,
         method: request.method,
-        dirty: tab.dirty || this.requestContentChanged(tab.request, request),
+        dirty: collected ? false : tab.dirty || this.requestContentChanged(tab.request, request),
         pinned: tab.pinned,
         loading: request.lifecycle === 'sending',
         request,
@@ -409,6 +558,12 @@ export struct NimboWindow {
     });
     const current = this.tabs.find((tab: RequestTabModel) => tab.id === id);
     if (current) this.rememberRequest(current.id, current.name, current.request);
+    if (collected && current) {
+      this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
+        id: node.id, type: node.type, name: node.name, method: current.request.method,
+        expanded: node.expanded, children: node.children
+      }));
+    }
     this.persistLocalData();
     if (shouldComplete) {
       this.sendRealRequest(id, request, requestSerial);
@@ -719,7 +874,9 @@ export struct NimboWindow {
               widthValue: this.collectionWidth(),
               nodes: $collections,
               onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node),
-              onChange: () => this.persistLocalData()
+              onToggleNode: (id: string) => this.toggleCollectionNode(id),
+              onCreateCollection: () => this.beginCreateCollection(),
+              onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId)
             })
           }
 
@@ -734,6 +891,7 @@ export struct NimboWindow {
             onCloseTab: (id: string) => this.closeTab(id),
             onCreateTab: () => this.createTab(),
             onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
+            onSaveRequest: (id: string) => this.beginSaveRequest(id),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response)
           })
@@ -755,7 +913,9 @@ export struct NimboWindow {
                 }, MotionTokens.slow);
                 this.openCollectionRequest(node);
               },
-              onChange: () => this.persistLocalData(),
+              onToggleNode: (id: string) => this.toggleCollectionNode(id),
+              onCreateCollection: () => this.beginCreateCollection(),
+              onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId),
               onDismiss: () => this.animateState(() => { this.collectionDrawerOpen = false; }, MotionTokens.slow)
             })
             Column()
@@ -891,6 +1051,30 @@ export struct NimboWindow {
       .height('100%')
       .backgroundColor(ColorTokens.bgApp)
 
+      if (this.activeOverlay === 'create-collection') {
+        CollectionNameDialog({
+          title: $r('app.string.collection_create'),
+          placeholder: $r('app.string.collection_name_placeholder'),
+          onCancel: () => { this.pendingSaveTabId = ''; this.hideOverlay(); },
+          onConfirm: (name: string) => this.createCollection(name)
+        })
+      }
+      if (this.activeOverlay === 'create-folder') {
+        CollectionNameDialog({
+          title: $r('app.string.folder_create'),
+          placeholder: $r('app.string.folder_name_placeholder'),
+          onCancel: () => { this.collectionParentId = ''; this.hideOverlay(); },
+          onConfirm: (name: string) => this.createFolder(name)
+        })
+      }
+      if (this.activeOverlay === 'save-request') {
+        SaveRequestDialog({
+          initialName: this.pendingSaveName(),
+          targets: this.collectionTargets(),
+          onCancel: () => { this.pendingSaveTabId = ''; this.hideOverlay(); },
+          onConfirm: (name: string, targetId: string) => this.saveRequestToCollection(name, targetId)
+        })
+      }
       if (this.activeOverlay === 'curl') {
         ImportCurlDialog({
           onCancel: () => this.hideOverlay(),

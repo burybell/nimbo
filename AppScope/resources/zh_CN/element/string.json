@@ -57,6 +57,50 @@
       "value": "保存"
     },
     {
+      "name": "action_create",
+      "value": "创建"
+    },
+    {
+      "name": "collection_create",
+      "value": "新建集合"
+    },
+    {
+      "name": "folder_create",
+      "value": "新建文件夹"
+    },
+    {
+      "name": "collection_name_placeholder",
+      "value": "集合名称"
+    },
+    {
+      "name": "folder_name_placeholder",
+      "value": "文件夹名称"
+    },
+    {
+      "name": "collection_save_request",
+      "value": "保存请求到集合"
+    },
+    {
+      "name": "collection_location",
+      "value": "保存位置"
+    },
+    {
+      "name": "request_name_placeholder",
+      "value": "请求名称"
+    },
+    {
+      "name": "toast_collection_created",
+      "value": "集合已创建"
+    },
+    {
+      "name": "toast_folder_created",
+      "value": "文件夹已创建"
+    },
+    {
+      "name": "toast_request_saved_collection",
+      "value": "请求已保存到集合"
+    },
+    {
       "name": "action_send",
       "value": "发送"
     },
