@@ -2,9 +2,11 @@ import { EnvironmentSwitcher } from '../environment/EnvironmentSwitcher';
 import { NimboLogo } from './NimboLogo';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { WindowChromeController } from '../../../services/WindowChromeController';
 
 @Component
 export struct GlobalToolbar {
+  @StorageProp('nimbo.titleButtonInset') titleButtonInset: number = 132;
   @Prop compact: boolean = false;
   @Prop phone: boolean = false;
   @Prop selectedEnvironmentId: string = 'development';
@@ -26,10 +28,12 @@ export struct GlobalToolbar {
           .onClick(this.onSettings)
       } else {
         Row() {
-          NimboLogo({ compact: this.compact })
+          NimboLogo({ compact: true })
         }
         .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
+        .height('100%')
         .padding({ left: this.compact ? SpacingTokens.x4 : SpacingTokens.x5 })
+        .backgroundColor(ColorTokens.bgSidebar)
 
         Row({ space: SpacingTokens.x2 }) {
           Text('●')
@@ -44,6 +48,9 @@ export struct GlobalToolbar {
         .layoutWeight(1)
         .height(SizeTokens.controlMedium)
         .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+        .onTouch((event: TouchEvent) => {
+          if (event.type === TouchType.Down) WindowChromeController.startMoving();
+        })
 
         Row({ space: SpacingTokens.x3 }) {
           EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, onChange: this.onEnvironmentChange })
@@ -60,7 +67,7 @@ export struct GlobalToolbar {
             })
             .onClick(this.onSettings)
         }
-        .padding({ left: SpacingTokens.x4, right: SpacingTokens.x5 })
+        .padding({ left: SpacingTokens.x4, right: this.titleButtonInset })
       }
     }
     .width('100%')
