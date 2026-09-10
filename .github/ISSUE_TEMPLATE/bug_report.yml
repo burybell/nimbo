@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible problem in Nimbo
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve Nimbo. Remove credentials and private API data before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: Nimbo version or commit
+      placeholder: v0.1.0-alpha or commit hash
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and HarmonyOS version
+      placeholder: MateBook Pro emulator, HarmonyOS 6.1.1
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: Tell us exactly how to reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sanitized logs or screenshots. Do not include secrets.

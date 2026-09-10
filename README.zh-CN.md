@@ -69,6 +69,12 @@ cp build-profile.example.json5 build-profile.json5
 ./build_hap.sh
 ```
 
+同时执行仓库检查与本地 HarmonyOS 构建：
+
+```shell
+./scripts/quality-check.sh --build
+```
+
 HAP 输出目录：
 
 ```text
@@ -101,6 +107,12 @@ docs/nimbo-dev-package/           PRD、UI/UX 规范与开发交接文档
 ## 参与贡献
 
 欢迎提交 Issue 和 Pull Request。较大的改动请先通过 Issue 讨论范围。开发过程中请始终保持项目可构建，不要展示尚未完成的控件，也不要在未讨论的情况下实现交接文档中明确暂缓的能力。
+
+提交改动前请阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md)。所有贡献都需要接受 [Nimbo 贡献者许可协议](CLA.md)。
+
+## 开源许可
+
+Nimbo 采用 [GNU Affero General Public License v3.0 only](LICENSE) 许可。版权所有者未来可能另行提供商业许可。
 
 ## 应用标识
 

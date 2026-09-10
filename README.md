@@ -69,6 +69,12 @@ You can also build from the command line when DevEco Studio is installed at its 
 ./build_hap.sh
 ```
 
+Run repository checks together with a local HarmonyOS build:
+
+```shell
+./scripts/quality-check.sh --build
+```
+
 The HAP output is written under:
 
 ```text
@@ -101,6 +107,12 @@ Collections, requests, environments, history, preferences, and restored tabs sta
 ## Contributing
 
 Issues and pull requests are welcome. Before making a large change, please open an issue to discuss its scope. Keep the project buildable, avoid exposing unfinished controls, and do not implement capabilities explicitly marked as deferred in the handoff document without prior discussion.
+
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting a change. Contributions require acceptance of the [Nimbo Contributor License Agreement](CLA.md).
+
+## License
+
+Nimbo is licensed under the [GNU Affero General Public License v3.0 only](LICENSE). Commercial licensing may be offered separately by the copyright holder.
 
 ## Application identity
 
