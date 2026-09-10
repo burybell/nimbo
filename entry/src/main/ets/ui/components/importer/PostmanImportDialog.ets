@@ -1,5 +1,6 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 import filePicker from '@ohos.file.picker';
 import { fileIo } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
@@ -164,7 +165,13 @@ export struct PostmanImportDialog {
       .backgroundColor(ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.large)
       .shadow({ radius: 20, color: ColorTokens.shadowDefault, offsetY: 8 })
+      .transition(TransitionEffect.OPACITY
+        .combine(TransitionEffect.translate({ y: 8 }))
+        .combine(TransitionEffect.scale({ x: 0.96, y: 0.96 }))
+        .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     }
     .width('100%').height('100%')
+    .transition(TransitionEffect.OPACITY
+      .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
   }
 }

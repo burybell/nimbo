@@ -1,6 +1,7 @@
 import { NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct MobileNavigation {
@@ -30,6 +31,7 @@ export struct MobileNavigation {
         .layoutWeight(1)
         .height(56)
         .justifyContent(FlexAlign.Center)
+        .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
         .onClick(() => this.onDestinationChange(item.id))
       }, (item: NavigationItemModel) => item.id)
     }

@@ -57,6 +57,7 @@ export struct PrimarySidebar {
     .backgroundColor(item.id === this.activeDestination ? ColorTokens.bgSurfaceActive :
       (item.id === this.hoveredItemId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSidebar))
     .borderRadius(RadiusTokens.medium)
+    .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
     .onHover((hovered: boolean) => { this.hoveredItemId = hovered ? item.id : ''; })
     .onClick(() => this.onDestinationChange(item.id))
   }

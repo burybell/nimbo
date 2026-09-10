@@ -1,5 +1,6 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct NimboToast {
@@ -24,5 +25,8 @@ export struct NimboToast {
     .backgroundColor(ColorTokens.toastBackground)
     .borderRadius(RadiusTokens.large)
     .shadow({ radius: 12, color: ColorTokens.shadowDefault, offsetY: 4 })
+    .transition(TransitionEffect.OPACITY
+      .combine(TransitionEffect.translate({ y: 8 }))
+      .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
   }
 }

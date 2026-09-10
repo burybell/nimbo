@@ -5,6 +5,7 @@ import { SETTINGS_SECTIONS } from '../../../mock/SupportingMockData';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { SettingRow } from './SettingRow';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct SettingsPage {
@@ -166,7 +167,11 @@ export struct SettingsPage {
               .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
               .backgroundColor(item.id === this.section ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
               .borderRadius(RadiusTokens.medium)
-              .onClick(() => { this.section = item.id; })
+              .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+              .onClick(() => {
+                this.getUIContext().animateTo({ duration: MotionTokens.normal,
+                  curve: MotionTokens.standardCurve }, () => { this.section = item.id; });
+              })
             }, (item: SettingsSectionModel) => item.id)
           }
           .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
@@ -206,7 +211,12 @@ export struct SettingsPage {
             }
             .width('100%').height(40).padding({ left: SpacingTokens.x3 })
             .backgroundColor(item.id === this.section ? ColorTokens.bgSurfaceActive : ColorTokens.bgSidebar)
-            .borderRadius(RadiusTokens.medium).onClick(() => { this.section = item.id; })
+            .borderRadius(RadiusTokens.medium)
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+            .onClick(() => {
+              this.getUIContext().animateTo({ duration: MotionTokens.normal,
+                curve: MotionTokens.standardCurve }, () => { this.section = item.id; });
+            })
           }, (item: SettingsSectionModel) => item.id)
           Blank()
         }

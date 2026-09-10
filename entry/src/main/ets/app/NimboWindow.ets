@@ -47,6 +47,7 @@ import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { ColorTokens } from '../ui/tokens/ColorTokens';
 import { BreakpointTokens, SizeTokens, SpacingTokens } from '../ui/tokens/LayoutTokens';
+import { MotionTokens } from '../ui/tokens/MotionTokens';
 import { i18n } from '@kit.LocalizationKit';
 import { common, ConfigurationConstant, Want } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
@@ -256,18 +257,34 @@ export struct NimboWindow {
       this.collectionDrawerOpen;
   }
 
+  private animateState(change: () => void, duration: number = MotionTokens.normal): void {
+    this.getUIContext().animateTo({ duration, curve: MotionTokens.standardCurve }, change);
+  }
+
+  private showOverlay(name: string): void {
+    this.animateState(() => { this.activeOverlay = name; });
+  }
+
+  private hideOverlay(): void {
+    this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
+      this.activeOverlay = '';
+    });
+  }
+
   private selectDestination(destination: NavigationDestination): void {
-    if (destination === 'collections' && this.isPhone()) {
-      if (this.activeDestination === 'collections') {
-        this.collectionDrawerOpen = !this.collectionDrawerOpen;
+    this.animateState(() => {
+      if (destination === 'collections' && this.isPhone()) {
+        if (this.activeDestination === 'collections') {
+          this.collectionDrawerOpen = !this.collectionDrawerOpen;
+        } else {
+          this.activeDestination = destination;
+          this.collectionDrawerOpen = true;
+        }
       } else {
+        this.collectionDrawerOpen = false;
         this.activeDestination = destination;
-        this.collectionDrawerOpen = true;
       }
-      return;
-    }
-    this.collectionDrawerOpen = false;
-    this.activeDestination = destination;
+    }, MotionTokens.slow);
   }
 
   private requestContentChanged(previous: RequestDraft, next: RequestDraft): boolean {
@@ -445,20 +462,26 @@ export struct NimboWindow {
     }];
     this.nextTabNumber += 1;
     this.activeTabId = id;
-    this.activeDestination = 'workspace';
+    this.animateState(() => { this.activeDestination = 'workspace'; });
     this.rememberRequest(id, `Untitled Request ${this.nextTabNumber - 1}`, request);
     this.persistLocalData();
   }
 
   private showToast(message: ResourceStr, actionVisible: boolean = false): void {
     this.toastMessage = message;
-    this.toastVisible = true;
     this.toastActionVisible = actionVisible;
+    this.animateState(() => { this.toastVisible = true; });
     setTimeout(() => {
       if (this.toastMessage === message) {
-        this.toastMessage = '';
-        this.toastVisible = false;
-        this.toastActionVisible = false;
+        this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
+          this.toastVisible = false;
+        });
+        setTimeout(() => {
+          if (!this.toastVisible && this.toastMessage === message) {
+            this.toastMessage = '';
+            this.toastActionVisible = false;
+          }
+        }, MotionTokens.fast);
       }
     }, 1800);
   }
@@ -538,7 +561,7 @@ export struct NimboWindow {
       response: createEmptyResponse()
     }];
     this.activeTabId = id;
-    this.activeDestination = 'workspace';
+    this.animateState(() => { this.activeDestination = 'workspace'; });
     this.rememberRequest(id, name, request);
     this.persistLocalData();
   }
@@ -572,7 +595,7 @@ export struct NimboWindow {
       }];
       this.activeTabId = item.id;
     }
-    this.activeDestination = 'workspace';
+    this.animateState(() => { this.activeDestination = 'workspace'; });
     this.persistLocalData();
   }
 
@@ -587,8 +610,10 @@ export struct NimboWindow {
     if (this.lastDeletedHistory.length === 0) return;
     this.historyItems = [...this.lastDeletedHistory, ...this.historyItems];
     this.lastDeletedHistory = [];
+    this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
+      this.toastVisible = false;
+    });
     this.toastMessage = '';
-    this.toastVisible = false;
     this.toastActionVisible = false;
     this.persistLocalData();
   }
@@ -656,6 +681,8 @@ export struct NimboWindow {
         onSaved: () => this.showToast($r('app.string.toast_saved'))
       })
       .layoutWeight(1)
+      .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
+        .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     } else if (this.activeDestination === 'history') {
       HistoryPage({
         items: this.historyItems,
@@ -663,19 +690,23 @@ export struct NimboWindow {
         onOpen: (item: HistoryItemModel) => this.openHistoryItem(item),
         onCopy: (item: HistoryItemModel, asCurl: boolean) => this.copyHistoryItem(item, asCurl),
         onDelete: (id: string) => this.deleteHistoryItem(id),
-        onClear: () => { this.activeOverlay = 'clear-history'; }
+        onClear: () => this.showOverlay('clear-history')
       })
       .layoutWeight(1)
+      .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
+        .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     } else if (this.activeDestination === 'settings') {
       SettingsPage({
         preferences: this.preferences,
         phone: this.isPhone(),
         onChange: (preferences: AppPreferencesModel) => this.updatePreferences(preferences),
         onExport: () => this.exportNimbo(false),
-        onExportSecrets: () => { this.activeOverlay = 'export-secrets'; },
-        onReset: () => { this.activeOverlay = 'reset-app'; }
+        onExportSecrets: () => this.showOverlay('export-secrets'),
+        onReset: () => this.showOverlay('reset-app')
       })
       .layoutWeight(1)
+      .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
+        .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     } else {
       Stack({ alignContent: Alignment.TopStart }) {
         Row() {
@@ -714,25 +745,31 @@ export struct NimboWindow {
               nodes: $collections,
               dismissible: true,
               onOpenRequest: (node: CollectionNode) => {
-                this.collectionDrawerOpen = false;
-                this.activeDestination = 'workspace';
+                this.animateState(() => {
+                  this.collectionDrawerOpen = false;
+                  this.activeDestination = 'workspace';
+                }, MotionTokens.slow);
                 this.openCollectionRequest(node);
               },
               onChange: () => this.persistLocalData(),
-              onDismiss: () => { this.collectionDrawerOpen = false; }
+              onDismiss: () => this.animateState(() => { this.collectionDrawerOpen = false; }, MotionTokens.slow)
             })
             Column()
               .layoutWeight(1)
               .height('100%')
               .backgroundColor(ColorTokens.overlayScrim)
-              .onClick(() => { this.collectionDrawerOpen = false; })
+              .onClick(() => this.animateState(() => { this.collectionDrawerOpen = false; }, MotionTokens.slow))
           }
           .width('100%')
           .height('100%')
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: -24 }))
+            .animation({ duration: MotionTokens.slow, curve: MotionTokens.standardCurve }))
         }
       }
       .layoutWeight(1)
       .height('100%')
+      .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
+        .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     }
   }
 
@@ -816,7 +853,7 @@ export struct NimboWindow {
             this.selectedEnvironmentId = id;
             this.persistLocalData();
           },
-          onSettings: () => { this.activeDestination = 'settings'; }
+          onSettings: () => this.selectDestination('settings')
         })
 
         if (this.isPhone()) {
@@ -836,8 +873,8 @@ export struct NimboWindow {
               activeDestination: this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
               onCreateRequest: () => this.createTab(),
-              onImportCurl: () => { this.activeOverlay = 'curl'; },
-              onImportPostman: () => { this.activeOverlay = 'postman'; }
+              onImportCurl: () => this.showOverlay('curl'),
+              onImportPostman: () => this.showOverlay('postman')
             })
 
             this.mainContent()
@@ -852,9 +889,9 @@ export struct NimboWindow {
 
       if (this.activeOverlay === 'curl') {
         ImportCurlDialog({
-          onCancel: () => { this.activeOverlay = ''; },
+          onCancel: () => this.hideOverlay(),
           onImport: (result: CurlImportResult) => {
-            this.activeOverlay = '';
+            this.hideOverlay();
             this.createImportedRequest(result, 'Imported cURL');
             this.showToast($r('app.string.toast_imported'));
           }
@@ -862,9 +899,9 @@ export struct NimboWindow {
       }
       if (this.activeOverlay === 'postman') {
         PostmanImportDialog({
-          onCancel: () => { this.activeOverlay = ''; },
+          onCancel: () => this.hideOverlay(),
           onImport: (result: PostmanImportResult) => this.applyPostmanImport(result),
-          onComplete: () => { this.activeOverlay = ''; this.showToast($r('app.string.toast_imported')); }
+          onComplete: () => { this.hideOverlay(); this.showToast($r('app.string.toast_imported')); }
         })
       }
       if (this.activeOverlay === 'clear-history') {
@@ -873,11 +910,11 @@ export struct NimboWindow {
           message: $r('app.string.dialog_clear_history_message'),
           confirmLabel: $r('app.string.action_clear_history'),
           dangerous: true,
-          onCancel: () => { this.activeOverlay = ''; },
+          onCancel: () => this.hideOverlay(),
           onConfirm: () => {
             this.lastDeletedHistory = this.historyItems;
             this.historyItems = [];
-            this.activeOverlay = '';
+            this.hideOverlay();
             this.persistLocalData();
             this.showToast($r('app.string.toast_deleted'), true);
           }
@@ -889,7 +926,7 @@ export struct NimboWindow {
           message: $r('app.string.dialog_reset_message'),
           confirmLabel: $r('app.string.reset_action'),
           dangerous: true,
-          onCancel: () => { this.activeOverlay = ''; },
+          onCancel: () => this.hideOverlay(),
           onConfirm: () => {
             this.applySafeDefaults();
             try {
@@ -897,7 +934,7 @@ export struct NimboWindow {
             } catch (_error) {
               this.showToast($r('app.string.toast_language_failed'));
             }
-            this.activeOverlay = '';
+            this.hideOverlay();
             this.persistLocalData();
             this.restartForLanguage();
           }
@@ -909,9 +946,9 @@ export struct NimboWindow {
           message: $r('app.string.dialog_export_secrets_message'),
           confirmLabel: $r('app.string.export_action'),
           dangerous: true,
-          onCancel: () => { this.activeOverlay = ''; },
+          onCancel: () => this.hideOverlay(),
           onConfirm: () => {
-            this.activeOverlay = '';
+            this.hideOverlay();
             this.exportNimbo(true);
           }
         })
