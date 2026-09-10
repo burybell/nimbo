@@ -31,19 +31,6 @@ export struct RequestToolbar {
 
   build() {
     Column({ space: SpacingTokens.x2 }) {
-      if (this.lifecycle === 'sending') {
-        Row({ space: SpacingTokens.x2 }) {
-          LoadingProgress()
-            .width(12)
-            .height(12)
-            .color(ColorTokens.brand500)
-          Text($r('app.string.sending'))
-            .fontSize(12)
-            .fontColor(ColorTokens.brand600)
-        }
-        .width('100%')
-      }
-
       if (this.phone) {
         Column({ space: SpacingTokens.x2 }) {
           UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })

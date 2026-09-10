@@ -17,6 +17,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Reworked the HTTP method picker with method-specific colors and a top-layer menu
 - Combined New and import actions into a single split button and removed the duplicate settings entry
 - Migrated local data to schema v4 while preserving existing environment values and imported environments
+- Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
 
 ## [0.1.0-alpha] - 2026-09-10
 

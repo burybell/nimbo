@@ -289,6 +289,8 @@ Milestone 10 只修复公开 Alpha 中已经存在的核心编辑与 Shell 一�
 
 当前进度（2026-09-10）：Milestone 10 已完成。新增共享原生 RichEditor JSON 代码表面，请求端可编辑，响应端可移动光标、选择和复制但不可修改；JSON key、string、number、literal 与标点均使用主题 Token 高亮。Method 选择器改为方法色顶层弹层，新建/导入改为一体式分段按钮，重复设置入口已移除。持久化 schema 升级至 v4，三个系统环境会在首次安装、旧数据迁移和重置时自动补齐，已有变量和导入环境保留；环境页与顶部选择器使用同一状态。顶部全局搜索已接通请求、集合/文件夹、历史、环境及新建、导入、设置命令，支持点击和 `Ctrl+K`。仓库质量检查、签名 HAP 构建与 HarmonyOS PC 模拟器运行时验收通过；未新增 ArkTS warning，仍仅保留 Milestone 5 的两条 Redirect Interceptor 兼容提示。
 
+Milestone 10 后续 UI 回归（2026-09-10）：请求发送时不再在工具栏额外插入“正在发送”提示，避免请求配置区发生纵向位移，发送/取消状态继续由按钮反馈；环境变量与历史记录的 Scroll 内容显式从顶部排列，历史空状态仍保持居中展示。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

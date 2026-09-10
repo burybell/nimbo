@@ -139,7 +139,7 @@ export struct HistoryPage {
           }
           .width('100%')
         }
-        .layoutWeight(1).width('100%')
+        .layoutWeight(1).width('100%').align(Alignment.TopStart)
       }
       .width('100%').height('100%').backgroundColor(ColorTokens.bgWorkspace)
     } else {
@@ -255,6 +255,7 @@ export struct HistoryPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .align(Alignment.TopStart)
       }
       .layoutWeight(1)
       .height('100%')
