@@ -1,7 +1,6 @@
 import { ContextMenuItemModel, NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
-import { NimboButton } from './NimboButton';
 import { NimboContextMenu } from './NimboContextMenu';
 import { MotionTokens } from '../../tokens/MotionTokens';
 
@@ -75,23 +74,43 @@ export struct PrimarySidebar {
           .onClick(this.onCreateRequest)
       } else {
         Stack({ alignContent: Alignment.TopStart }) {
-          Row({ space: SpacingTokens.x1 }) {
-            NimboButton({ label: $r('app.string.action_new'), icon: '+', primary: true,
-              onPress: this.onCreateRequest })
+          Row() {
+            Button() {
+              Row({ space: SpacingTokens.x2 }) {
+                Text('+')
+                  .fontSize(18)
+                  .fontColor(ColorTokens.textOnBrand)
+                Text($r('app.string.action_new'))
+                  .fontSize(14)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(ColorTokens.textOnBrand)
+              }
+              .justifyContent(FlexAlign.Center)
+            }
               .layoutWeight(1)
+              .height(SizeTokens.controlLarge)
+              .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+              .backgroundColor(ColorTokens.brand500)
+              .borderRadius(0)
+              .stateStyles({
+                normal: { .backgroundColor(ColorTokens.brand500) },
+                pressed: { .backgroundColor(ColorTokens.brand600) }
+              })
+              .onClick(this.onCreateRequest)
             Button() {
               Image($r('app.media.chevron_down'))
                 .width(16)
                 .height(16)
                 .objectFit(ImageFit.Contain)
             }
-              .width(34)
+              .width(38)
               .height(SizeTokens.controlLarge)
               .backgroundColor(ColorTokens.brand500)
-              .borderRadius(RadiusTokens.medium)
+              .borderRadius(0)
+              .border({ width: { left: 1 }, color: ColorTokens.brand100 })
               .stateStyles({
-                normal: { .opacity(1) },
-                pressed: { .opacity(0.82) }
+                normal: { .backgroundColor(ColorTokens.brand500) },
+                pressed: { .backgroundColor(ColorTokens.brand600) }
               })
               .onClick(() => {
                 this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
@@ -100,6 +119,10 @@ export struct PrimarySidebar {
               })
           }
           .width('100%')
+          .height(SizeTokens.controlLarge)
+          .backgroundColor(ColorTokens.brand500)
+          .borderRadius(RadiusTokens.medium)
+          .clip(true)
 
           if (this.importMenuOpen) {
             NimboContextMenu({ items: this.importItems, accentIcons: true,
@@ -123,8 +146,6 @@ export struct PrimarySidebar {
       .margin({ top: SpacingTokens.x5 })
 
       Blank()
-
-      this.navItem({ id: 'settings', label: $r('app.string.nav_settings'), icon: '⚙' })
     }
     .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
     .height('100%')
