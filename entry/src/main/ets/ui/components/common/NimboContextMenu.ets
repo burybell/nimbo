@@ -1,6 +1,7 @@
 import { ContextMenuItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct NimboContextMenu {
@@ -45,5 +46,9 @@ export struct NimboContextMenu {
     .border({ width: 1, color: ColorTokens.borderSubtle })
     .borderRadius(RadiusTokens.large)
     .shadow({ radius: 12, color: ColorTokens.shadowDefault, offsetY: 4 })
+    .transition(TransitionEffect.OPACITY
+      .combine(TransitionEffect.translate({ y: -4 }))
+      .combine(TransitionEffect.scale({ x: 0.96, y: 0.96, centerX: '0%', centerY: '0%' }))
+      .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
   }
 }

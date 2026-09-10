@@ -3,6 +3,7 @@ import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { NimboButton } from './NimboButton';
 import { NimboContextMenu } from './NimboContextMenu';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct PrimarySidebar {
@@ -20,7 +21,9 @@ export struct PrimarySidebar {
   ];
 
   private handleImport(action: string): void {
-    this.importMenuOpen = false;
+    this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
+      this.importMenuOpen = false;
+    });
     if (action === 'curl') this.onImportCurl();
     if (action === 'postman') this.onImportPostman();
   }
@@ -89,7 +92,11 @@ export struct PrimarySidebar {
                 normal: { .opacity(1) },
                 pressed: { .opacity(0.82) }
               })
-              .onClick(() => { this.importMenuOpen = !this.importMenuOpen; })
+              .onClick(() => {
+                this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+                  this.importMenuOpen = !this.importMenuOpen;
+                });
+              })
           }
           .width('100%')
 

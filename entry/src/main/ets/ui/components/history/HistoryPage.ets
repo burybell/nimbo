@@ -2,6 +2,7 @@ import { ContextMenuItemModel, HistoryGroup, HistoryItemModel } from '../../../m
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { NimboContextMenu } from '../common/NimboContextMenu';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct HistoryPage {
@@ -61,7 +62,9 @@ export struct HistoryPage {
   }
 
   private handleMenu(action: string, item: HistoryItemModel): void {
-    this.menuId = '';
+    this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
+      this.menuId = '';
+    });
     if (action === 'open') this.onOpen(item);
     if (action === 'copy-url') this.onCopy(item, false);
     if (action === 'copy-curl') this.onCopy(item, true);
@@ -221,7 +224,11 @@ export struct HistoryPage {
                     Text(item.duration).width(68).fontSize(12).fontColor(ColorTokens.textSecondary)
                     Text('⋯').width(32).height(32).textAlign(TextAlign.Center).fontSize(18)
                       .fontColor(ColorTokens.textSecondary)
-                      .onClick(() => { this.menuId = this.menuId === item.id ? '' : item.id; })
+                      .onClick(() => {
+                        this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+                          this.menuId = this.menuId === item.id ? '' : item.id;
+                        });
+                      })
                   }
                   .width('100%')
                   .height(52)

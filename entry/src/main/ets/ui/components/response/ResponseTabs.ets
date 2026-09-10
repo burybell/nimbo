@@ -1,6 +1,7 @@
 import { ResponseTab } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct ResponseTabs {
@@ -28,7 +29,12 @@ export struct ResponseTabs {
       width: { bottom: this.activeTab === tab ? 2 : 0 },
       color: this.activeTab === tab ? ColorTokens.brand500 : ColorTokens.borderSubtle
     })
-    .onClick(() => this.onChange(tab))
+    .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+    .onClick(() => {
+      this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+        this.onChange(tab);
+      });
+    })
   }
 
   build() {

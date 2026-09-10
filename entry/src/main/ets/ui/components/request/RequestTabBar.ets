@@ -1,6 +1,7 @@
 import { RequestTabModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
 export struct RequestTabBar {
@@ -46,7 +47,11 @@ export struct RequestTabBar {
                 .width(20)
                 .height(20)
                 .textAlign(TextAlign.Center)
-                .onClick(() => this.onClose(tab.id))
+                .onClick(() => {
+                  this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+                    this.onClose(tab.id);
+                  });
+                })
             }
             .height(SizeTokens.requestTabBarHeight)
             .constraintSize({ minWidth: 148, maxWidth: 220 })
@@ -57,8 +62,16 @@ export struct RequestTabBar {
               width: { top: tab.id === this.activeTabId ? 2 : 0, right: 1 },
               color: tab.id === this.activeTabId ? ColorTokens.brand500 : ColorTokens.borderSubtle
             })
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+            .transition(TransitionEffect.OPACITY
+              .combine(TransitionEffect.scale({ x: 0.94, y: 1, centerX: '0%', centerY: '50%' }))
+              .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
             .onHover((hovered: boolean) => { this.hoveredTabId = hovered ? tab.id : ''; })
-            .onClick(() => this.onSelect(tab.id))
+            .onClick(() => {
+              this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
+                this.onSelect(tab.id);
+              });
+            })
           }, (tab: RequestTabModel) => tab.id)
         }
         .justifyContent(FlexAlign.Start)
@@ -79,7 +92,11 @@ export struct RequestTabBar {
           normal: { .backgroundColor(ColorTokens.bgApp) },
           pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) }
         })
-        .onClick(this.onCreate)
+        .onClick(() => {
+          this.getUIContext().animateTo({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }, () => {
+            this.onCreate();
+          });
+        })
 
       Blank()
     }
