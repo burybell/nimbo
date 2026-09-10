@@ -5,6 +5,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct CollectionTree {
   @Link nodes: CollectionNode[];
+  @State hoveredNodeId: string = '';
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onChange: () => void = () => {};
 
@@ -54,15 +55,13 @@ export struct CollectionTree {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
-        Text('⋯')
-          .fontSize(16)
-          .fontColor(ColorTokens.textTertiary)
-          .visibility(node.type === 'request' ? Visibility.Visible : Visibility.Hidden)
       }
       .width('100%')
       .height(SizeTokens.controlMedium)
       .padding({ left: SpacingTokens.x2 + depth * SpacingTokens.x3, right: SpacingTokens.x2 })
+      .backgroundColor(node.id === this.hoveredNodeId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.small)
+      .onHover((hovered: boolean) => { this.hoveredNodeId = hovered ? node.id : ''; })
       .onClick(() => this.toggleNode(node))
 
       if (node.expanded) {

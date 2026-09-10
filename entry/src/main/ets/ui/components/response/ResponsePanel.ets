@@ -107,7 +107,7 @@ export struct ResponsePanel {
             this.bodyMode = 'raw';
           })
         Blank()
-        Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : 'Text')
+        Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : $r('app.string.body_text'))
           .fontSize(11)
           .fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textSecondary)

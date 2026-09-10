@@ -36,7 +36,7 @@ nimbo-dev-package/
 
 ## 当前目标
 
-**Milestone 0–7 已全部完成。** Nimbo 1.0 已具备本地备份导出、二进制响应保存、Light / Dark / System 主题，以及 HarmonyOS PC、Tablet 和 Phone 基础响应式布局。后续开发需先定义新的里程碑；不得自行进入 1.1/1.2 或明确暂缓的能力。
+**Milestone 0–8 已全部完成。** Nimbo 1.0 已具备真实 HTTP、本地数据、导入导出、二进制响应保存、Light / Dark / System 主题，以及 HarmonyOS PC、Tablet 和 Phone 响应式布局。Milestone 8 已完成已有功能的 UI、交互、文案和多尺寸体验收口；继续开发前必须先定义新的里程碑，不得自行进入 1.1/1.2 或明确暂缓的能力。
 
 最初的 UI Skeleton 结构为：
 

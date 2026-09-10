@@ -8,6 +8,24 @@ export struct ErrorPanel {
   @State showDetails: boolean = false;
   onRetry: () => void = () => {};
 
+  private title(): ResourceStr {
+    if (this.error.type === 'invalidUrl') return $r('app.string.error_invalid_url');
+    if (this.error.type === 'dns') return $r('app.string.error_dns');
+    if (this.error.type === 'connectionRefused' || this.error.type === 'connectionReset') {
+      return $r('app.string.error_connection');
+    }
+    if (this.error.type === 'timeout') return $r('app.string.error_timeout');
+    if (this.error.type === 'tls') return $r('app.string.error_tls');
+    if (this.error.type === 'cancelled') return $r('app.string.error_cancelled');
+    if (this.error.title.length > 0) return this.error.title;
+    return $r('app.string.error_request_failed');
+  }
+
+  private message(): ResourceStr {
+    if (this.error.type === 'cancelled') return $r('app.string.error_cancelled_message');
+    return this.error.message;
+  }
+
   build() {
     Column({ space: SpacingTokens.x3 }) {
       Row({ space: SpacingTokens.x3 }) {
@@ -21,11 +39,11 @@ export struct ErrorPanel {
           .backgroundColor(ColorTokens.statusDangerBackground)
           .borderRadius(18)
         Column({ space: SpacingTokens.x1 }) {
-          Text(this.error.title)
+          Text(this.title())
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(ColorTokens.textPrimary)
-          Text(this.error.message)
+          Text(this.message())
             .fontSize(13)
             .fontColor(ColorTokens.textSecondary)
         }

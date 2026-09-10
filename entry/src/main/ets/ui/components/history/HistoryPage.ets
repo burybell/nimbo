@@ -43,6 +43,23 @@ export struct HistoryPage {
     return ColorTokens.httpOther;
   }
 
+  private activeItemCount(): number {
+    return this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup).length;
+  }
+
+  @Builder
+  private emptyState() {
+    Column({ space: SpacingTokens.x2 }) {
+      Text('◷').fontSize(28).fontColor(ColorTokens.textTertiary)
+      Text($r('app.string.history_empty_title')).fontSize(14).fontWeight(FontWeight.Medium)
+        .fontColor(ColorTokens.textPrimary)
+      Text($r('app.string.history_empty_description')).fontSize(12).fontColor(ColorTokens.textTertiary)
+        .textAlign(TextAlign.Center)
+    }
+    .width('100%').height(180).justifyContent(FlexAlign.Center)
+    .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
+  }
+
   private handleMenu(action: string, item: HistoryItemModel): void {
     this.menuId = '';
     if (action === 'open') this.onOpen(item);
@@ -88,6 +105,9 @@ export struct HistoryPage {
 
         Scroll() {
           Column() {
+            if (this.activeItemCount() === 0) {
+              this.emptyState()
+            }
             ForEach(this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup),
               (item: HistoryItemModel) => {
                 Column({ space: SpacingTokens.x2 }) {
@@ -172,9 +192,10 @@ export struct HistoryPage {
               .fontColor(ColorTokens.textTertiary)
           }
           Blank()
-          Text(`${this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup).length} requests`)
-            .fontSize(12)
-            .fontColor(ColorTokens.textTertiary)
+          Row({ space: SpacingTokens.x1 }) {
+            Text(`${this.activeItemCount()}`).fontSize(12).fontColor(ColorTokens.textTertiary)
+            Text($r('app.string.history_requests')).fontSize(12).fontColor(ColorTokens.textTertiary)
+          }
         }
         .width('100%')
         .height(76)
@@ -183,6 +204,9 @@ export struct HistoryPage {
 
         Scroll() {
           Column() {
+            if (this.activeItemCount() === 0) {
+              this.emptyState()
+            }
             ForEach(this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup),
               (item: HistoryItemModel) => {
                 Column() {

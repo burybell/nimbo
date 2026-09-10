@@ -12,16 +12,17 @@ export struct KeyValueEditor {
   @Prop showSecret: boolean = false;
   @State bulkMode: boolean = false;
   @State bulkValue: string = '';
-  @State bulkError: string = '';
+  @State bulkError: ResourceStr = '';
+  @State bulkErrorVisible: boolean = false;
   private nextItemNumber: number = 1;
   onChange: (items: KeyValueItem[]) => void = () => {};
 
-  private placeholderLabel(): string {
-    if (this.mode === 'headers') return 'header';
-    if (this.mode === 'form') return 'field';
-    if (this.mode === 'multipart') return 'part';
-    if (this.mode === 'environment') return 'variable';
-    return 'parameter';
+  private addLabel(): ResourceStr {
+    if (this.mode === 'headers') return $r('app.string.add_header');
+    if (this.mode === 'form') return $r('app.string.add_field');
+    if (this.mode === 'multipart') return $r('app.string.add_part');
+    if (this.mode === 'environment') return $r('app.string.add_variable');
+    return $r('app.string.add_parameter');
   }
 
   private toggleSecret(id: string, secret: boolean): void {
@@ -106,6 +107,7 @@ export struct KeyValueEditor {
     });
     this.bulkValue = lines.join('\n');
     this.bulkError = '';
+    this.bulkErrorVisible = false;
     this.bulkMode = true;
   }
 
@@ -117,7 +119,8 @@ export struct KeyValueEditor {
       if (line.length === 0) continue;
       const separator = line.indexOf(':');
       if (separator <= 0) {
-        this.bulkError = `Line ${index + 1}: expected key:value`;
+        this.bulkError = $r('app.string.bulk_error');
+        this.bulkErrorVisible = true;
         return;
       }
       nextItems.push({
@@ -132,15 +135,17 @@ export struct KeyValueEditor {
     }
     this.onChange(nextItems);
     this.bulkError = '';
+    this.bulkErrorVisible = false;
     this.bulkMode = false;
   }
 
   build() {
     Column() {
       Row({ space: SpacingTokens.x2 }) {
-        Text(`${this.items.length} ${this.items.length === 1 ? 'item' : 'items'}`)
-          .fontSize(12)
-          .fontColor(ColorTokens.textTertiary)
+        Row({ space: SpacingTokens.x1 }) {
+          Text(`${this.items.length}`).fontSize(12).fontColor(ColorTokens.textTertiary)
+          Text($r('app.string.items')).fontSize(12).fontColor(ColorTokens.textTertiary)
+        }
         Blank()
         Text(this.bulkMode ? $r('app.string.edit_table') : $r('app.string.edit_bulk'))
           .fontSize(12)
@@ -153,6 +158,7 @@ export struct KeyValueEditor {
             if (this.bulkMode) {
               this.bulkMode = false;
               this.bulkError = '';
+              this.bulkErrorVisible = false;
             } else {
               this.enterBulkMode();
             }
@@ -163,20 +169,21 @@ export struct KeyValueEditor {
 
       if (this.bulkMode) {
         Column({ space: SpacingTokens.x2 }) {
-          TextArea({ text: this.bulkValue, placeholder: 'key:value' })
+          TextArea({ text: this.bulkValue, placeholder: $r('app.string.bulk_placeholder') })
             .fontSize(13)
             .fontFamily('monospace')
             .fontColor(ColorTokens.textPrimary)
             .height(180)
             .padding(SpacingTokens.x3)
             .backgroundColor(ColorTokens.bgApp)
-            .border({ width: 1, color: this.bulkError.length > 0 ? ColorTokens.httpDelete : ColorTokens.borderDefault })
+            .border({ width: 1, color: this.bulkErrorVisible ? ColorTokens.httpDelete : ColorTokens.borderDefault })
             .borderRadius(RadiusTokens.small)
             .onChange((value: string) => {
               this.bulkValue = value;
               this.bulkError = '';
+              this.bulkErrorVisible = false;
             })
-          if (this.bulkError.length > 0) {
+          if (this.bulkErrorVisible) {
             Text(this.bulkError)
               .fontSize(12)
               .fontColor(ColorTokens.httpDelete)
@@ -304,7 +311,7 @@ export struct KeyValueEditor {
           Text('+')
             .fontSize(17)
             .fontColor(ColorTokens.brand500)
-          Text(`Add ${this.placeholderLabel()}`)
+          Text(this.addLabel())
             .fontSize(13)
             .fontColor(ColorTokens.textSecondary)
         }

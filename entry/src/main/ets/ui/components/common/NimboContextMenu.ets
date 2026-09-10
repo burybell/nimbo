@@ -5,6 +5,7 @@ import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 @Component
 export struct NimboContextMenu {
   @Prop items: ContextMenuItemModel[] = [];
+  @State hoveredItemId: string = '';
   onSelect: (id: string) => void = () => {};
 
   build() {
@@ -26,7 +27,9 @@ export struct NimboContextMenu {
         .width('100%')
         .height(34)
         .padding({ left: SpacingTokens.x3, right: SpacingTokens.x4 })
+        .backgroundColor(item.id === this.hoveredItemId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSurface)
         .borderRadius(RadiusTokens.medium)
+        .onHover((hovered: boolean) => { this.hoveredItemId = hovered ? item.id : ''; })
         .onClick(() => this.onSelect(item.id))
       }, (item: ContextMenuItemModel) => item.id)
     }

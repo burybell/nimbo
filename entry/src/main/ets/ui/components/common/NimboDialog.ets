@@ -47,7 +47,8 @@ export struct NimboDialog {
         }
         .width('100%')
       }
-      .width(420)
+      .width('90%')
+      .constraintSize({ maxWidth: 420 })
       .padding(SpacingTokens.x6)
       .backgroundColor(ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.large)

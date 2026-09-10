@@ -13,6 +13,7 @@ export struct PrimarySidebar {
   onImportCurl: () => void = () => {};
   onImportPostman: () => void = () => {};
   @State importMenuOpen: boolean = false;
+  @State hoveredItemId: string = '';
   private importItems: ContextMenuItemModel[] = [
     { id: 'curl', label: $r('app.string.import_curl'), icon: '⌘', dangerous: false },
     { id: 'postman', label: $r('app.string.import_postman'), icon: '⇧', dangerous: false }
@@ -50,8 +51,10 @@ export struct PrimarySidebar {
     .height(SizeTokens.controlLarge)
     .padding({ left: this.compact ? SpacingTokens.x2 : SpacingTokens.x3 })
     .justifyContent(this.compact ? FlexAlign.Center : FlexAlign.Start)
-    .backgroundColor(item.id === this.activeDestination ? ColorTokens.bgSurfaceActive : ColorTokens.bgSidebar)
+    .backgroundColor(item.id === this.activeDestination ? ColorTokens.bgSurfaceActive :
+      (item.id === this.hoveredItemId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSidebar))
     .borderRadius(RadiusTokens.medium)
+    .onHover((hovered: boolean) => { this.hoveredItemId = hovered ? item.id : ''; })
     .onClick(() => this.onDestinationChange(item.id))
   }
 

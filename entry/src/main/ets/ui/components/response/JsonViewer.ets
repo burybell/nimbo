@@ -42,9 +42,10 @@ export struct JsonViewer {
             .onChange((value: string) => {
               this.query = value;
             })
-          Text(`${this.matchCount()} matches`)
-            .fontSize(11)
-            .fontColor(ColorTokens.codeText)
+          Row({ space: SpacingTokens.x1 }) {
+            Text(`${this.matchCount()}`).fontSize(11).fontColor(ColorTokens.codeText)
+            Text($r('app.string.matches')).fontSize(11).fontColor(ColorTokens.codeText)
+          }
           Text('×')
             .fontSize(16)
             .fontColor(ColorTokens.codeText)

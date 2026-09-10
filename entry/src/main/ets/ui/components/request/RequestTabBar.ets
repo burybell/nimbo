@@ -9,6 +9,7 @@ export struct RequestTabBar {
   onSelect: (id: string) => void = () => {};
   onClose: (id: string) => void = () => {};
   onCreate: () => void = () => {};
+  @State hoveredTabId: string = '';
 
   private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
@@ -50,11 +51,13 @@ export struct RequestTabBar {
             .height(SizeTokens.requestTabBarHeight)
             .constraintSize({ minWidth: 148, maxWidth: 220 })
             .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
-            .backgroundColor(tab.id === this.activeTabId ? ColorTokens.bgWorkspace : ColorTokens.bgApp)
+            .backgroundColor(tab.id === this.activeTabId ? ColorTokens.bgWorkspace :
+              (tab.id === this.hoveredTabId ? ColorTokens.bgSurfaceHover : ColorTokens.bgApp))
             .border({
               width: { top: tab.id === this.activeTabId ? 2 : 0, right: 1 },
               color: tab.id === this.activeTabId ? ColorTokens.brand500 : ColorTokens.borderSubtle
             })
+            .onHover((hovered: boolean) => { this.hoveredTabId = hovered ? tab.id : ''; })
             .onClick(() => this.onSelect(tab.id))
           }, (tab: RequestTabModel) => tab.id)
         }
@@ -70,6 +73,10 @@ export struct RequestTabBar {
         .height(SizeTokens.requestTabBarHeight)
         .textAlign(TextAlign.Center)
         .backgroundColor(ColorTokens.bgApp)
+        .stateStyles({
+          normal: { .backgroundColor(ColorTokens.bgApp) },
+          pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) }
+        })
         .onClick(this.onCreate)
 
       Blank()

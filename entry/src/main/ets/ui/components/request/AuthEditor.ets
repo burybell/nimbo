@@ -34,7 +34,7 @@ export struct AuthEditor {
   }
 
   @Builder
-  private fieldLabel(label: string) {
+  private fieldLabel(label: ResourceStr) {
     Text(label)
       .fontSize(11)
       .fontWeight(FontWeight.Medium)
@@ -65,7 +65,7 @@ export struct AuthEditor {
             .fontSize(13)
             .fontColor(ColorTokens.textSecondary)
         } else if (this.config.type === 'bearer') {
-          this.fieldLabel('TOKEN')
+          this.fieldLabel($r('app.string.auth_token_label'))
           SecretInput({
             value: this.config.bearerToken,
             placeholder: $r('app.string.auth_bearer'),
@@ -76,7 +76,7 @@ export struct AuthEditor {
             .fontSize(11)
             .fontColor(ColorTokens.textTertiary)
         } else if (this.config.type === 'basic') {
-          this.fieldLabel('USERNAME')
+          this.fieldLabel($r('app.string.auth_username_label'))
           TextInput({ text: this.config.username, placeholder: $r('app.string.username') })
             .fontSize(13)
             .height(SizeTokens.controlMedium)
@@ -85,7 +85,7 @@ export struct AuthEditor {
             .borderRadius(RadiusTokens.small)
             .onChange((value: string) => this.update(this.config.type, this.config.bearerToken,
               value, this.config.password, this.config.apiKey, this.config.apiValue, this.config.apiLocation))
-          this.fieldLabel('PASSWORD')
+          this.fieldLabel($r('app.string.auth_password_label'))
           SecretInput({
             value: this.config.password,
             placeholder: $r('app.string.password'),
@@ -93,7 +93,7 @@ export struct AuthEditor {
               this.config.username, value, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
           })
         } else {
-          this.fieldLabel('KEY')
+          this.fieldLabel($r('app.string.auth_key_label'))
           TextInput({ text: this.config.apiKey, placeholder: 'X-API-Key' })
             .fontSize(13)
             .height(SizeTokens.controlMedium)
@@ -102,17 +102,19 @@ export struct AuthEditor {
             .borderRadius(RadiusTokens.small)
             .onChange((value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, this.config.password, value, this.config.apiValue, this.config.apiLocation))
-          this.fieldLabel('VALUE')
+          this.fieldLabel($r('app.string.auth_value_label'))
           SecretInput({
             value: this.config.apiValue,
             placeholder: $r('app.string.api_key_value'),
             onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, this.config.password, this.config.apiKey, value, this.config.apiLocation)
           })
-          this.fieldLabel('ADD TO')
-          Select([{ value: 'Header' }, { value: 'Query Params' }])
+          this.fieldLabel($r('app.string.auth_add_to_label'))
+          Select([{ value: $r('app.string.auth_location_header') },
+            { value: $r('app.string.auth_location_query') }])
             .selected(this.config.apiLocation === 'query' ? 1 : 0)
-            .value(this.config.apiLocation === 'query' ? 'Query Params' : 'Header')
+            .value(this.config.apiLocation === 'query' ? $r('app.string.auth_location_query') :
+              $r('app.string.auth_location_header'))
             .height(SizeTokens.controlMedium)
             .width(180)
             .onSelect((index: number) => this.update(this.config.type, this.config.bearerToken,

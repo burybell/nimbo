@@ -1,7 +1,7 @@
 import { EnvironmentSwitcher } from '../environment/EnvironmentSwitcher';
 import { NimboLogo } from './NimboLogo';
 import { ColorTokens } from '../../tokens/ColorTokens';
-import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct GlobalToolbar {
@@ -31,28 +31,19 @@ export struct GlobalToolbar {
         .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
         .padding({ left: this.compact ? SpacingTokens.x4 : SpacingTokens.x5 })
 
-        Row() {
-          Text('⌕')
-            .fontSize(18)
-            .fontColor(ColorTokens.textSecondary)
-          Text($r('app.string.search_global'))
-            .fontSize(13)
+        Row({ space: SpacingTokens.x2 }) {
+          Text('●')
+            .fontSize(8)
+            .fontColor(ColorTokens.statusSuccess)
+          Text($r('app.string.toolbar_workspace_hint'))
+            .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
-          Blank()
-          Text('Ctrl  K')
-            .fontSize(11)
-            .fontColor(ColorTokens.textTertiary)
-            .padding({ left: 6, right: 6, top: 3, bottom: 3 })
-            .border({ width: 1, color: ColorTokens.borderDefault })
-            .borderRadius(RadiusTokens.small)
         }
         .layoutWeight(1)
         .height(SizeTokens.controlMedium)
-        .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
-        .backgroundColor(ColorTokens.bgApp)
-        .borderRadius(RadiusTokens.medium)
+        .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
 
         Row({ space: SpacingTokens.x3 }) {
           EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, onChange: this.onEnvironmentChange })
@@ -62,6 +53,11 @@ export struct GlobalToolbar {
             .width(SizeTokens.controlMedium)
             .height(SizeTokens.controlMedium)
             .textAlign(TextAlign.Center)
+            .borderRadius(SizeTokens.controlMedium / 2)
+            .stateStyles({
+              normal: { .backgroundColor(ColorTokens.bgSurface) },
+              pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) }
+            })
             .onClick(this.onSettings)
         }
         .padding({ left: SpacingTokens.x4, right: SpacingTokens.x5 })

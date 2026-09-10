@@ -62,7 +62,9 @@ export struct NimboWindow {
   @State environments: EnvironmentModel[] = DEMO_ENVIRONMENTS;
   @State historyItems: HistoryItemModel[] = DEMO_HISTORY;
   @State activeOverlay: string = '';
-  @State toastMessage: string = '';
+  @State toastMessage: ResourceStr = '';
+  @State toastVisible: boolean = false;
+  @State toastActionVisible: boolean = false;
   @State lastDeletedHistory: HistoryItemModel[] = [];
   @State selectedEnvironmentId: string = 'development';
   @State savedRequests: PersistedRequestModel[] = [];
@@ -448,10 +450,16 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
-  private showToast(message: string): void {
+  private showToast(message: ResourceStr, actionVisible: boolean = false): void {
     this.toastMessage = message;
+    this.toastVisible = true;
+    this.toastActionVisible = actionVisible;
     setTimeout(() => {
-      if (this.toastMessage === message) this.toastMessage = '';
+      if (this.toastMessage === message) {
+        this.toastMessage = '';
+        this.toastVisible = false;
+        this.toastActionVisible = false;
+      }
     }, 1800);
   }
 
@@ -470,7 +478,7 @@ export struct NimboWindow {
         const want: Want = { bundleName: 'com.nimbo.app', abilityName: 'EntryAbility' };
         context.getApplicationContext().restartApp(want);
       } catch (_error) {
-        this.showToast('Restart Nimbo to apply the language');
+        this.showToast($r('app.string.toast_restart_language'));
       }
     }, 200);
   }
@@ -483,7 +491,7 @@ export struct NimboWindow {
       const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
       context.getApplicationContext().setColorMode(mode);
     } catch (_error) {
-      this.showToast('Theme could not be changed');
+      this.showToast($r('app.string.toast_theme_failed'));
     }
   }
 
@@ -495,7 +503,7 @@ export struct NimboWindow {
       try {
         i18n.System.setAppPreferredLanguage(preferences.language === 'zh' ? 'zh' : 'en');
       } catch (_error) {
-        this.showToast('Language could not be changed');
+        this.showToast($r('app.string.toast_language_failed'));
       }
     }
     this.historyItems = this.normalizeHistory(this.historyItems);
@@ -504,7 +512,7 @@ export struct NimboWindow {
     if (languageChanged) {
       this.restartForLanguage();
     } else {
-      this.showToast('Saved');
+      this.showToast($r('app.string.toast_saved'));
     }
   }
 
@@ -572,7 +580,7 @@ export struct NimboWindow {
     this.lastDeletedHistory = this.historyItems.filter((item: HistoryItemModel) => item.id === id);
     this.historyItems = this.historyItems.filter((item: HistoryItemModel) => item.id !== id);
     this.persistLocalData();
-    this.showToast('Deleted — Undo');
+    this.showToast($r('app.string.toast_deleted'), true);
   }
 
   private undoHistoryDelete(): void {
@@ -580,6 +588,8 @@ export struct NimboWindow {
     this.historyItems = [...this.lastDeletedHistory, ...this.historyItems];
     this.lastDeletedHistory = [];
     this.toastMessage = '';
+    this.toastVisible = false;
+    this.toastActionVisible = false;
     this.persistLocalData();
   }
 
@@ -593,9 +603,9 @@ export struct NimboWindow {
     try {
       const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, value);
       await pasteboard.getSystemPasteboard().setData(data);
-      this.showToast('Copied');
+      this.showToast($r('app.string.copied'));
     } catch (_error) {
-      this.showToast('Copy failed');
+      this.showToast($r('app.string.toast_copy_failed'));
     }
   }
 
@@ -604,10 +614,10 @@ export struct NimboWindow {
       const date = new Date().toISOString().substring(0, 10);
       const content = NimboExportCodec.encode(this.persistedState(), includeSecrets);
       if (await LocalFileExporter.saveText(`nimbo-backup-${date}.nimbo.json`, content)) {
-        this.showToast('Exported');
+        this.showToast($r('app.string.toast_exported'));
       }
     } catch (_error) {
-      this.showToast('Export failed');
+      this.showToast($r('app.string.toast_export_failed'));
     }
   }
 
@@ -623,14 +633,16 @@ export struct NimboWindow {
 
   private async saveBinaryResponse(response: ResponseModel): Promise<void> {
     if (response.binaryBody.byteLength === 0) {
-      this.showToast('No binary data');
+      this.showToast($r('app.string.toast_no_binary'));
       return;
     }
     try {
       const name = `nimbo-response.${this.binaryExtension(response.contentType)}`;
-      if (await LocalFileExporter.saveBytes(name, response.binaryBody)) this.showToast('Saved');
+      if (await LocalFileExporter.saveBytes(name, response.binaryBody)) {
+        this.showToast($r('app.string.toast_saved'));
+      }
     } catch (_error) {
-      this.showToast('Save failed');
+      this.showToast($r('app.string.toast_save_failed'));
     }
   }
 
@@ -641,7 +653,7 @@ export struct NimboWindow {
         environments: this.environments,
         phone: this.isPhone(),
         onChange: (id: string, variables: KeyValueItem[]) => this.updateEnvironment(id, variables),
-        onSaved: () => this.showToast('Saved')
+        onSaved: () => this.showToast($r('app.string.toast_saved'))
       })
       .layoutWeight(1)
     } else if (this.activeDestination === 'history') {
@@ -844,7 +856,7 @@ export struct NimboWindow {
           onImport: (result: CurlImportResult) => {
             this.activeOverlay = '';
             this.createImportedRequest(result, 'Imported cURL');
-            this.showToast('Imported');
+            this.showToast($r('app.string.toast_imported'));
           }
         })
       }
@@ -852,7 +864,7 @@ export struct NimboWindow {
         PostmanImportDialog({
           onCancel: () => { this.activeOverlay = ''; },
           onImport: (result: PostmanImportResult) => this.applyPostmanImport(result),
-          onComplete: () => { this.activeOverlay = ''; this.showToast('Imported'); }
+          onComplete: () => { this.activeOverlay = ''; this.showToast($r('app.string.toast_imported')); }
         })
       }
       if (this.activeOverlay === 'clear-history') {
@@ -867,7 +879,7 @@ export struct NimboWindow {
             this.historyItems = [];
             this.activeOverlay = '';
             this.persistLocalData();
-            this.showToast('Deleted — Undo');
+            this.showToast($r('app.string.toast_deleted'), true);
           }
         })
       }
@@ -883,7 +895,7 @@ export struct NimboWindow {
             try {
               i18n.System.setAppPreferredLanguage('en');
             } catch (_error) {
-              this.showToast('Language could not be changed');
+              this.showToast($r('app.string.toast_language_failed'));
             }
             this.activeOverlay = '';
             this.persistLocalData();
@@ -904,9 +916,10 @@ export struct NimboWindow {
           }
         })
       }
-      if (this.toastMessage.length > 0) {
-        NimboToast({ message: this.toastMessage, onAction: () => this.undoHistoryDelete() })
-          .margin({ bottom: SpacingTokens.x5 })
+      if (this.toastVisible) {
+        NimboToast({ message: this.toastMessage, actionVisible: this.toastActionVisible,
+          onAction: () => this.undoHistoryDelete() })
+          .margin({ bottom: this.isPhone() ? 72 : SpacingTokens.x5 })
       }
     }
     .width('100%')

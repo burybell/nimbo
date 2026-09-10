@@ -89,13 +89,9 @@ export struct SettingsPage {
           this.preferences.language === 'en' ? 'zh' : 'en', this.preferences.followRedirects,
           this.preferences.sslVerification, this.preferences.defaultTimeoutMs,
           this.preferences.saveHistory, this.preferences.historyRetentionDays, this.preferences.maskSecrets) })
-      SettingRow({ title: $r('app.string.shortcuts_title'), description: $r('app.string.shortcuts_description'),
-        controlLabel: $r('app.string.action_view') })
     } else if (this.section === 'Appearance') {
       SettingRow({ title: $r('app.string.theme_title'), description: $r('app.string.theme_description'),
         controlLabel: this.themeLabel(), onPress: () => this.changeTheme() })
-      SettingRow({ title: $r('app.string.density_title'), description: $r('app.string.density_description'),
-        controlLabel: $r('app.string.density_comfortable') })
     } else if (this.section === 'Network') {
       SettingRow({ title: $r('app.string.redirect_title'), description: $r('app.string.redirect_description'), toggle: true,
         checked: this.preferences.followRedirects, onToggle: (value: boolean) => this.emit(
@@ -148,7 +144,7 @@ export struct SettingsPage {
       SettingRow({ title: $r('app.string.export_secrets_title'), description: $r('app.string.export_secrets_description'),
         controlLabel: $r('app.string.export_action'), onPress: this.onExportSecrets })
     } else {
-      SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: 'Version 0.1.0' })
+      SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: '0.1.0' })
       SettingRow({ title: $r('app.string.application_identity'),
         description: 'Bundle com.nimbo.app · App ID 6917615930484878194', controlLabel: $r('app.string.local_build') })
     }

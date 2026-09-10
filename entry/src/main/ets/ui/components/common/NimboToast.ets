@@ -3,7 +3,8 @@ import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct NimboToast {
-  @Prop message: string = '';
+  @Prop message: ResourceStr = '';
+  @Prop actionVisible: boolean = false;
   onAction: () => void = () => {};
 
   build() {
@@ -11,7 +12,7 @@ export struct NimboToast {
       Text(this.message)
         .fontSize(13)
         .fontColor(ColorTokens.textOnBrand)
-      if (this.message.includes('— Undo')) {
+      if (this.actionVisible) {
         Text($r('app.string.action_undo'))
           .fontSize(13)
           .fontWeight(FontWeight.Medium)

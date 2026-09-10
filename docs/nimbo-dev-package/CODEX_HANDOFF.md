@@ -238,6 +238,25 @@ Milestone 6 完成后，按 PRD 的 `Nimbo 1.0 必须完成` 收口仍缺失的 
 
 当前进度（2026-09-09）：Milestone 7 第 1–5 项已全部完成。Light / Dark / System 可在设置页即时切换，主题选择随 schema v3 本地状态持久化，旧 schema v1/v2 数据可无损迁移；深色模式下重启应用后主题、集合、请求与历史记录均可恢复。PC 端已验证 1024px Compact、1280px Desktop 和最大化大屏布局。Tablet 横屏采用 60px Icon Rail + 220px Secondary Sidebar + Workspace；Phone（<720px）采用精简顶栏、底部导航、Request / Response 页面切换和 Collection Drawer，设置、环境与历史记录切换为单栏布局。已在 HarmonyOS PC 模拟器通过 800px 平板宽度与 360px 手机宽度的运行时缩窗验收，无严重溢出。至此 Nimbo 1.0 Completion 收口完成；继续开发前应先定义后续里程碑，不得自行进入 1.1/1.2 暂缓范围。
 
+### Milestone 8 — Core UX & UI Polish
+
+Milestone 8 只完善 Nimbo 1.0 已有功能，不新增 1.1/1.2 能力。目标是让现有功能在 PC、Tablet、Phone 上具备一致、可信、可交付的视觉与交互质量。
+
+按顺序实现：
+
+1. 清理无效或误导性交互；尚未实现的入口不展示，不以静态控件暗示可用
+2. 补齐现有操作的 Hover / Pressed / Focus / Disabled / Loading 与结果反馈
+3. 统一页面标题、间距、边框、按钮、空状态、错误状态和危险操作层级
+4. 完成所有现有界面文案资源化，消除静态中英文混排
+5. 修复 PC / Tablet / Phone 的裁切、拥挤、触控热区与信息层级问题
+6. 对请求、响应、集合、历史、环境、设置的已有操作路径做回归验收
+
+验收要求：界面不展示无响应的按钮或未兑现的快捷键；切换中英文后静态 UI 与 Toast 使用同一语言；Light / Dark / System 均无不可读或硬编码颜色；1280px、1024px、800px、360px 宽度下核心页面无严重溢出；真实 HTTP 发送、取消、历史回放、环境变量、导入导出和本地恢复不退化；构建无新增 warning。完成情况必须记录在本节后再进入下一里程碑。
+
+当前进度（2026-09-09）：Milestone 8 已完成。已移除顶部全局搜索、集合搜索、集合/环境创建、响应更多菜单、快捷键查看和界面密度等尚未兑现或无响应的入口；保留的创建请求、导入、历史菜单和危险操作均有真实回调。桌面导航、集合树、请求标签和上下文菜单补齐悬停/按压反馈，手机 Toast 避开底部导航，确认弹窗可在 360px 宽度内完整显示。新增集合、环境、历史空状态，并统一认证编辑器、键值编辑器、响应搜索、错误标题和全部操作 Toast 的中英文资源；Toast 的撤销动作改为显式状态，不再依赖英文文案解析。
+
+运行时验收已覆盖 1024px PC、800px Tablet 和 360px Phone，Light / Dark 与中英文均通过实际切换；Phone 的 Request / Response、Collection Drawer、Settings 和危险确认弹窗无严重裁切。使用 `https://httpbin.org/image/png` 完成真实 HTTPS GET，得到 `image/png`、7.9 KB 二进制响应，保存入口正常；语言切换重启后集合、请求、环境与偏好可恢复。最终 HAP 已安装至 HarmonyOS PC 模拟器并完成构建，未新增 ArkTS warning。现存的两条 `HttpEngine` warning 来自 Milestone 5 已采用的 API 22 Redirect Interceptor 与项目 API 20 兼容下限；功能在当前设备已验证，不在 Milestone 8 中通过抬高最低系统版本规避。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

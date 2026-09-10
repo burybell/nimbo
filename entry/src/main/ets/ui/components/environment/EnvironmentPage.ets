@@ -18,7 +18,18 @@ export struct EnvironmentPage {
   }
 
   build() {
-    if (this.phone) {
+    if (this.environments.length === 0) {
+      Column({ space: SpacingTokens.x2 }) {
+        Text('◎').fontSize(30).fontColor(ColorTokens.textTertiary)
+        Text($r('app.string.environment_empty_title')).fontSize(16).fontWeight(FontWeight.Medium)
+          .fontColor(ColorTokens.textPrimary)
+        Text($r('app.string.environment_empty_description')).fontSize(12).fontColor(ColorTokens.textTertiary)
+          .textAlign(TextAlign.Center)
+      }
+      .width('100%').height('100%').justifyContent(FlexAlign.Center)
+      .padding({ left: SpacingTokens.x6, right: SpacingTokens.x6 })
+      .backgroundColor(ColorTokens.bgWorkspace)
+    } else if (this.phone) {
       Column() {
         Scroll() {
           Row({ space: SpacingTokens.x2 }) {
@@ -83,9 +94,6 @@ export struct EnvironmentPage {
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
           Blank()
-          Text('+')
-            .fontSize(20)
-            .fontColor(ColorTokens.brand500)
         }
         .width('100%')
         .height(48)
@@ -102,10 +110,10 @@ export struct EnvironmentPage {
                 .fontWeight(environment.id === this.selectedId ? FontWeight.Medium : FontWeight.Regular)
                 .fontColor(ColorTokens.textPrimary)
                 .width('100%')
-              Text(`${environment.variables.length} variables`)
-                .fontSize(11)
-                .fontColor(ColorTokens.textTertiary)
-                .width('100%')
+              Row({ space: SpacingTokens.x1 }) {
+                Text(`${environment.variables.length}`).fontSize(11).fontColor(ColorTokens.textTertiary)
+                Text($r('app.string.variables')).fontSize(11).fontColor(ColorTokens.textTertiary)
+              }.width('100%')
             }
             .layoutWeight(1)
           }

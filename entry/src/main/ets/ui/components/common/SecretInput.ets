@@ -4,7 +4,7 @@ import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutToke
 @Component
 export struct SecretInput {
   @Prop value: string = '';
-  @Prop placeholder: ResourceStr = 'Secret';
+  @Prop placeholder: ResourceStr = $r('app.string.secret_placeholder');
   @State revealed: boolean = false;
   onChange: (value: string) => void = () => {};
 
