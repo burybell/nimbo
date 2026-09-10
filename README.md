@@ -1,24 +1,110 @@
 # Nimbo
 
-Nimbo is a native HarmonyOS API debugging client. The current implementation contains Milestone 0 (project foundation) and Milestone 1 (application shell) only.
+[简体中文](README.zh-CN.md) · English
 
-## Huawei application identity
+Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives developers a focused workspace for composing HTTP requests, inspecting responses, organizing collections, and switching environments—without requiring an account or cloud service.
 
-- Bundle name: `com.nimbo.app`
-- App ID: `6917615930484878194`
+![Nimbo interface](docs/nimbo-dev-package/assets/nimbo-main-ui.png)
 
-The App ID belongs to the AppGallery Connect application/signing profile. The runtime bundle name is declared in `AppScope/app.json5`; no credential or signing material is committed to this repository.
+## Highlights
 
-## Build
+- Native HarmonyOS application, designed for PC and responsive on tablets and phones
+- HTTP requests with GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS
+- Query parameters, headers, Bearer/Basic/API Key authentication, and multiple body types
+- Pretty and raw response views, response headers, cookies, error states, and binary saving
+- Nested collections and folders with persistent saved requests
+- Local environments and variable resolution
+- Local request history and workspace restoration
+- cURL import/export and Postman Collection/Environment import
+- Local Nimbo backup export with secrets redacted by default
+- Light, dark, and system themes
+- English and Simplified Chinese interfaces
 
-Open the repository root in DevEco Studio, select a locally installed HarmonyOS 6.1.1 (API 24) SDK, configure signing for the application above, and run the `entry` module.
+## Project status
 
-Command-line build with the SDK bundled in DevEco Studio:
+Nimbo 1.0's core workflow is implemented and can run on a HarmonyOS PC target:
+
+```text
+Create or import a request
+        ↓
+Configure and send it
+        ↓
+Inspect the response
+        ↓
+Save it into a collection
+        ↓
+Reuse it with environments and history
+```
+
+WebSocket, SSE, GraphQL, gRPC, collection runners, scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
+
+## Requirements
+
+- macOS
+- DevEco Studio with the HarmonyOS SDK installed
+- Compile/target SDK: HarmonyOS 6.1.1 (API 24)
+- Compatible SDK: HarmonyOS 6.0.0 (API 20)
+- A HarmonyOS device or emulator
+
+## Getting started
+
+Clone the repository:
+
+```shell
+git clone git@github.com:burybell/nimbo.git
+cd nimbo
+```
+
+Create your local build profile:
+
+```shell
+cp build-profile.example.json5 build-profile.json5
+```
+
+Open the project in DevEco Studio, configure a signing profile for your own application, and run the `entry` module.
+
+You can also build from the command line when DevEco Studio is installed at its default macOS location:
 
 ```shell
 ./build_hap.sh
 ```
 
-Without a signing profile this produces `entry/build/default/outputs/default/entry-default-unsigned.hap`. Configure the matching AppGallery Connect signing profile in DevEco Studio before installing it on a device.
+The HAP output is written under:
 
-See `docs/nimbo-dev-package/CODEX_HANDOFF.md` for the authoritative delivery scope.
+```text
+entry/build/default/outputs/default/
+```
+
+`build-profile.json5` is intentionally ignored because DevEco Studio may store machine-specific signing paths and credentials in it. Never commit your local signing profile, certificate, keystore, or passwords.
+
+## Project structure
+
+```text
+AppScope/                         Application resources and identity
+entry/src/main/ets/
+├── app/                          Root application composition and state
+├── controller/                   Request orchestration
+├── models/                       UI and persistence models
+├── network/                      HTTP engine
+├── services/                     Import, export, and local storage
+├── state/                        Defaults and initial state
+└── ui/                           Components, pages, and design tokens
+docs/nimbo-dev-package/           PRD, UI/UX specification, and handoff notes
+```
+
+The current delivery scope and engineering constraints are documented in [`CODEX_HANDOFF.md`](docs/nimbo-dev-package/CODEX_HANDOFF.md).
+
+## Local-first privacy
+
+Collections, requests, environments, history, preferences, and restored tabs stay on the local device. Nimbo does not require an account and does not provide cloud synchronization in the current version. Be careful when exporting backups that include secrets.
+
+## Contributing
+
+Issues and pull requests are welcome. Before making a large change, please open an issue to discuss its scope. Keep the project buildable, avoid exposing unfinished controls, and do not implement capabilities explicitly marked as deferred in the handoff document without prior discussion.
+
+## Application identity
+
+- Bundle name: `com.nimbo.app`
+- Huawei App ID: `6917615930484878194`
+
+The App ID identifies the official Nimbo application. Contributors should use their own application identity and signing profile for local development.
