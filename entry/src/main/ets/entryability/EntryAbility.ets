@@ -65,6 +65,7 @@ export default class EntryAbility extends UIAbility {
     try {
       mainWindow.setWindowDecorVisible(false);
       mainWindow.setWindowDecorHeight(TITLE_BAR_HEIGHT);
+      mainWindow.setWindowTitleMoveEnabled(true);
       mainWindow.setDecorButtonStyle({ buttonIconSize: 24 });
       this.publishTitleButtonInset(mainWindow.getTitleButtonRect());
       mainWindow.on('windowTitleButtonRectChange', this.titleButtonRectChange);

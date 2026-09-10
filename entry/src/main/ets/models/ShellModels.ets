@@ -9,6 +9,7 @@ export type BodyType = 'none' | 'json' | 'text' | 'form' | 'multipart' | 'binary
 export type ResponseStatus = 'empty' | 'sending' | 'success' | 'error' | 'large' | 'binary' | 'cancelled';
 export type ResponseTab = 'body' | 'headers' | 'cookies' | 'timeline';
 export type ResponseBodyMode = 'pretty' | 'raw';
+export type ResponseMediaKind = 'none' | 'image' | 'video';
 export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
   'connectionReset' | 'invalidUrl' | 'proxy' | 'cancelled' | 'unknown';
 
@@ -97,6 +98,8 @@ export interface ResponseModel {
   cookies: KeyValueItem[];
   body: string;
   binaryBody: ArrayBuffer;
+  mediaKind: ResponseMediaKind;
+  mediaUri: string;
   contentType: string;
   size: string;
   duration: string;
@@ -105,7 +108,7 @@ export interface ResponseModel {
   previewAvailable: boolean;
 }
 
-export type EnvironmentKind = 'development' | 'staging' | 'production';
+export type EnvironmentKind = 'development' | 'staging' | 'production' | 'custom';
 export type HistoryGroup = 'Today' | 'Yesterday' | 'Previous 7 Days' | 'Older';
 export type SettingsSection = 'General' | 'Appearance' | 'Network' | 'Data' | 'Privacy' | 'About';
 

@@ -34,6 +34,7 @@ export struct RequestTabBar {
               Text(tab.name)
                 .fontSize(12)
                 .fontColor(ColorTokens.textPrimary)
+                .layoutWeight(1)
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
               if (tab.dirty) {
@@ -54,7 +55,7 @@ export struct RequestTabBar {
                 })
             }
             .height(SizeTokens.requestTabBarHeight)
-            .constraintSize({ minWidth: 148, maxWidth: 220 })
+            .width(192)
             .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
             .backgroundColor(tab.id === this.activeTabId ? ColorTokens.bgWorkspace :
               (tab.id === this.hoveredTabId ? ColorTokens.bgSurfaceHover : ColorTokens.bgApp))
@@ -72,7 +73,7 @@ export struct RequestTabBar {
                 this.onSelect(tab.id);
               });
             })
-          }, (tab: RequestTabModel) => tab.id)
+          }, (tab: RequestTabModel) => `${tab.id}-${tab.name}-${tab.method}-${tab.dirty}`)
         }
         .justifyContent(FlexAlign.Start)
       }

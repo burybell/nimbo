@@ -7,15 +7,61 @@ import { LargeResponseViewer } from './LargeResponseViewer';
 import { RawViewer } from './RawViewer';
 import { ResponseHeader } from './ResponseHeader';
 import { MotionTokens } from '../../tokens/MotionTokens';
+import { MediaViewer } from './MediaViewer';
 
 @Component
 export struct ResponsePanel {
   @Prop response: ResponseModel;
   @State activeTab: ResponseTab = 'body';
   @State bodyMode: ResponseBodyMode = 'pretty';
+  @State searchVisible: boolean = false;
+  @State searchQuery: string = '';
+  @State searchIndex: number = 0;
+  @State searchRevision: number = 0;
   onRetry: () => void = () => {};
   onPreviewLarge: () => void = () => {};
   onSaveBinary: () => void = () => {};
+  onCopyBody: () => void = () => {};
+  onDownloadBody: () => void = () => {};
+
+  private matchCount(): number {
+    if (this.searchQuery.length === 0) return 0;
+    const source = this.response.body.toLowerCase();
+    const needle = this.searchQuery.toLowerCase();
+    let count = 0;
+    let offset = 0;
+    while (offset < source.length) {
+      const match = source.indexOf(needle, offset);
+      if (match < 0) break;
+      count += 1;
+      offset = match + needle.length;
+    }
+    return count;
+  }
+
+  private navigateMatch(step: number): void {
+    const count = this.matchCount();
+    if (count === 0) return;
+    this.searchIndex = (this.searchIndex + step + count) % count;
+    this.searchRevision += 1;
+  }
+
+  private closeSearch(): void {
+    this.searchVisible = false;
+    this.searchQuery = '';
+    this.searchIndex = 0;
+  }
+
+  private toggleSearch(): void {
+    if (this.searchVisible) {
+      this.closeSearch();
+      return;
+    }
+    this.searchVisible = true;
+    setTimeout(() => {
+      focusControl.requestFocus('nimboResponseSearchInput');
+    }, 50);
+  }
 
   @Builder
   private emptyState(title: ResourceStr, description: ResourceStr, loading: boolean = false) {
@@ -97,57 +143,163 @@ export struct ResponsePanel {
 
   @Builder
   private bodyContent() {
-    Column() {
-      Row({ space: SpacingTokens.x1 }) {
-        Text($r('app.string.response_pretty'))
-          .fontSize(11)
-          .fontColor(this.bodyMode === 'pretty' ? ColorTokens.brand600 : ColorTokens.textSecondary)
-          .height(SizeTokens.controlSmall)
-          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
-          .textAlign(TextAlign.Center)
-          .backgroundColor(this.bodyMode === 'pretty' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
-          .borderRadius(RadiusTokens.small)
-          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
-          .onClick(() => {
-            this.getUIContext().animateTo({ duration: MotionTokens.fast,
-              curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'pretty'; });
-          })
-        Text($r('app.string.response_raw'))
-          .fontSize(11)
-          .fontColor(this.bodyMode === 'raw' ? ColorTokens.brand600 : ColorTokens.textSecondary)
-          .height(SizeTokens.controlSmall)
-          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
-          .textAlign(TextAlign.Center)
-          .backgroundColor(this.bodyMode === 'raw' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
-          .borderRadius(RadiusTokens.small)
-          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
-          .onClick(() => {
-            this.getUIContext().animateTo({ duration: MotionTokens.fast,
-              curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'raw'; });
-          })
-        Blank()
-        Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : $r('app.string.body_text'))
-          .fontSize(11)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(ColorTokens.textSecondary)
-      }
-      .height(34)
-      .width('100%')
-      .padding({ left: SpacingTokens.x2, right: SpacingTokens.x3 })
+    if (this.response.mediaKind !== 'none' && this.response.mediaUri.length > 0) {
+      MediaViewer({
+        kind: this.response.mediaKind,
+        uri: this.response.mediaUri,
+        contentType: this.response.contentType,
+        responseSize: this.response.size,
+        onSave: this.onSaveBinary
+      })
+      .layoutWeight(1)
+      .transition(TransitionEffect.OPACITY.animation({ duration: MotionTokens.fast,
+        curve: MotionTokens.standardCurve }))
+    } else {
+      Column() {
+        Row({ space: SpacingTokens.x1 }) {
+          Text($r('app.string.response_pretty'))
+            .fontSize(11)
+            .fontColor(this.bodyMode === 'pretty' ? ColorTokens.brand600 : ColorTokens.textSecondary)
+            .height(SizeTokens.controlSmall)
+            .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.bodyMode === 'pretty' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
+            .borderRadius(RadiusTokens.small)
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+            .onClick(() => {
+              this.getUIContext().animateTo({ duration: MotionTokens.fast,
+                curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'pretty'; });
+            })
+          Text($r('app.string.response_raw'))
+            .fontSize(11)
+            .fontColor(this.bodyMode === 'raw' ? ColorTokens.brand600 : ColorTokens.textSecondary)
+            .height(SizeTokens.controlSmall)
+            .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.bodyMode === 'raw' ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
+            .borderRadius(RadiusTokens.small)
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+            .onClick(() => {
+              this.getUIContext().animateTo({ duration: MotionTokens.fast,
+                curve: MotionTokens.standardCurve }, () => { this.bodyMode = 'raw'; });
+            })
+          Blank()
+          Button({ type: ButtonType.Normal }) {
+            Image($r('app.media.search'))
+              .width(16)
+              .height(16)
+          }
+            .width(28)
+            .height(28)
+            .backgroundColor(this.searchVisible ? ColorTokens.brand50 : ColorTokens.bgWorkspace)
+            .borderRadius(RadiusTokens.small)
+            .accessibilityText($r('app.string.response_search_action'))
+            .onClick(() => { this.toggleSearch(); })
+          Button({ type: ButtonType.Normal }) {
+            Image($r('app.media.response_copy'))
+              .width(16)
+              .height(16)
+          }
+            .width(28)
+            .height(28)
+            .backgroundColor(ColorTokens.bgWorkspace)
+            .borderRadius(RadiusTokens.small)
+            .accessibilityText($r('app.string.response_copy_action'))
+            .onClick(() => { this.onCopyBody(); })
+          Button({ type: ButtonType.Normal }) {
+            Image($r('app.media.response_download'))
+              .width(16)
+              .height(16)
+          }
+            .width(28)
+            .height(28)
+            .backgroundColor(ColorTokens.bgWorkspace)
+            .borderRadius(RadiusTokens.small)
+            .accessibilityText($r('app.string.response_download_action'))
+            .onClick(() => { this.onDownloadBody(); })
+          Text(this.response.contentType.toLowerCase().includes('json') ? 'JSON' : $r('app.string.body_text'))
+            .fontSize(11)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(ColorTokens.textSecondary)
+        }
+        .height(34)
+        .width('100%')
+        .padding({ left: SpacingTokens.x2, right: SpacingTokens.x3 })
 
-      if (this.bodyMode === 'pretty' && this.response.contentType.toLowerCase().includes('json')) {
-        JsonViewer({ value: this.response.body })
-          .layoutWeight(1)
-      } else {
-        RawViewer({ value: this.response.body })
-          .layoutWeight(1)
+        if (this.searchVisible) {
+          Row({ space: SpacingTokens.x1 }) {
+            TextInput({ text: this.searchQuery, placeholder: $r('app.string.search_response') })
+              .id('nimboResponseSearchInput')
+              .fontSize(10)
+              .height(28)
+              .layoutWeight(1)
+              .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, top: 0, bottom: 0 })
+              .backgroundColor(ColorTokens.bgSurface)
+              .border({ width: 1, color: ColorTokens.borderDefault })
+              .borderRadius(RadiusTokens.small)
+              .onChange((value: string) => {
+                this.searchQuery = value;
+                this.searchIndex = 0;
+              })
+              .onKeyEvent((event: KeyEvent) => {
+                if (event.type === KeyType.Down && event.keyCode === 2070) {
+                  this.closeSearch();
+                  return true;
+                }
+                return false;
+              })
+              .onSubmit(() => { this.navigateMatch(1); })
+            Text(`${this.matchCount() === 0 ? 0 : this.searchIndex + 1} / ${this.matchCount()}`)
+              .fontSize(11)
+              .fontColor(ColorTokens.textSecondary)
+              .width(46)
+              .textAlign(TextAlign.Center)
+            Text('↑')
+              .fontSize(13)
+              .fontColor(ColorTokens.textSecondary)
+              .width(26)
+              .height(26)
+              .textAlign(TextAlign.Center)
+              .onClick(() => { this.navigateMatch(-1); })
+            Text('↓')
+              .fontSize(13)
+              .fontColor(ColorTokens.textSecondary)
+              .width(26)
+              .height(26)
+              .textAlign(TextAlign.Center)
+              .onClick(() => { this.navigateMatch(1); })
+            Text('×')
+              .fontSize(16)
+              .fontColor(ColorTokens.textSecondary)
+              .width(26)
+              .height(26)
+              .textAlign(TextAlign.Center)
+              .onClick(() => {
+                this.closeSearch();
+              })
+          }
+          .height(36)
+          .width('100%')
+          .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2 })
+          .backgroundColor(ColorTokens.bgSurface)
+        }
+
+        if (this.bodyMode === 'pretty' && this.response.contentType.toLowerCase().includes('json')) {
+          JsonViewer({ value: this.response.body, query: this.searchQuery,
+            searchIndex: this.searchIndex, searchRevision: this.searchRevision })
+            .layoutWeight(1)
+        } else {
+          RawViewer({ value: this.response.body, query: this.searchQuery,
+            searchIndex: this.searchIndex, searchRevision: this.searchRevision })
+            .layoutWeight(1)
+        }
       }
+      .width('100%')
+      .layoutWeight(1)
+      .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, bottom: SpacingTokens.x2 })
+      .transition(TransitionEffect.OPACITY
+        .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
     }
-    .width('100%')
-    .layoutWeight(1)
-    .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, bottom: SpacingTokens.x2 })
-    .transition(TransitionEffect.OPACITY
-      .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
   }
 
   build() {
@@ -185,7 +337,7 @@ export struct ResponsePanel {
           Text(this.response.size)
             .fontSize(12)
             .fontColor(ColorTokens.textTertiary)
-          Button($r('app.string.response_save_binary'))
+          Button($r('app.string.response_download_binary'))
             .fontSize(13)
             .fontColor(ColorTokens.textOnBrand)
             .backgroundColor(ColorTokens.brand500)
@@ -234,5 +386,17 @@ export struct ResponsePanel {
     .width('100%')
     .height('100%')
     .backgroundColor(ColorTokens.bgWorkspace)
+    .onKeyEvent((event: KeyEvent) => {
+      if (event.type === KeyType.Down && event.keyCode === 2070 && this.searchVisible) {
+        this.closeSearch();
+        return true;
+      }
+      if (event.type === KeyType.Down && event.keyText.toLowerCase() === 'f' &&
+        event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
+        this.toggleSearch();
+        return true;
+      }
+      return false;
+    })
   }
 }

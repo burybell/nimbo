@@ -22,6 +22,8 @@ export class SizeTokens {
   static readonly primarySidebarCompactWidth: number = 60;
   static readonly collectionSidebarWidth: number = 260;
   static readonly collectionSidebarCompactWidth: number = 220;
+  static readonly collectionSidebarMinWidth: number = 200;
+  static readonly collectionSidebarMaxWidth: number = 420;
   static readonly controlSmall: number = 28;
   static readonly controlMedium: number = 32;
   static readonly controlLarge: number = 40;

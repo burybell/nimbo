@@ -10,7 +10,23 @@ export struct EnvironmentPage {
   @Prop selectedId: string = 'development';
   onChange: (id: string, variables: KeyValueItem[]) => void = () => {};
   onSelect: (id: string) => void = () => {};
+  onCreate: () => void = () => {};
+  onDelete: (id: string) => void = () => {};
   onSaved: () => void = () => {};
+
+  @Builder
+  private createButton() {
+    Row({ space: SpacingTokens.x1 }) {
+      Text('+').fontSize(16).fontColor(ColorTokens.brand600)
+      Text($r('app.string.action_new')).fontSize(11).fontColor(ColorTokens.brand600)
+    }
+    .height(28)
+    .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2 })
+    .backgroundColor(ColorTokens.bgSurface)
+    .border({ width: 1, color: ColorTokens.borderSubtle })
+    .borderRadius(RadiusTokens.small)
+    .onClick(this.onCreate)
+  }
 
   private selectedEnvironment(): EnvironmentModel {
     const found = this.environments.find((environment: EnvironmentModel) => environment.id === this.selectedId);
@@ -34,6 +50,7 @@ export struct EnvironmentPage {
       Column() {
         Scroll() {
           Row({ space: SpacingTokens.x2 }) {
+            this.createButton()
             ForEach(this.environments, (environment: EnvironmentModel) => {
               Row({ space: SpacingTokens.x2 }) {
                 Text('◎').fontSize(14)
@@ -65,6 +82,11 @@ export struct EnvironmentPage {
                 .fontColor(ColorTokens.textTertiary).maxLines(2)
             }
             .layoutWeight(1)
+            if (!this.selectedEnvironment().system) {
+              Button($r('app.string.action_delete')).fontSize(11).fontColor(ColorTokens.httpDelete)
+                .backgroundColor(ColorTokens.statusDangerBackground).borderRadius(RadiusTokens.small)
+                .onClick(() => this.onDelete(this.selectedId))
+            }
             Button($r('app.string.action_save')).fontSize(12).fontColor(ColorTokens.textOnBrand)
               .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium).onClick(this.onSaved)
           }
@@ -98,6 +120,7 @@ export struct EnvironmentPage {
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
           Blank()
+          this.createButton()
         }
         .width('100%')
         .height(48)
@@ -151,6 +174,14 @@ export struct EnvironmentPage {
               .fontColor(ColorTokens.textTertiary)
           }
           Blank()
+          if (!this.selectedEnvironment().system) {
+            Button($r('app.string.action_delete'))
+              .fontSize(12)
+              .fontColor(ColorTokens.httpDelete)
+              .backgroundColor(ColorTokens.statusDangerBackground)
+              .borderRadius(RadiusTokens.medium)
+              .onClick(() => this.onDelete(this.selectedId))
+          }
           Button($r('app.string.action_save'))
             .fontSize(13)
             .fontColor(ColorTokens.textOnBrand)

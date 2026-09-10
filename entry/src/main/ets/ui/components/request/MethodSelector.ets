@@ -11,6 +11,7 @@ interface PopupVisibilityEvent {
 export struct MethodSelector {
   @Prop value: HttpMethod = 'GET';
   @Prop fluid: boolean = false;
+  @Prop embedded: boolean = false;
   @State menuOpen: boolean = false;
   @State hoveredMethod: string = '';
   onChange: (value: HttpMethod) => void = () => {};
@@ -81,18 +82,24 @@ export struct MethodSelector {
           .fontColor(this.methodColor(this.value))
           .layoutWeight(1)
           .textAlign(TextAlign.Start)
-        Text(this.menuOpen ? '⌃' : '⌄')
-          .fontSize(12)
-          .fontColor(ColorTokens.textTertiary)
+        Image($r('app.media.chevron_muted'))
+          .width(14)
+          .height(14)
+          .objectFit(ImageFit.Contain)
+          .rotate({ angle: this.menuOpen ? 180 : 0 })
+          .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
       }
       .width('100%')
     }
     .height(SizeTokens.controlLarge)
     .width(this.fluid ? '100%' : 104)
     .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
-    .backgroundColor(this.menuOpen ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface)
-    .borderRadius({ topLeft: RadiusTokens.medium, bottomLeft: RadiusTokens.medium })
-    .border({ width: 1, color: this.menuOpen ? ColorTokens.borderFocus : ColorTokens.borderDefault })
+    .backgroundColor(this.menuOpen ? ColorTokens.bgSurfaceActive :
+      (this.embedded ? Color.Transparent : ColorTokens.bgSurface))
+    .borderRadius(this.embedded ? 0 : { topLeft: RadiusTokens.medium, bottomLeft: RadiusTokens.medium })
+    .border({ width: this.embedded ? { right: 1 } : 1,
+      color: this.menuOpen ? ColorTokens.borderFocus :
+        (this.embedded ? ColorTokens.borderSubtle : ColorTokens.borderDefault) })
     .stateStyles({
       normal: { .backgroundColor(this.menuOpen ? ColorTokens.bgSurfaceActive : ColorTokens.bgSurface) },
       pressed: { .backgroundColor(ColorTokens.bgSurfaceHover) }

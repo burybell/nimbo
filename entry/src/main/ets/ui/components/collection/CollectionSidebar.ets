@@ -8,11 +8,16 @@ export struct CollectionSidebar {
   @Prop widthValue: number = SizeTokens.collectionSidebarWidth;
   @Link nodes: CollectionNode[];
   @Prop dismissible: boolean = false;
+  @Prop borderedEnd: boolean = true;
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onToggleNode: (id: string) => void = () => {};
   onCreateCollection: () => void = () => {};
+  onCreateRequest: (parentId: string) => void = () => {};
   onCreateFolder: (parentId: string) => void = () => {};
+  onRenameFolder: (node: CollectionNode) => void = () => {};
   onRenameRequest: (node: CollectionNode) => void = () => {};
+  onDuplicateRequest: (node: CollectionNode) => void = () => {};
+  onDeleteNode: (node: CollectionNode) => void = () => {};
   onDismiss: () => void = () => {};
 
   build() {
@@ -76,8 +81,12 @@ export struct CollectionSidebar {
             alwaysShowActions: this.dismissible,
             onOpenRequest: this.onOpenRequest,
             onToggleNode: this.onToggleNode,
+            onCreateRequest: this.onCreateRequest,
             onCreateFolder: this.onCreateFolder,
-            onRenameRequest: this.onRenameRequest
+            onRenameFolder: this.onRenameFolder,
+            onRenameRequest: this.onRenameRequest,
+            onDuplicateRequest: this.onDuplicateRequest,
+            onDeleteNode: this.onDeleteNode
           })
         }
         .width('100%')
@@ -90,6 +99,6 @@ export struct CollectionSidebar {
     .height('100%')
     .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: SpacingTokens.x2 })
     .backgroundColor(ColorTokens.bgSurface)
-    .border({ width: { left: 1, right: 1 }, color: ColorTokens.borderSubtle })
+    .border({ width: { left: 1, right: this.borderedEnd ? 1 : 0 }, color: ColorTokens.borderSubtle })
   }
 }

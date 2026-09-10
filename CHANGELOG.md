@@ -11,15 +11,26 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Editable request and read-only response JSON code surfaces with native selection, caret, and syntax highlighting
 - Global search for requests, collections, history, environments, and primary commands, available from the toolbar and `Ctrl+K`
 - Persistent built-in Development, Staging, and Production environments
+- Local custom-environment creation with variable editing and guarded deletion
+- Native image and video response previews with metadata tabs, playback controls, and original-file saving
+- Response-body search with match navigation, full-body clipboard copy, and content-type-aware downloads
 
 ### Changed
 
 - Reworked the HTTP method picker with method-specific colors and a top-layer menu
 - Combined New and import actions into a single split button and removed the duplicate settings entry
-- Migrated local data to schema v4 while preserving existing environment values and imported environments
+- Migrated local data to schema v5 while preserving existing environment values, imported environments, and older preferences
+- Localized built-in environment names and the starter collection data in Simplified Chinese
 - Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
 - Separated the URL group, Save action, and Send action with consistent toolbar spacing
-- Refined the Nimbo app mark and replaced the toolbar gear glyph with a native-style sliders icon
+- Refined the Nimbo app mark and replaced the toolbar settings glyph with a native-style rounded gear icon
+- Added a persistent interface-font preference with HarmonyOS Sans, system-default, and compact choices
+- Anchored per-request settings at the top and refined key-value table typography and column alignment
+- Replaced the title-bar environment Select with a compact 28vp custom switcher and smaller typography
+- Replaced font-glyph search marks with vertically centered SVG icons in the toolbar and search dialog
+- Delegated title-bar click, double-click, and drag handling to the native window manager
+- Stored media responses in replaceable app-cache files for safe native preview without persisting response bytes
+- Replaced response text actions with compact search, copy, and download icon controls
 
 ### Fixed
 
@@ -30,7 +41,20 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Added a light-theme code palette for JSON and raw response surfaces
 - Prevented the New import menu from overlapping sidebar navigation items
 - Reserved native title-button space when the desktop window enters the phone breakpoint
-- Increased collection-tree indentation so folders and nested requests have distinct visual levels
+- Balanced collection-tree indentation so nested levels remain clear without consuming excessive horizontal space
+- Centered the empty workspace state within all remaining content space below the request tab bar
+- Anchored every settings section to the top of its scrollable content area on desktop and phone layouts
+- Replaced collection-tree square glyphs with familiar closed and open folder icons
+- Unified collection, folder, and request actions under row-level overflow menus with create, rename, duplicate, and guarded delete flows
+- Positioned desktop collection menus at the pointer without shifting tree rows, added hover-only ellipsis coloring, and dismissed menus on pointer exit
+- Made the collection sidebar resizable on PC and tablet layouts, with persisted width limits and double-click reset
+- Smoothed JSON body editing by avoiding full syntax reconstruction and local-state serialization on every keystroke
+- Added code-editor JSON behavior: smart newline indentation, colon spacing, Tab/Shift+Tab, paired deletion, delimiter pairing, selection wrapping, and closing-character overtype
+- Aligned request-tab close actions to the trailing edge and unified Method/URL into one softly divided input control
+- Replaced circular key-value toggles with compact square checkboxes and redesigned multipart type selection as a lightweight popup
+- Removed decorative checks from key-value headers, replaced the Method caret glyph with a balanced SVG icon, and refreshed open tabs immediately after collection-request renames
+- Added focused URL protocol completion: `h` + Tab expands to `http://` and `hs` + Tab expands to `https://`
+- Made response search directly discoverable, reduced its input typography, and added `Esc` dismissal with automatic focus
 
 ## [0.1.0-alpha] - 2026-09-10
 

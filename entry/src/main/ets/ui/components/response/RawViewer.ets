@@ -1,25 +1,22 @@
-import { ColorTokens } from '../../tokens/ColorTokens';
-import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { JsonCodeSurface } from '../common/JsonCodeSurface';
 
 @Component
 export struct RawViewer {
   @Prop value: string = '';
+  @Prop query: string = '';
+  @Prop searchIndex: number = 0;
+  @Prop searchRevision: number = 0;
 
   build() {
-    Scroll() {
-      Text(this.value)
-        .fontSize(12)
-        .fontFamily('monospace')
-        .fontColor(ColorTokens.codeText)
-        .lineHeight(20)
-        .width('100%')
-        .padding(SpacingTokens.x4)
-    }
+    JsonCodeSurface({
+      value: this.value,
+      readOnly: true,
+      syntaxHighlight: false,
+      query: this.query,
+      searchIndex: this.searchIndex,
+      searchRevision: this.searchRevision
+    })
     .width('100%')
     .height('100%')
-    .align(Alignment.TopStart)
-    .scrollBar(BarState.Auto)
-    .backgroundColor(ColorTokens.codeBackground)
-    .borderRadius(RadiusTokens.small)
   }
 }

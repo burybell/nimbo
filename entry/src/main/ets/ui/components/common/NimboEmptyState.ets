@@ -30,6 +30,7 @@ export struct NimboEmptyState {
         .textAlign(TextAlign.Center)
     }
     .width('100%')
+    .height('100%')
     .justifyContent(FlexAlign.Center)
     .transition(TransitionEffect.OPACITY.combine(TransitionEffect.scale({ x: 0.97, y: 0.97 }))
       .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))

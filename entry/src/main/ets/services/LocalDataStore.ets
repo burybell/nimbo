@@ -32,7 +32,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 4;
+  static readonly schemaVersion: number = 5;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -45,8 +45,9 @@ export class LocalDataStore {
       let state: PersistedAppState;
       if (versioned.schemaVersion === 1 || versioned.schemaVersion === 2) {
         state = LocalDataStore.migrateLegacy(versioned);
-      } else if (versioned.schemaVersion === 3) {
+      } else if (versioned.schemaVersion === 3 || versioned.schemaVersion === 4) {
         state = versioned as PersistedAppState;
+        state.preferences.interfaceFont = 'harmony';
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else {
         state = versioned as PersistedAppState;
@@ -80,6 +81,7 @@ export class LocalDataStore {
         restoreWorkspace: state.preferences.restoreWorkspace,
         language: state.preferences.language,
         theme: 'system',
+        interfaceFont: 'harmony',
         followRedirects: state.preferences.followRedirects,
         sslVerification: state.preferences.sslVerification,
         defaultTimeoutMs: state.preferences.defaultTimeoutMs,
@@ -94,6 +96,7 @@ export class LocalDataStore {
     return value !== undefined && typeof value.restoreWorkspace === 'boolean' &&
       (value.language === 'en' || value.language === 'zh') && typeof value.followRedirects === 'boolean' &&
       (value.theme === 'system' || value.theme === 'light' || value.theme === 'dark') &&
+      (value.interfaceFont === 'harmony' || value.interfaceFont === 'system' || value.interfaceFont === 'compact') &&
       typeof value.sslVerification === 'boolean' && typeof value.defaultTimeoutMs === 'number' &&
       value.defaultTimeoutMs > 0 && typeof value.saveHistory === 'boolean' &&
       typeof value.historyRetentionDays === 'number' && value.historyRetentionDays > 0 &&

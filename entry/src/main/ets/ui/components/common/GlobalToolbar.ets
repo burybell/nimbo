@@ -21,9 +21,10 @@ export struct GlobalToolbar {
       if (this.phone) {
         NimboLogo({ compact: true })
         Blank()
-        Text('⌕')
-          .fontSize(19).fontColor(ColorTokens.textSecondary)
-          .width(SizeTokens.controlMedium).height(SizeTokens.controlMedium).textAlign(TextAlign.Center)
+        Stack({ alignContent: Alignment.Center }) {
+          Image($r('app.media.search')).width(16).height(16).objectFit(ImageFit.Contain)
+        }
+          .width(SizeTokens.controlMedium).height(SizeTokens.controlMedium)
           .borderRadius(SizeTokens.controlMedium / 2)
           .stateStyles({ normal: {}, pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) } })
           .onClick(this.onSearch)
@@ -56,9 +57,7 @@ export struct GlobalToolbar {
                 .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
             }
             .layoutWeight(1).height('100%').padding({ left: SpacingTokens.x3 })
-            .onTouch((event: TouchEvent) => {
-              if (event.type === TouchType.Down) WindowChromeController.startMoving();
-            })
+            .gesture(TapGesture({ count: 2 }).onAction(() => WindowChromeController.toggleMaximized()))
 
             Row({ space: SpacingTokens.x3 }) {
               EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
@@ -83,7 +82,7 @@ export struct GlobalToolbar {
           .height('100%')
 
           Row({ space: SpacingTokens.x2 }) {
-            Text('⌕').fontSize(16).fontColor(ColorTokens.textTertiary)
+            Image($r('app.media.search')).width(14).height(14).objectFit(ImageFit.Contain)
             Text($r('app.string.global_search_placeholder')).fontSize(12).fontColor(ColorTokens.textTertiary)
               .layoutWeight(1).maxLines(1)
             Text('Ctrl K').fontSize(10).fontColor(ColorTokens.textTertiary)

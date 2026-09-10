@@ -58,12 +58,17 @@ export struct RequestToolbar {
       } else {
         Row({ space: SpacingTokens.x2 }) {
           Row() {
-            MethodSelector({ value: this.method, onChange: this.onMethodChange })
-            UrlInput({ value: this.url, onChange: this.onUrlChange,
+            MethodSelector({ value: this.method, embedded: true, onChange: this.onMethodChange })
+            UrlInput({ value: this.url, embedded: true, onChange: this.onUrlChange,
               onSubmit: () => this.sendAfterEditorCommit() })
               .layoutWeight(1)
           }
-            .layoutWeight(1)
+          .height(SizeTokens.controlLarge)
+          .layoutWeight(1)
+          .backgroundColor(ColorTokens.bgSurface)
+          .border({ width: 1, color: ColorTokens.borderDefault })
+          .borderRadius(RadiusTokens.medium)
+          .clip(true)
           this.saveButton()
           SendButton({ state: this.lifecycle,
             onSend: () => this.sendAfterEditorCommit(), onCancel: this.onCancel })

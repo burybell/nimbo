@@ -69,6 +69,22 @@
       "value": "Create Folder"
     },
     {
+      "name": "folder_rename",
+      "value": "Rename Folder"
+    },
+    {
+      "name": "action_rename",
+      "value": "Rename"
+    },
+    {
+      "name": "request_rename",
+      "value": "Rename Request"
+    },
+    {
+      "name": "request_duplicate",
+      "value": "Duplicate"
+    },
+    {
       "name": "collection_name_placeholder",
       "value": "Collection name"
     },
@@ -95,6 +111,22 @@
     {
       "name": "toast_folder_created",
       "value": "Folder created"
+    },
+    {
+      "name": "toast_folder_renamed",
+      "value": "Folder renamed"
+    },
+    {
+      "name": "toast_request_duplicated",
+      "value": "Request duplicated"
+    },
+    {
+      "name": "collection_node_delete_title",
+      "value": "Delete collection item?"
+    },
+    {
+      "name": "collection_node_delete_message",
+      "value": "This item and all requests and folders inside it will be deleted. This action cannot be undone."
     },
     {
       "name": "toast_request_saved_collection",
@@ -205,12 +237,28 @@
       "value": "Raw"
     },
     {
+      "name": "response_search_action",
+      "value": "Search"
+    },
+    {
+      "name": "response_copy_action",
+      "value": "Copy"
+    },
+    {
+      "name": "response_download_action",
+      "value": "Download"
+    },
+    {
       "name": "response_binary",
       "value": "Binary response"
     },
     {
       "name": "response_save_binary",
       "value": "Save binary…"
+    },
+    {
+      "name": "response_download_binary",
+      "value": "Download binary…"
     },
     {
       "name": "response_no_headers",
@@ -303,6 +351,30 @@
     {
       "name": "theme_dark",
       "value": "Dark"
+    },
+    {
+      "name": "interface_font_title",
+      "value": "Interface font"
+    },
+    {
+      "name": "interface_font_description",
+      "value": "Choose the interface font style. Code editors keep their monospace font."
+    },
+    {
+      "name": "interface_font_harmony",
+      "value": "HarmonyOS Sans"
+    },
+    {
+      "name": "interface_font_system",
+      "value": "System default"
+    },
+    {
+      "name": "interface_font_compact",
+      "value": "Compact"
+    },
+    {
+      "name": "toast_font_failed",
+      "value": "Could not change the font"
     },
     {
       "name": "density_title",
@@ -782,6 +854,8 @@
     { "name": "toast_saved", "value": "Saved" },
     { "name": "toast_deleted", "value": "Deleted" },
     { "name": "toast_copy_failed", "value": "Copy failed" },
+    { "name": "response_body_copied", "value": "Response body copied" },
+    { "name": "toast_no_response_body", "value": "No response body" },
     { "name": "toast_exported", "value": "Exported" },
     { "name": "toast_export_failed", "value": "Export failed" },
     { "name": "toast_no_binary", "value": "No binary data" },
@@ -825,6 +899,14 @@
     { "name": "search_new_request", "value": "New request" },
     { "name": "search_manage_environments", "value": "Manage environments" },
     { "name": "search_command", "value": "Command" },
-    { "name": "environment_system", "value": "System" }
+    { "name": "environment_system", "value": "System" },
+    { "name": "environment_create", "value": "New environment" },
+    { "name": "environment_name_placeholder", "value": "Environment name" },
+    { "name": "toast_environment_created", "value": "Environment created" },
+    { "name": "environment_delete_title", "value": "Delete environment" },
+    { "name": "environment_delete_message", "value": "Delete this environment and all of its local variables? This cannot be undone." },
+    { "name": "response_image", "value": "Image" },
+    { "name": "response_video", "value": "Video" },
+    { "name": "response_media_preview_failed", "value": "This media cannot be previewed. Save it to open in another app." }
   ]
 }

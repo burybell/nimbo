@@ -41,7 +41,7 @@ export struct GlobalSearchDialog {
 
       Column() {
         Row({ space: SpacingTokens.x3 }) {
-          Text('⌕').fontSize(20).fontColor(ColorTokens.textTertiary)
+          Image($r('app.media.search')).width(18).height(18).objectFit(ImageFit.Contain)
           TextInput({ text: this.query, placeholder: $r('app.string.global_search_placeholder') })
             .id('nimboGlobalSearchInput')
             .layoutWeight(1)
@@ -61,7 +61,7 @@ export struct GlobalSearchDialog {
 
         if (this.filteredItems().length === 0) {
           Column({ space: SpacingTokens.x2 }) {
-            Text('⌕').fontSize(26).fontColor(ColorTokens.textTertiary)
+            Image($r('app.media.search')).width(24).height(24).objectFit(ImageFit.Contain)
             Text($r('app.string.global_search_empty')).fontSize(13).fontColor(ColorTokens.textSecondary)
           }.width('100%').height(150).justifyContent(FlexAlign.Center)
         } else {

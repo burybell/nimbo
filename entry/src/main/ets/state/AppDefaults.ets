@@ -3,9 +3,9 @@ import { EnvironmentModel } from '../models/ShellModels';
 
 export function createDefaultEnvironments(): EnvironmentModel[] {
   return [
-    { id: 'development', name: 'Development', kind: 'development', variables: [], system: true },
-    { id: 'staging', name: 'Staging', kind: 'staging', variables: [], system: true },
-    { id: 'production', name: 'Production', kind: 'production', variables: [], system: true }
+    { id: 'development', name: '开发环境', kind: 'development', variables: [], system: true },
+    { id: 'staging', name: '预发布环境', kind: 'staging', variables: [], system: true },
+    { id: 'production', name: '生产环境', kind: 'production', variables: [], system: true }
   ];
 }
 
@@ -16,7 +16,7 @@ export function normalizeEnvironments(environments: EnvironmentModel[]): Environ
     if (!existing) return fallback;
     return {
       id: fallback.id,
-      name: existing.name,
+      name: fallback.name,
       kind: fallback.kind,
       variables: existing.variables,
       system: true
@@ -35,6 +35,7 @@ export function createDefaultPreferences(): AppPreferencesModel {
     restoreWorkspace: true,
     language: 'en',
     theme: 'system',
+    interfaceFont: 'harmony',
     followRedirects: true,
     sslVerification: true,
     defaultTimeoutMs: 30000,

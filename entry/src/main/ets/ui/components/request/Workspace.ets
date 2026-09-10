@@ -24,6 +24,8 @@ export struct Workspace {
   onSaveRequest: (id: string) => void = () => {};
   onPreviewLargeResponse: (id: string) => void = () => {};
   onSaveBinary: (response: ResponseModel) => void = () => {};
+  onCopyResponseBody: (response: ResponseModel) => void = () => {};
+  onDownloadResponseBody: (response: ResponseModel) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -154,7 +156,9 @@ export struct Workspace {
             onRetry: () => this.onUpdateRequest(this.activeTabId,
               this.requestWithLifecycle(this.tabs[this.activeIndex()].request, 'sending')),
             onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId),
-            onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response)
+            onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
+            onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
+            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response)
           })
           .layoutWeight(1)
           .opacity(this.contentOpacity)
@@ -183,7 +187,9 @@ export struct Workspace {
             onRetry: () => this.onUpdateRequest(this.activeTabId,
               this.requestWithLifecycle(this.tabs[this.activeIndex()].request, 'sending')),
             onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId),
-            onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response)
+            onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
+            onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
+            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response)
           })
             .layoutWeight(1)
         }

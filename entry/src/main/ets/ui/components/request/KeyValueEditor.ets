@@ -3,6 +3,7 @@ import filePicker from '@ohos.file.picker';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
+import { MultipartTypeSelector } from './MultipartTypeSelector';
 
 @Component
 export struct KeyValueEditor {
@@ -217,24 +218,25 @@ export struct KeyValueEditor {
         .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: -6 }))
           .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else {
-        Row() {
-          Text('✓').width(34).textAlign(TextAlign.Center).fontSize(10).fontColor(ColorTokens.textTertiary)
+        Row({ space: SpacingTokens.x2 }) {
+          Blank().width(32)
           Text($r('app.string.field_key')).layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
           Text($r('app.string.field_value')).layoutWeight(4).fontSize(10).fontColor(ColorTokens.textTertiary)
           if (this.showSecret) {
             Text($r('app.string.field_secret')).width(58).fontSize(10).fontColor(ColorTokens.textTertiary).textAlign(TextAlign.Center)
           }
           if (this.showType) {
-            Text($r('app.string.field_type')).width(76).fontSize(10).fontColor(ColorTokens.textTertiary)
+            Text($r('app.string.field_type')).width(92).fontSize(10).fontColor(ColorTokens.textTertiary)
           }
           if (this.showDescription) {
             Text($r('app.string.field_description')).layoutWeight(3).fontSize(10).fontColor(ColorTokens.textTertiary)
           }
-          Blank().width(72)
+          Blank().width(28)
+          Blank().width(28)
         }
         .height(30)
         .width('100%')
-        .padding({ left: SpacingTokens.x1, right: SpacingTokens.x1 })
+        .padding({ left: SpacingTokens.x2, right: SpacingTokens.x1 })
         .backgroundColor(ColorTokens.bgApp)
         .border({ width: { top: 1, bottom: 1 }, color: ColorTokens.borderSubtle })
 
@@ -242,13 +244,15 @@ export struct KeyValueEditor {
           Row({ space: SpacingTokens.x2 }) {
             Checkbox({ name: item.id })
               .select(item.enabled)
+              .shape(CheckBoxShape.ROUNDED_SQUARE)
               .selectedColor(ColorTokens.brand500)
+              .unselectedColor(ColorTokens.borderDefault)
               .width(18)
               .height(18)
               .onChange((enabled: boolean) => this.updateItem(item.id, item.key, item.value,
                 item.description, enabled, item.type))
             TextInput({ text: item.key, placeholder: $r('app.string.field_key_placeholder') })
-              .fontSize(13)
+              .fontSize(12)
               .height(SizeTokens.controlMedium)
               .backgroundColor(ColorTokens.bgWorkspace)
               .layoutWeight(3)
@@ -270,7 +274,7 @@ export struct KeyValueEditor {
             } else {
               TextInput({ text: item.value, placeholder: $r('app.string.field_value_placeholder') })
                 .type(item.secret ? InputType.Password : InputType.Normal)
-                .fontSize(13)
+                .fontSize(12)
                 .height(SizeTokens.controlMedium)
                 .backgroundColor(ColorTokens.bgWorkspace)
                 .layoutWeight(4)
@@ -280,23 +284,23 @@ export struct KeyValueEditor {
             if (this.showSecret) {
               Checkbox({ name: `${item.id}-secret` })
                 .select(item.secret)
+                .shape(CheckBoxShape.ROUNDED_SQUARE)
                 .selectedColor(ColorTokens.brand500)
+                .unselectedColor(ColorTokens.borderDefault)
                 .width(58)
                 .height(18)
                 .onChange((secret: boolean) => this.toggleSecret(item.id, secret))
             }
             if (this.showType) {
-              Select([{ value: $r('app.string.type_text') }, { value: $r('app.string.type_file') }])
-                .selected(item.type === 'file' ? 1 : 0)
-                .value(item.type === 'file' ? $r('app.string.type_file') : $r('app.string.type_text'))
-                .width(76)
-                .height(SizeTokens.controlMedium)
-                .onSelect((index: number) => this.updateItem(item.id, item.key, item.value,
-                  item.description, item.enabled, index === 1 ? 'file' : 'text'))
+              MultipartTypeSelector({
+                value: item.type,
+                onChange: (type: 'text' | 'file') => this.updateItem(item.id, item.key, item.value,
+                  item.description, item.enabled, type)
+              })
             }
             if (this.showDescription) {
               TextInput({ text: item.description, placeholder: $r('app.string.field_description_placeholder') })
-                .fontSize(13)
+                .fontSize(12)
                 .height(SizeTokens.controlMedium)
                 .backgroundColor(ColorTokens.bgWorkspace)
                 .layoutWeight(3)

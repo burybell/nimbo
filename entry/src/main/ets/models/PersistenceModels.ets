@@ -8,11 +8,13 @@ import {
 
 export type NimboLanguage = 'en' | 'zh';
 export type NimboTheme = 'system' | 'light' | 'dark';
+export type NimboFont = 'harmony' | 'system' | 'compact';
 
 export interface AppPreferencesModel {
   restoreWorkspace: boolean;
   language: NimboLanguage;
   theme: NimboTheme;
+  interfaceFont: NimboFont;
   followRedirects: boolean;
   sslVerification: boolean;
   defaultTimeoutMs: number;

@@ -69,6 +69,22 @@
       "value": "新建文件夹"
     },
     {
+      "name": "folder_rename",
+      "value": "重命名文件夹"
+    },
+    {
+      "name": "action_rename",
+      "value": "重命名"
+    },
+    {
+      "name": "request_rename",
+      "value": "重命名请求"
+    },
+    {
+      "name": "request_duplicate",
+      "value": "创建副本"
+    },
+    {
       "name": "collection_name_placeholder",
       "value": "集合名称"
     },
@@ -95,6 +111,22 @@
     {
       "name": "toast_folder_created",
       "value": "文件夹已创建"
+    },
+    {
+      "name": "toast_folder_renamed",
+      "value": "文件夹已重命名"
+    },
+    {
+      "name": "toast_request_duplicated",
+      "value": "请求副本已创建"
+    },
+    {
+      "name": "collection_node_delete_title",
+      "value": "删除集合项？"
+    },
+    {
+      "name": "collection_node_delete_message",
+      "value": "该项及其内部的全部请求和文件夹都会被删除，此操作无法撤销。"
     },
     {
       "name": "toast_request_saved_collection",
@@ -205,12 +237,28 @@
       "value": "原始"
     },
     {
+      "name": "response_search_action",
+      "value": "搜索"
+    },
+    {
+      "name": "response_copy_action",
+      "value": "复制"
+    },
+    {
+      "name": "response_download_action",
+      "value": "下载"
+    },
+    {
       "name": "response_binary",
       "value": "二进制响应"
     },
     {
       "name": "response_save_binary",
       "value": "保存二进制文件…"
+    },
+    {
+      "name": "response_download_binary",
+      "value": "下载二进制文件…"
     },
     {
       "name": "response_no_headers",
@@ -303,6 +351,30 @@
     {
       "name": "theme_dark",
       "value": "深色"
+    },
+    {
+      "name": "interface_font_title",
+      "value": "界面字体"
+    },
+    {
+      "name": "interface_font_description",
+      "value": "选择整个界面的字体风格，代码编辑器仍使用等宽字体。"
+    },
+    {
+      "name": "interface_font_harmony",
+      "value": "鸿蒙字体"
+    },
+    {
+      "name": "interface_font_system",
+      "value": "系统默认"
+    },
+    {
+      "name": "interface_font_compact",
+      "value": "紧凑字体"
+    },
+    {
+      "name": "toast_font_failed",
+      "value": "字体切换失败"
     },
     {
       "name": "density_title",
@@ -782,6 +854,8 @@
     { "name": "toast_saved", "value": "已保存" },
     { "name": "toast_deleted", "value": "已删除" },
     { "name": "toast_copy_failed", "value": "复制失败" },
+    { "name": "response_body_copied", "value": "已复制响应正文" },
+    { "name": "toast_no_response_body", "value": "响应正文为空" },
     { "name": "toast_exported", "value": "已导出" },
     { "name": "toast_export_failed", "value": "导出失败" },
     { "name": "toast_no_binary", "value": "没有可保存的二进制数据" },
@@ -825,6 +899,14 @@
     { "name": "search_new_request", "value": "新建请求" },
     { "name": "search_manage_environments", "value": "管理环境" },
     { "name": "search_command", "value": "命令" },
-    { "name": "environment_system", "value": "系统" }
+    { "name": "environment_system", "value": "系统" },
+    { "name": "environment_create", "value": "新建环境" },
+    { "name": "environment_name_placeholder", "value": "环境名称" },
+    { "name": "toast_environment_created", "value": "环境已创建" },
+    { "name": "environment_delete_title", "value": "删除环境" },
+    { "name": "environment_delete_message", "value": "删除这个环境及其全部本地变量？此操作无法撤销。" },
+    { "name": "response_image", "value": "图片" },
+    { "name": "response_video", "value": "视频" },
+    { "name": "response_media_preview_failed", "value": "无法预览此媒体，可保存后使用其他应用打开。" }
   ]
 }

@@ -1,5 +1,5 @@
 import { SettingsSection, SettingsSectionModel } from '../../../models/ShellModels';
-import { AppPreferencesModel, NimboTheme } from '../../../models/PersistenceModels';
+import { AppPreferencesModel, NimboFont, NimboTheme } from '../../../models/PersistenceModels';
 import { createDefaultPreferences } from '../../../state/AppDefaults';
 import { SETTINGS_SECTIONS } from '../../../mock/SupportingMockData';
 import { ColorTokens } from '../../tokens/ColorTokens';
@@ -21,6 +21,7 @@ export struct SettingsPage {
     sslVerification: boolean, defaultTimeoutMs: number, saveHistory: boolean,
     historyRetentionDays: number, maskSecrets: boolean): void {
     this.onChange({ restoreWorkspace, language, theme: this.preferences.theme,
+      interfaceFont: this.preferences.interfaceFont,
       followRedirects, sslVerification, defaultTimeoutMs,
       saveHistory, historyRetentionDays, maskSecrets });
   }
@@ -38,6 +39,30 @@ export struct SettingsPage {
       restoreWorkspace: this.preferences.restoreWorkspace,
       language: this.preferences.language,
       theme,
+      interfaceFont: this.preferences.interfaceFont,
+      followRedirects: this.preferences.followRedirects,
+      sslVerification: this.preferences.sslVerification,
+      defaultTimeoutMs: this.preferences.defaultTimeoutMs,
+      saveHistory: this.preferences.saveHistory,
+      historyRetentionDays: this.preferences.historyRetentionDays,
+      maskSecrets: this.preferences.maskSecrets
+    });
+  }
+
+  private fontLabel(): ResourceStr {
+    if (this.preferences.interfaceFont === 'system') return $r('app.string.interface_font_system');
+    if (this.preferences.interfaceFont === 'compact') return $r('app.string.interface_font_compact');
+    return $r('app.string.interface_font_harmony');
+  }
+
+  private changeFont(): void {
+    const interfaceFont: NimboFont = this.preferences.interfaceFont === 'harmony' ? 'system' :
+      (this.preferences.interfaceFont === 'system' ? 'compact' : 'harmony');
+    this.onChange({
+      restoreWorkspace: this.preferences.restoreWorkspace,
+      language: this.preferences.language,
+      theme: this.preferences.theme,
+      interfaceFont,
       followRedirects: this.preferences.followRedirects,
       sslVerification: this.preferences.sslVerification,
       defaultTimeoutMs: this.preferences.defaultTimeoutMs,
@@ -93,6 +118,9 @@ export struct SettingsPage {
     } else if (this.section === 'Appearance') {
       SettingRow({ title: $r('app.string.theme_title'), description: $r('app.string.theme_description'),
         controlLabel: this.themeLabel(), onPress: () => this.changeTheme() })
+      SettingRow({ title: $r('app.string.interface_font_title'),
+        description: $r('app.string.interface_font_description'),
+        controlLabel: this.fontLabel(), onPress: () => this.changeFont() })
     } else if (this.section === 'Network') {
       SettingRow({ title: $r('app.string.redirect_title'), description: $r('app.string.redirect_description'), toggle: true,
         checked: this.preferences.followRedirects, onToggle: (value: boolean) => this.emit(
@@ -195,6 +223,7 @@ export struct SettingsPage {
         }
         .layoutWeight(1)
         .width('100%')
+        .align(Alignment.TopStart)
       }
       .width('100%').height('100%').backgroundColor(ColorTokens.bgWorkspace)
     } else {
@@ -233,7 +262,8 @@ export struct SettingsPage {
           }
           .width('100%').padding({ left: 40, right: 40, top: 30, bottom: 40 })
         }
-        .layoutWeight(1).height('100%').backgroundColor(ColorTokens.bgWorkspace)
+        .layoutWeight(1).height('100%').align(Alignment.TopStart)
+        .backgroundColor(ColorTokens.bgWorkspace)
       }
       .width('100%').height('100%')
     }

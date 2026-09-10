@@ -97,5 +97,6 @@ export struct RequestSettingsEditor {
     .width('100%')
     .height('100%')
     .scrollBar(BarState.Auto)
+    .align(Alignment.TopStart)
   }
 }

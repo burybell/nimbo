@@ -9,6 +9,7 @@ export struct NimboContextMenu {
   @Prop accentIcons: boolean = false;
   @State hoveredItemId: string = '';
   onSelect: (id: string) => void = () => {};
+  onDismiss: () => void = () => {};
 
   build() {
     Column() {
@@ -50,5 +51,8 @@ export struct NimboContextMenu {
       .combine(TransitionEffect.translate({ y: -4 }))
       .combine(TransitionEffect.scale({ x: 0.96, y: 0.96, centerX: '0%', centerY: '0%' }))
       .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+    .onHover((hovered: boolean) => {
+      if (!hovered) this.onDismiss();
+    })
   }
 }

@@ -8,6 +8,7 @@ import {
   KeyValueItem,
   RequestDraft,
   ResponseErrorModel,
+  ResponseMediaKind,
   ResponseModel,
   ResponseStatus
 } from '../models/ShellModels';
@@ -255,6 +256,13 @@ export class RequestController {
     return type.length > 0;
   }
 
+  private mediaKind(contentType: string): ResponseMediaKind {
+    const type = contentType.toLowerCase();
+    if (type.startsWith('image/')) return 'image';
+    if (type.startsWith('video/')) return 'video';
+    return 'none';
+  }
+
   private displayBody(body: string, contentType: string): string {
     if (!contentType.toLowerCase().includes('json') || body.length === 0) return body;
     try {
@@ -268,6 +276,7 @@ export class RequestController {
     const headers = this.headerItems(result.headers);
     const contentType = this.headerValue(headers, 'content-type');
     const size = result.body.byteLength;
+    const mediaKind = this.mediaKind(contentType);
     let status: ResponseStatus = 'success';
     if (this.isBinary(contentType)) status = 'binary';
     else if (size > 10 * 1024 * 1024) status = 'large';
@@ -284,6 +293,8 @@ export class RequestController {
       }] : [],
       body: status === 'binary' ? '' : this.displayBody(text, contentType),
       binaryBody: status === 'binary' ? result.body : new ArrayBuffer(0),
+      mediaKind,
+      mediaUri: '',
       contentType,
       size: this.formatSize(size),
       duration: `${result.durationMs} ms`,

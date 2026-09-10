@@ -26,6 +26,8 @@ export function createEmptyResponse(): ResponseModel {
     cookies: [],
     body: '',
     binaryBody: new ArrayBuffer(0),
+    mediaKind: 'none',
+    mediaUri: '',
     contentType: '',
     size: '',
     duration: '',
@@ -48,6 +50,8 @@ export function createSuccessResponse(): ResponseModel {
     cookies: [],
     body: SUCCESS_BODY,
     binaryBody: new ArrayBuffer(0),
+    mediaKind: 'none',
+    mediaUri: '',
     contentType: 'application/json',
     size: '12.4 KB',
     duration: '183 ms',
@@ -135,8 +139,8 @@ export function createDemoRequest(): RequestDraft {
   const request = createEmptyRequest();
   request.url = 'https://jsonplaceholder.typicode.com/users';
   request.params = [
-    { id: 'param-page', enabled: true, key: '_page', value: '1', description: 'Page number', type: 'text', secret: false },
-    { id: 'param-limit', enabled: true, key: '_limit', value: '10', description: 'Items per page', type: 'text', secret: false }
+    { id: 'param-page', enabled: true, key: '_page', value: '1', description: '页码', type: 'text', secret: false },
+    { id: 'param-limit', enabled: true, key: '_limit', value: '10', description: '每页数量', type: 'text', secret: false }
   ];
   request.headers = [
     { id: 'header-accept', enabled: true, key: 'Accept', value: 'application/json', description: '', type: 'text', secret: false }
@@ -147,7 +151,7 @@ export function createDemoRequest(): RequestDraft {
 export const INITIAL_TABS: RequestTabModel[] = [
   {
     id: 'get-users',
-    name: 'Get Users',
+    name: '获取用户',
     method: 'GET',
     dirty: false,
     pinned: false,
@@ -161,19 +165,19 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
   {
     id: 'demo-api',
     type: 'collection',
-    name: 'Demo API',
+    name: '示例 API',
     expanded: true,
     children: [
       {
         id: 'users-folder',
         type: 'folder',
-        name: 'Users',
+        name: '用户',
         expanded: true,
         children: [
           {
             id: 'get-users-request',
             type: 'request',
-            name: 'Get Users',
+            name: '获取用户',
             method: 'GET',
             expanded: false,
             children: []
@@ -181,7 +185,7 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
           {
             id: 'create-user-request',
             type: 'request',
-            name: 'Create User',
+            name: '创建用户',
             method: 'POST',
             expanded: false,
             children: []
@@ -191,13 +195,13 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
       {
         id: 'response-states-folder',
         type: 'folder',
-        name: 'Response States',
+        name: '响应状态',
         expanded: true,
         children: [
           {
             id: 'connection-error-request',
             type: 'request',
-            name: 'Connection Error',
+            name: '连接错误',
             method: 'GET',
             expanded: false,
             children: []
@@ -205,7 +209,7 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
           {
             id: 'large-response-request',
             type: 'request',
-            name: 'Large Response',
+            name: '大响应',
             method: 'GET',
             expanded: false,
             children: []
@@ -213,7 +217,7 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
           {
             id: 'binary-response-request',
             type: 'request',
-            name: 'Binary Response',
+            name: '二进制响应',
             method: 'GET',
             expanded: false,
             children: []
@@ -223,13 +227,13 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
       {
         id: 'auth-folder',
         type: 'folder',
-        name: 'Auth',
+        name: '认证',
         expanded: false,
         children: [
           {
             id: 'login-request',
             type: 'request',
-            name: 'Login',
+            name: '登录',
             method: 'POST',
             expanded: false,
             children: []
