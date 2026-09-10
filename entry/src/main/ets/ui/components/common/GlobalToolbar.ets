@@ -29,12 +29,15 @@ export struct GlobalToolbar {
           .onClick(this.onSearch)
         EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
           onChange: this.onEnvironmentChange })
-        Text('⚙')
-          .fontSize(18)
-          .fontColor(ColorTokens.textSecondary)
+        Image($r('app.media.settings'))
+          .width(18)
+          .height(18)
+          .objectFit(ImageFit.Contain)
+          .padding(3)
           .width(SizeTokens.controlMedium)
           .height(SizeTokens.controlMedium)
-          .textAlign(TextAlign.Center)
+          .borderRadius(SizeTokens.controlMedium / 2)
+          .stateStyles({ normal: { .opacity(0.9) }, pressed: { .opacity(0.65) } })
           .onClick(this.onSettings)
       } else {
         Row() {
@@ -77,16 +80,17 @@ export struct GlobalToolbar {
         Row({ space: SpacingTokens.x3 }) {
           EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
             onChange: this.onEnvironmentChange })
-          Text('⚙')
-            .fontSize(18)
-            .fontColor(ColorTokens.textSecondary)
+          Image($r('app.media.settings'))
+            .width(18)
+            .height(18)
+            .objectFit(ImageFit.Contain)
+            .padding(3)
             .width(SizeTokens.controlMedium)
             .height(SizeTokens.controlMedium)
-            .textAlign(TextAlign.Center)
             .borderRadius(SizeTokens.controlMedium / 2)
             .stateStyles({
-              normal: { .backgroundColor(ColorTokens.bgSurface) },
-              pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) }
+              normal: { .backgroundColor(ColorTokens.bgSurface).opacity(0.9) },
+              pressed: { .backgroundColor(ColorTokens.bgSurfaceActive).opacity(0.65) }
             })
             .onClick(this.onSettings)
         }

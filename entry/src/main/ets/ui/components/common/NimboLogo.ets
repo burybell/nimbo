@@ -7,15 +7,11 @@ export struct NimboLogo {
 
   build() {
     Row({ space: SpacingTokens.x2 }) {
-      Stack() {
-        Text('☁')
-          .fontSize(20)
-          .fontColor(ColorTokens.brand500)
-      }
+      Image($r('app.media.app_icon'))
       .width(28)
       .height(28)
-      .backgroundColor(ColorTokens.brand50)
-      .borderRadius(14)
+      .objectFit(ImageFit.Contain)
+      .borderRadius(7)
 
       if (!this.compact) {
         Text('Nimbo')
@@ -28,4 +24,3 @@ export struct NimboLogo {
     .alignItems(VerticalAlign.Center)
   }
 }
-

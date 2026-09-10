@@ -18,6 +18,12 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Combined New and import actions into a single split button and removed the duplicate settings entry
 - Migrated local data to schema v4 while preserving existing environment values and imported environments
 - Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
+- Separated the URL group, Save action, and Send action with consistent toolbar spacing
+- Refined the Nimbo app mark and replaced the toolbar gear glyph with a native-style sliders icon
+
+### Fixed
+
+- Synchronized RichEditor changes before request dispatch so edited JSON bodies cannot send stale content
 
 ## [0.1.0-alpha] - 2026-09-10
 

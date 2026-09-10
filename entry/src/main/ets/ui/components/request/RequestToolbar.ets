@@ -17,6 +17,14 @@ export struct RequestToolbar {
   onCancel: () => void = () => {};
   onSave: () => void = () => {};
 
+  private sendAfterEditorCommit(): void {
+    setTimeout(() => this.onSend(), 0);
+  }
+
+  private saveAfterEditorCommit(): void {
+    setTimeout(() => this.onSave(), 0);
+  }
+
   @Builder
   saveButton() {
     Button($r('app.string.action_save'))
@@ -26,32 +34,39 @@ export struct RequestToolbar {
       .backgroundColor(ColorTokens.bgSurface)
       .border({ width: 1, color: ColorTokens.borderDefault })
       .borderRadius(RadiusTokens.medium)
-      .onClick(this.onSave)
+      .onClick(() => this.saveAfterEditorCommit())
   }
 
   build() {
     Column({ space: SpacingTokens.x2 }) {
       if (this.phone) {
         Column({ space: SpacingTokens.x2 }) {
-          UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })
+          UrlInput({ value: this.url, standalone: true, onChange: this.onUrlChange,
+            onSubmit: () => this.sendAfterEditorCommit() })
             .width('100%')
           Row({ space: SpacingTokens.x2 }) {
             MethodSelector({ value: this.method, fluid: true, onChange: this.onMethodChange })
               .layoutWeight(1)
             this.saveButton()
-            SendButton({ state: this.lifecycle, fluid: true, onSend: this.onSend, onCancel: this.onCancel })
+            SendButton({ state: this.lifecycle, fluid: true,
+              onSend: () => this.sendAfterEditorCommit(), onCancel: this.onCancel })
               .layoutWeight(1)
           }
           .width('100%')
         }
         .width('100%')
       } else {
-        Row() {
-          MethodSelector({ value: this.method, onChange: this.onMethodChange })
-          UrlInput({ value: this.url, onChange: this.onUrlChange, onSubmit: this.onSend })
+        Row({ space: SpacingTokens.x2 }) {
+          Row() {
+            MethodSelector({ value: this.method, onChange: this.onMethodChange })
+            UrlInput({ value: this.url, onChange: this.onUrlChange,
+              onSubmit: () => this.sendAfterEditorCommit() })
+              .layoutWeight(1)
+          }
             .layoutWeight(1)
           this.saveButton()
-          SendButton({ state: this.lifecycle, onSend: this.onSend, onCancel: this.onCancel })
+          SendButton({ state: this.lifecycle,
+            onSend: () => this.sendAfterEditorCommit(), onCancel: this.onCancel })
         }
         .width('100%')
       }

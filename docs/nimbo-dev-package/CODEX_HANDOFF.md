@@ -291,6 +291,8 @@ Milestone 10 只修复公开 Alpha 中已经存在的核心编辑与 Shell 一�
 
 Milestone 10 后续 UI 回归（2026-09-10）：请求发送时不再在工具栏额外插入“正在发送”提示，避免请求配置区发生纵向位移，发送/取消状态继续由按钮反馈；环境变量与历史记录的 Scroll 内容显式从顶部排列，历史空状态仍保持居中展示。
 
+同日视觉与编辑器回归：桌面请求工具栏将 Method + URL、保存、发送拆分为清晰的独立控件；右上角设置入口改为与当前线性图标体系一致的滑杆图标，并重绘 AppScope、应用内标题和桌面入口共用的 Nimbo 云端请求图标。RichEditor 的 StyledString 内容变更改由控制器监听，并在发送/保存前让输入法预编辑内容先完成提交，避免正文已经显示为新值但请求仍携带旧值。签名 HAP 构建通过，并在 HarmonyOS PC 模拟器用 httpbin 回显确认响应 `data` 与发送前编辑器显示的最新正文完全一致。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

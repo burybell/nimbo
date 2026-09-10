@@ -31,7 +31,7 @@ export struct SendButton {
     .height(SizeTokens.controlLarge)
     .width(this.fluid ? '100%' : 108)
     .backgroundColor(this.state === 'sending' ? ColorTokens.httpDelete : ColorTokens.brand500)
-    .borderRadius({ topRight: RadiusTokens.medium, bottomRight: RadiusTokens.medium })
+    .borderRadius(RadiusTokens.medium)
     .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
     .stateStyles({
       normal: { .opacity(1) },

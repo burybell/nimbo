@@ -17,6 +17,8 @@ export struct JsonCodeSurface {
   onChange: (value: string) => void = () => {};
   private controller: RichEditorStyledStringController = new RichEditorStyledStringController();
   private displayedValue: string = '';
+  private applyingStyle: boolean = false;
+  private listenerRegistered: boolean = false;
 
   private lineNumbers(): string {
     const count = Math.max(1, this.value.split('\n').length);
@@ -136,8 +138,10 @@ export struct JsonCodeSurface {
   private applyStyledValue(source: string, preserveCaret: boolean): void {
     const caret = preserveCaret ? this.controller.getCaretOffset() : 0;
     this.displayedValue = source;
+    this.applyingStyle = true;
     this.controller.setStyledString(this.styledValue(source));
     this.controller.setCaretOffset(Math.min(caret, source.length));
+    this.applyingStyle = false;
   }
 
   private handleExternalValue(): void {
@@ -149,11 +153,49 @@ export struct JsonCodeSurface {
   }
 
   private contentChanged(): void {
+    if (this.applyingStyle) return;
     const content = this.controller.getStyledString().getString();
-    if (content === this.displayedValue) return;
-    this.displayedValue = content;
-    this.onChange(content);
+    if (content !== this.displayedValue) {
+      this.displayedValue = content;
+      this.onChange(content);
+    }
     this.applyStyledValue(content, true);
+  }
+
+  private beforeInput(value: RichEditorInsertValue): boolean {
+    if (this.readOnly) return false;
+    const current = this.controller.getStyledString().getString();
+    const selection: RichEditorRange = this.controller.getSelection();
+    const selectionStart = selection.start ?? value.insertOffset;
+    const selectionEnd = selection.end ?? selectionStart;
+    const start = selectionStart === selectionEnd ? value.insertOffset : Math.min(selectionStart, selectionEnd);
+    const end = selectionStart === selectionEnd ? value.insertOffset : Math.max(selectionStart, selectionEnd);
+    const next = current.substring(0, start) + value.insertValue + current.substring(end);
+    this.displayedValue = next;
+    this.onChange(next);
+    return true;
+  }
+
+  private willChange(change: StyledStringChangeValue): boolean {
+    if (this.readOnly) return false;
+    if (this.applyingStyle) return true;
+    const current = this.controller.getStyledString().getString();
+    const start = change.range.start ?? 0;
+    const end = change.range.end ?? start;
+    const replacement = change.replacementString.getString();
+    const next = current.substring(0, start) + replacement + current.substring(end);
+    this.displayedValue = next;
+    this.onChange(next);
+    return true;
+  }
+
+  private registerContentListener(): void {
+    if (this.listenerRegistered) return;
+    this.listenerRegistered = true;
+    this.controller.onContentChanged({
+      onWillChange: (change: StyledStringChangeValue): boolean => this.willChange(change),
+      onDidChange: (_before: TextRange, _after: TextRange): void => this.contentChanged()
+    });
   }
 
   build() {
@@ -179,9 +221,11 @@ export struct JsonCodeSurface {
         .copyOptions(CopyOptions.LocalDevice)
         .enableKeyboardOnFocus(!this.readOnly)
         .placeholder('{\n  "key": "value"\n}', { fontColor: ColorTokens.codeLineNumber })
-        .onWillChange((_change: RichEditorChangeValue) => !this.readOnly)
-        .onDidChange((_before: TextRange, _after: TextRange) => this.contentChanged())
-        .onAppear(() => this.applyStyledValue(this.value, false))
+        .aboutToIMEInput((value: RichEditorInsertValue) => this.beforeInput(value))
+        .onAppear(() => {
+          this.registerContentListener();
+          this.applyStyledValue(this.value, false);
+        })
     }
     .width('100%')
     .height('100%')
