@@ -331,6 +331,8 @@ URL 输入效率回归：请求 URL 输入框在内容精确为 `h` 时按 Tab �
 
 响应正文操作回归：文本与 JSON 响应的 Body 工具栏新增搜索、复制、下载三个紧凑图标按钮；搜索在 Pretty / Raw 间共享查询，实时高亮全部匹配并支持上下循环定位，打开后自动聚焦，`Esc` 可关闭并清空查询。复制将完整响应正文写入系统剪贴板并显示“已复制响应正文”Toast；下载根据 Content-Type 使用 json、xml、html、css、js、yaml、csv 或 txt 后缀拉起系统文件选择器。图片、视频与其他二进制响应继续提供原始字节下载，不显示无意义的正文搜索或复制。已在 MateBook Pro 模拟器用 `https://httpbin.org/json` 验证 3 处匹配导航、Pretty / Raw 查看、Esc 关闭、复制 Toast 和 `nimbo-response.json` 下载文件名。
 
+PC 发布素材回归：当前发布清单收口为 `2in1`，平板与手机响应式实现继续保留但不进入本次分发。首次安装的中文演示集合扩展为“用户服务 / 内容服务 / 媒体资源 / 响应示例 / 身份认证”，新增的请求均可打开真实示例 URL。`release/appgallery/` 提供 216×216 PNG 图标、五张真实模拟器 1920×1080 PNG 截图、中文商店文案、可导入 Postman 示例集合及 Release 构建产物。已确认 Release HAP 为 `debug: false` 且仅声明 `2in1`；本机现有 Profile 仍为设备绑定的 debug 类型，因此已签名包仅供模拟器测试，正式上架必须使用发布证书/Profile 或 AppGallery Connect 云管理签名。
+
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
 
 ---

@@ -8,7 +8,7 @@ Nimbo 是一款为 HarmonyOS 打造的快速、原生、本地优先 API 调试�
 
 ## 核心特性
 
-- HarmonyOS 原生应用，PC 优先设计，并适配平板和手机
+- HarmonyOS 原生应用，当前仅发布 PC（`2in1`）；平板和手机响应式布局保留在代码中供未来使用
 - 支持 GET、POST、PUT、PATCH、DELETE、HEAD 和 OPTIONS 请求
 - 支持查询参数、请求头、Bearer/Basic/API Key 认证和多种正文类型
 - 支持 Pretty/Raw 响应、响应头、Cookie、错误状态和二进制保存

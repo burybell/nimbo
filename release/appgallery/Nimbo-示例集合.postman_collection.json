@@ -1,0 +1,112 @@
+{
+  "info": {
+    "name": "Nimbo 示例接口",
+    "description": "用于 Nimbo 首次体验与商店截图的中文 HTTP 示例集合。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "用户服务",
+      "item": [
+        {
+          "name": "获取用户",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json", "type": "text" }
+            ],
+            "url": "https://jsonplaceholder.typicode.com/users?_page=1&_limit=10"
+          }
+        },
+        {
+          "name": "创建用户",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nimbo 用户\",\n  \"email\": \"user@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "https://jsonplaceholder.typicode.com/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "内容服务",
+      "item": [
+        {
+          "name": "获取文章列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "https://jsonplaceholder.typicode.com/posts?_limit=10"
+          }
+        },
+        {
+          "name": "创建文章",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nimbo 示例文章\",\n  \"body\": \"来自鸿蒙电脑的 API 请求\",\n  \"userId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "https://jsonplaceholder.typicode.com/posts"
+          }
+        }
+      ]
+    },
+    {
+      "name": "媒体资源",
+      "item": [
+        {
+          "name": "预览示例图片",
+          "request": { "method": "GET", "header": [], "url": "https://httpbin.org/image/png" }
+        },
+        {
+          "name": "下载二进制文件",
+          "request": { "method": "GET", "header": [], "url": "https://httpbin.org/bytes/1024" }
+        }
+      ]
+    },
+    {
+      "name": "响应示例",
+      "item": [
+        {
+          "name": "查看响应标头",
+          "request": { "method": "GET", "header": [], "url": "https://httpbin.org/response-headers?X-Nimbo=HarmonyOS" }
+        },
+        {
+          "name": "模拟延迟响应",
+          "request": { "method": "GET", "header": [], "url": "https://httpbin.org/delay/2" }
+        }
+      ]
+    },
+    {
+      "name": "身份认证",
+      "item": [
+        {
+          "name": "Bearer Token 示例",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{accessToken}}", "type": "string" }
+              ]
+            },
+            "url": "https://httpbin.org/bearer"
+          }
+        }
+      ]
+    }
+  ]
+}

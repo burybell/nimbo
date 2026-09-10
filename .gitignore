@@ -6,5 +6,6 @@
 /oh_modules/
 /build/
 **/build/
+release/appgallery/package/
 local.properties
 /build-profile.json5

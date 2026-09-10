@@ -14,6 +14,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Local custom-environment creation with variable editing and guarded deletion
 - Native image and video response previews with metadata tabs, playback controls, and original-file saving
 - Response-body search with match navigation, full-body clipboard copy, and content-type-aware downloads
+- AppGallery-ready PC artwork, five verified 16:9 screenshots, Chinese listing copy, and an importable showcase collection
 
 ### Changed
 
@@ -31,6 +32,8 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Delegated title-bar click, double-click, and drag handling to the native window manager
 - Stored media responses in replaceable app-cache files for safe native preview without persisting response bytes
 - Replaced response text actions with compact search, copy, and download icon controls
+- Limited the current distribution manifest to HarmonyOS PC (`2in1`) while retaining responsive layouts in source
+- Expanded the first-run Chinese examples into user, content, media, response, and authentication folders
 
 ### Fixed
 

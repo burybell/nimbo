@@ -1495,6 +1495,21 @@ export struct NimboWindow {
       request.activeConfigTab = 'body';
       request.bodyType = 'json';
       request.bodyText = '{\n  "title": "Nimbo",\n  "body": "HarmonyOS request",\n  "userId": 1\n}';
+    } else if (node.id === 'get-posts-request') {
+      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.params = [
+        { id: 'param-post-limit', enabled: true, key: '_limit', value: '10', description: '返回数量',
+          type: 'text', secret: false }
+      ];
+    } else if (node.id === 'create-post-request') {
+      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.activeConfigTab = 'body';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "title": "Nimbo 示例文章",\n  "body": "来自鸿蒙电脑的 API 请求",\n  "userId": 1\n}';
+    } else if (node.id === 'preview-image-request') {
+      request.url = 'https://httpbin.org/image/png';
+    } else if (node.id === 'download-file-request') {
+      request.url = 'https://httpbin.org/bytes/1024';
     } else if (node.id === 'connection-error-request') {
       request.url = 'https://localhost:8080/api/users';
       response = createErrorResponse();

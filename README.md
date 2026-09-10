@@ -8,7 +8,7 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 
 ## Highlights
 
-- Native HarmonyOS application, designed for PC and responsive on tablets and phones
+- Native HarmonyOS application distributed for PC (`2in1`); responsive tablet and phone layouts remain in the codebase for future use
 - HTTP requests with GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS
 - Query parameters, headers, Bearer/Basic/API Key authentication, and multiple body types
 - Pretty and raw response views, response headers, cookies, error states, and binary saving

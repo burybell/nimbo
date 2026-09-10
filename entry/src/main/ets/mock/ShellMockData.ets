@@ -165,13 +165,13 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
   {
     id: 'demo-api',
     type: 'collection',
-    name: '示例 API',
+    name: 'Nimbo 示例接口',
     expanded: true,
     children: [
       {
         id: 'users-folder',
         type: 'folder',
-        name: '用户',
+        name: '用户服务',
         expanded: true,
         children: [
           {
@@ -193,9 +193,57 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
         ]
       },
       {
+        id: 'content-folder',
+        type: 'folder',
+        name: '内容服务',
+        expanded: true,
+        children: [
+          {
+            id: 'get-posts-request',
+            type: 'request',
+            name: '获取文章列表',
+            method: 'GET',
+            expanded: false,
+            children: []
+          },
+          {
+            id: 'create-post-request',
+            type: 'request',
+            name: '创建文章',
+            method: 'POST',
+            expanded: false,
+            children: []
+          }
+        ]
+      },
+      {
+        id: 'media-folder',
+        type: 'folder',
+        name: '媒体资源',
+        expanded: true,
+        children: [
+          {
+            id: 'preview-image-request',
+            type: 'request',
+            name: '预览示例图片',
+            method: 'GET',
+            expanded: false,
+            children: []
+          },
+          {
+            id: 'download-file-request',
+            type: 'request',
+            name: '下载二进制文件',
+            method: 'GET',
+            expanded: false,
+            children: []
+          }
+        ]
+      },
+      {
         id: 'response-states-folder',
         type: 'folder',
-        name: '响应状态',
+        name: '响应示例',
         expanded: true,
         children: [
           {
@@ -227,7 +275,7 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
       {
         id: 'auth-folder',
         type: 'folder',
-        name: '认证',
+        name: '身份认证',
         expanded: false,
         children: [
           {
