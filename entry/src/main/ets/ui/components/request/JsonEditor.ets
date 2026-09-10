@@ -1,5 +1,6 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { JsonCodeSurface } from '../common/JsonCodeSurface';
 
 @Component
 export struct JsonEditor {
@@ -8,15 +9,6 @@ export struct JsonEditor {
   @State wrap: boolean = true;
   @State validation: string = '';
   onChange: (value: string) => void = () => {};
-
-  private lineNumbers(): string {
-    const count = Math.max(1, this.value.split('\n').length);
-    const values: string[] = [];
-    for (let index = 1; index <= count; index += 1) {
-      values.push(index.toString());
-    }
-    return values.join('\n');
-  }
 
   private formatJson(compact: boolean): void {
     if (this.value.trim().length === 0) {
@@ -68,32 +60,15 @@ export struct JsonEditor {
       .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
       .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
 
-      Row() {
-        Text(this.lineNumbers())
-          .fontSize(13)
-          .fontFamily('monospace')
-          .fontColor(ColorTokens.textTertiary)
-          .lineHeight(21)
-          .width(44)
-          .height('100%')
-          .padding({ top: 10, right: SpacingTokens.x2 })
-          .textAlign(TextAlign.End)
-          .backgroundColor(ColorTokens.bgApp)
-        TextArea({ text: this.value, placeholder: '{\n  "key": "value"\n}' })
-          .fontSize(13)
-          .fontFamily('monospace')
-          .fontColor(ColorTokens.textPrimary)
-          .lineHeight(21)
-          .height('100%')
-          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: 8, bottom: 8 })
-          .backgroundColor(ColorTokens.bgWorkspace)
-          .layoutWeight(1)
-          .enabled(!this.readOnly)
-          .onChange((value: string) => {
-            this.validation = '';
-            this.onChange(value);
-          })
-      }
+      JsonCodeSurface({
+        value: this.value,
+        readOnly: this.readOnly,
+        wrap: this.wrap,
+        onChange: (value: string) => {
+          this.validation = '';
+          this.onChange(value);
+        }
+      })
       .layoutWeight(1)
       .width('100%')
 

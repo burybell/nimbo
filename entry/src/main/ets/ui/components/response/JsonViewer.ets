@@ -1,18 +1,12 @@
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { JsonCodeSurface } from '../common/JsonCodeSurface';
 
 @Component
 export struct JsonViewer {
   @Prop value: string = '';
   @State searchVisible: boolean = false;
   @State query: string = '';
-
-  private lineNumbers(): string {
-    const count = Math.max(1, this.value.split('\n').length);
-    const values: string[] = [];
-    for (let index = 1; index <= count; index += 1) values.push(index.toString());
-    return values.join('\n');
-  }
 
   private matchCount(): number {
     if (this.query.length === 0) return 0;
@@ -62,32 +56,9 @@ export struct JsonViewer {
         .backgroundColor(ColorTokens.codeGutter)
       }
 
-      Scroll() {
-        Row() {
-          Text(this.lineNumbers())
-            .fontSize(12)
-            .fontFamily('monospace')
-            .fontColor(ColorTokens.codeLineNumber)
-            .lineHeight(20)
-            .width(46)
-            .padding({ top: SpacingTokens.x3, right: SpacingTokens.x2, bottom: SpacingTokens.x3 })
-            .textAlign(TextAlign.End)
-            .backgroundColor(ColorTokens.codeGutter)
-          Text(this.value)
-            .fontSize(12)
-            .fontFamily('monospace')
-            .fontColor(ColorTokens.codeText)
-            .lineHeight(20)
-            .padding({ left: SpacingTokens.x3, right: SpacingTokens.x4, top: SpacingTokens.x3, bottom: SpacingTokens.x3 })
-            .layoutWeight(1)
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Top)
-      }
+      JsonCodeSurface({ value: this.value, readOnly: true, query: this.query })
       .layoutWeight(1)
       .width('100%')
-      .align(Alignment.TopStart)
-      .scrollBar(BarState.Auto)
     }
     .width('100%')
     .height('100%')

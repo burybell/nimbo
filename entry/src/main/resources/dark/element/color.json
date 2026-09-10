@@ -38,6 +38,13 @@
     { "name": "nimbo_code_background", "value": "#0D1016" },
     { "name": "nimbo_code_gutter", "value": "#151A23" },
     { "name": "nimbo_code_text", "value": "#DCE3EF" },
-    { "name": "nimbo_code_line_number", "value": "#6F7A8E" }
+    { "name": "nimbo_code_line_number", "value": "#6F7A8E" },
+    { "name": "nimbo_code_key", "value": "#7CC7FF" },
+    { "name": "nimbo_code_string", "value": "#A8D990" },
+    { "name": "nimbo_code_number", "value": "#F4C36A" },
+    { "name": "nimbo_code_literal", "value": "#C8A5FF" },
+    { "name": "nimbo_code_punctuation", "value": "#A9B4C7" },
+    { "name": "nimbo_code_selection", "value": "#665B68F6" },
+    { "name": "nimbo_code_search_match", "value": "#99735C16" }
   ]
 }

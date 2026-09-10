@@ -43,4 +43,11 @@ export class ColorTokens {
   static get codeGutter(): ResourceColor { return $r('app.color.nimbo_code_gutter'); }
   static get codeText(): ResourceColor { return $r('app.color.nimbo_code_text'); }
   static get codeLineNumber(): ResourceColor { return $r('app.color.nimbo_code_line_number'); }
+  static get codeKey(): ResourceColor { return $r('app.color.nimbo_code_key'); }
+  static get codeString(): ResourceColor { return $r('app.color.nimbo_code_string'); }
+  static get codeNumber(): ResourceColor { return $r('app.color.nimbo_code_number'); }
+  static get codeLiteral(): ResourceColor { return $r('app.color.nimbo_code_literal'); }
+  static get codePunctuation(): ResourceColor { return $r('app.color.nimbo_code_punctuation'); }
+  static get codeSelection(): ResourceColor { return $r('app.color.nimbo_code_selection'); }
+  static get codeSearchMatch(): ResourceColor { return $r('app.color.nimbo_code_search_match'); }
 }
