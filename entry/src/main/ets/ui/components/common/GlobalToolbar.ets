@@ -19,7 +19,7 @@ export struct GlobalToolbar {
   build() {
     Row() {
       if (this.phone) {
-        NimboLogo()
+        NimboLogo({ compact: true })
         Blank()
         Text('⌕')
           .fontSize(19).fontColor(ColorTokens.textSecondary)
@@ -40,24 +40,47 @@ export struct GlobalToolbar {
           .stateStyles({ normal: { .opacity(0.9) }, pressed: { .opacity(0.65) } })
           .onClick(this.onSettings)
       } else {
-        Row() {
-          NimboLogo({ compact: true })
-        }
-        .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
-        .height('100%')
-        .padding({ left: this.compact ? SpacingTokens.x4 : SpacingTokens.x5 })
-        .backgroundColor(ColorTokens.bgSidebar)
+        Stack({ alignContent: Alignment.Center }) {
+          Row() {
+            Row() {
+              NimboLogo({ compact: true })
+            }
+            .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
+            .height('100%')
+            .padding({ left: this.compact ? SpacingTokens.x4 : SpacingTokens.x5 })
+            .backgroundColor(ColorTokens.bgSidebar)
 
-        Row({ space: SpacingTokens.x4 }) {
-          Row({ space: SpacingTokens.x2 }) {
-            Text('●').fontSize(8).fontColor(ColorTokens.statusSuccess)
-            Text($r('app.string.toolbar_workspace_hint')).fontSize(12).fontColor(ColorTokens.textTertiary)
-              .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+            Row({ space: SpacingTokens.x2 }) {
+              Text('●').fontSize(8).fontColor(ColorTokens.statusSuccess)
+              Text($r('app.string.toolbar_workspace_hint')).fontSize(12).fontColor(ColorTokens.textTertiary)
+                .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+            }
+            .layoutWeight(1).height('100%').padding({ left: SpacingTokens.x3 })
+            .onTouch((event: TouchEvent) => {
+              if (event.type === TouchType.Down) WindowChromeController.startMoving();
+            })
+
+            Row({ space: SpacingTokens.x3 }) {
+              EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
+                onChange: this.onEnvironmentChange })
+              Image($r('app.media.settings'))
+                .width(18)
+                .height(18)
+                .objectFit(ImageFit.Contain)
+                .padding(3)
+                .width(SizeTokens.controlMedium)
+                .height(SizeTokens.controlMedium)
+                .borderRadius(SizeTokens.controlMedium / 2)
+                .stateStyles({
+                  normal: { .backgroundColor(ColorTokens.bgSurface).opacity(0.9) },
+                  pressed: { .backgroundColor(ColorTokens.bgSurfaceActive).opacity(0.65) }
+                })
+                .onClick(this.onSettings)
+            }
+            .padding({ left: SpacingTokens.x4, right: this.titleButtonInset })
           }
-          .layoutWeight(1).height('100%').padding({ left: SpacingTokens.x3 })
-          .onTouch((event: TouchEvent) => {
-            if (event.type === TouchType.Down) WindowChromeController.startMoving();
-          })
+          .width('100%')
+          .height('100%')
 
           Row({ space: SpacingTokens.x2 }) {
             Text('⌕').fontSize(16).fontColor(ColorTokens.textTertiary)
@@ -74,32 +97,13 @@ export struct GlobalToolbar {
           .stateStyles({ normal: {}, pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) } })
           .onClick(this.onSearch)
         }
-        .layoutWeight(1)
+        .width('100%')
         .height('100%')
-
-        Row({ space: SpacingTokens.x3 }) {
-          EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
-            onChange: this.onEnvironmentChange })
-          Image($r('app.media.settings'))
-            .width(18)
-            .height(18)
-            .objectFit(ImageFit.Contain)
-            .padding(3)
-            .width(SizeTokens.controlMedium)
-            .height(SizeTokens.controlMedium)
-            .borderRadius(SizeTokens.controlMedium / 2)
-            .stateStyles({
-              normal: { .backgroundColor(ColorTokens.bgSurface).opacity(0.9) },
-              pressed: { .backgroundColor(ColorTokens.bgSurfaceActive).opacity(0.65) }
-            })
-            .onClick(this.onSettings)
-        }
-        .padding({ left: SpacingTokens.x4, right: this.titleButtonInset })
       }
     }
     .width('100%')
     .height(SizeTokens.globalToolbarHeight)
-    .padding(this.phone ? { left: SpacingTokens.x3, right: SpacingTokens.x2 } : 0)
+    .padding(this.phone ? { left: SpacingTokens.x3, right: this.titleButtonInset } : 0)
     .backgroundColor(ColorTokens.bgSurface)
     .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
   }

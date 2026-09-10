@@ -58,7 +58,7 @@ export struct ResponsePanel {
           .fontColor(ColorTokens.textTertiary)
       }
       .width('100%')
-      .height('100%')
+      .layoutWeight(1)
       .justifyContent(FlexAlign.Center)
       .transition(TransitionEffect.OPACITY
         .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
@@ -87,7 +87,7 @@ export struct ResponsePanel {
         .width('100%')
       }
       .width('100%')
-      .height('100%')
+      .layoutWeight(1)
       .align(Alignment.TopStart)
       .scrollBar(BarState.Auto)
       .transition(TransitionEffect.OPACITY
@@ -144,7 +144,7 @@ export struct ResponsePanel {
       }
     }
     .width('100%')
-    .height('100%')
+    .layoutWeight(1)
     .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, bottom: SpacingTokens.x2 })
     .transition(TransitionEffect.OPACITY
       .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))

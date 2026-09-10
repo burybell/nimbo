@@ -11,6 +11,7 @@ export struct CollectionTree {
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onToggleNode: (id: string) => void = () => {};
   onCreateFolder: (parentId: string) => void = () => {};
+  onRenameRequest: (node: CollectionNode) => void = () => {};
 
   private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
@@ -19,6 +20,10 @@ export struct CollectionTree {
     if (method === 'PATCH') return ColorTokens.httpPatch;
     if (method === 'DELETE') return ColorTokens.httpDelete;
     return ColorTokens.httpOther;
+  }
+
+  private nodeIndent(depth: number): number {
+    return SpacingTokens.x2 + Math.min(depth, 5) * SpacingTokens.x8;
   }
 
   private treeKey(node: CollectionNode): string {
@@ -64,6 +69,21 @@ export struct CollectionTree {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .layoutWeight(1)
+        if (node.type === 'request') {
+          Image($r('app.media.edit'))
+            .width(14)
+            .height(14)
+            .objectFit(ImageFit.Contain)
+            .padding(5)
+            .width(SizeTokens.controlSmall)
+            .height(SizeTokens.controlSmall)
+            .borderRadius(RadiusTokens.small)
+            .stateStyles({
+              normal: { .backgroundColor(ColorTokens.bgSurfaceHover).opacity(0.82) },
+              pressed: { .backgroundColor(ColorTokens.bgSurfaceActive).opacity(1) }
+            })
+            .onClick(() => this.onRenameRequest(node))
+        }
         if (node.type !== 'request' && depth < 10 &&
           (this.alwaysShowActions || node.id === this.hoveredNodeId)) {
           Text('+')
@@ -78,7 +98,7 @@ export struct CollectionTree {
       }
       .width('100%')
       .height(SizeTokens.controlMedium)
-      .padding({ left: SpacingTokens.x2 + depth * SpacingTokens.x3, right: SpacingTokens.x2 })
+      .padding({ left: this.nodeIndent(depth), right: SpacingTokens.x2 })
       .backgroundColor(node.id === this.hoveredNodeId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.small)
       .onHover((hovered: boolean) => { this.hoveredNodeId = hovered ? node.id : ''; })

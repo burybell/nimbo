@@ -76,6 +76,7 @@ export struct NimboWindow {
   @State collectionDrawerOpen: boolean = false;
   @State collectionParentId: string = '';
   @State pendingSaveTabId: string = '';
+  @State renamingRequestId: string = '';
   private nextTabNumber: number = 1;
   private nextCollectionNodeNumber: number = 1;
   private requestController: RequestController = new RequestController();
@@ -473,6 +474,31 @@ export struct NimboWindow {
     this.hideOverlay();
     this.persistLocalData();
     this.showToast($r('app.string.toast_folder_created'));
+  }
+
+  private beginRenameRequest(node: CollectionNode): void {
+    this.renamingRequestId = node.id;
+    this.showOverlay('rename-request');
+  }
+
+  private renameRequest(name: string): void {
+    const id = this.renamingRequestId;
+    if (id.length === 0) return;
+    this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
+      id: node.id, type: node.type, name, method: node.method,
+      expanded: node.expanded, children: node.children
+    }));
+    this.savedRequests = this.savedRequests.map((item: PersistedRequestModel) => item.id === id ? {
+      id: item.id, name, method: item.method, request: item.request
+    } : item);
+    this.tabs = this.tabs.map((tab: RequestTabModel) => tab.id === id ? {
+      id: tab.id, name, method: tab.method, dirty: tab.dirty,
+      pinned: tab.pinned, loading: tab.loading, request: tab.request, response: tab.response
+    } : tab);
+    this.renamingRequestId = '';
+    this.hideOverlay();
+    this.persistLocalData();
+    this.showToast($r('app.string.toast_saved'));
   }
 
   private appendCollectionTargets(nodes: CollectionNode[], depth: number,
@@ -1012,7 +1038,8 @@ export struct NimboWindow {
               onOpenRequest: (node: CollectionNode) => this.openCollectionRequest(node),
               onToggleNode: (id: string) => this.toggleCollectionNode(id),
               onCreateCollection: () => this.beginCreateCollection(),
-              onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId)
+              onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId),
+              onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node)
             })
           }
 
@@ -1052,6 +1079,7 @@ export struct NimboWindow {
               onToggleNode: (id: string) => this.toggleCollectionNode(id),
               onCreateCollection: () => this.beginCreateCollection(),
               onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId),
+              onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node),
               onDismiss: () => this.animateState(() => { this.collectionDrawerOpen = false; }, MotionTokens.slow)
             })
             Column()
@@ -1210,6 +1238,16 @@ export struct NimboWindow {
           placeholder: $r('app.string.folder_name_placeholder'),
           onCancel: () => { this.collectionParentId = ''; this.hideOverlay(); },
           onConfirm: (name: string) => this.createFolder(name)
+        })
+      }
+      if (this.activeOverlay === 'rename-request') {
+        CollectionNameDialog({
+          title: $r('app.string.request_name_placeholder'),
+          placeholder: $r('app.string.request_name_placeholder'),
+          confirmLabel: $r('app.string.action_save'),
+          initialName: this.findCollectionNode(this.collections, this.renamingRequestId)?.name ?? '',
+          onCancel: () => { this.renamingRequestId = ''; this.hideOverlay(); },
+          onConfirm: (name: string) => this.renameRequest(name)
         })
       }
       if (this.activeOverlay === 'save-request') {

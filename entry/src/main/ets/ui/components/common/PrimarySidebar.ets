@@ -132,7 +132,8 @@ export struct PrimarySidebar {
           }
         }
         .width('100%')
-        .height(SizeTokens.controlLarge)
+        .height(this.importMenuOpen ? SizeTokens.controlLarge + SpacingTokens.x2 + 76 :
+          SizeTokens.controlLarge)
         .clip(false)
         .zIndex(10)
       }

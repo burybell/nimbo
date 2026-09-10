@@ -7,9 +7,14 @@ export struct CollectionNameDialog {
   @Prop title: ResourceStr = '';
   @Prop placeholder: ResourceStr = '';
   @Prop confirmLabel: ResourceStr = $r('app.string.action_create');
+  @Prop initialName: string = '';
   @State name: string = '';
   onCancel: () => void = () => {};
   onConfirm: (name: string) => void = () => {};
+
+  aboutToAppear(): void {
+    this.name = this.initialName;
+  }
 
   private submit(): void {
     const value = this.name.trim();

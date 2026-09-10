@@ -24,6 +24,13 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 ### Fixed
 
 - Synchronized RichEditor changes before request dispatch so edited JSON bodies cannot send stale content
+- Kept the global search control centered when the desktop window is maximized
+- Reserved response-header space correctly so the final JSON lines remain reachable
+- Added persistent renaming for collection requests and their matching open tabs
+- Added a light-theme code palette for JSON and raw response surfaces
+- Prevented the New import menu from overlapping sidebar navigation items
+- Reserved native title-button space when the desktop window enters the phone breakpoint
+- Increased collection-tree indentation so folders and nested requests have distinct visual levels
 
 ## [0.1.0-alpha] - 2026-09-10
 

@@ -12,6 +12,7 @@ export struct CollectionSidebar {
   onToggleNode: (id: string) => void = () => {};
   onCreateCollection: () => void = () => {};
   onCreateFolder: (parentId: string) => void = () => {};
+  onRenameRequest: (node: CollectionNode) => void = () => {};
   onDismiss: () => void = () => {};
 
   build() {
@@ -75,7 +76,8 @@ export struct CollectionSidebar {
             alwaysShowActions: this.dismissible,
             onOpenRequest: this.onOpenRequest,
             onToggleNode: this.onToggleNode,
-            onCreateFolder: this.onCreateFolder
+            onCreateFolder: this.onCreateFolder,
+            onRenameRequest: this.onRenameRequest
           })
         }
         .width('100%')
