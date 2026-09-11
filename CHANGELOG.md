@@ -21,6 +21,13 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Unified title-bar import dialog with cURL and API-file tabs; cURL input has syntax highlighting, while API files support drag-and-drop detection for Postman, OpenAPI 3.x, and Swagger 2.0 without shifting the workspace
 - Sandboxed QuickJS-NG runtime with asynchronous execution, time, memory, stack, source, concurrency, and console-output limits
 - Per-request Pre-request and Post-response scripts with JavaScript editing, guarded request/response/environment APIs, and visible console, error, timing, and limit results
+- Context-aware script completion for available `nimbo.request`, `nimbo.response`, `nimbo.environment`, `console`, and `JSON` APIs with keyboard navigation and Enter/Tab acceptance
+- Real response timing timeline with DNS, connection, TLS, request send, TTFB, download, and total durations from the HarmonyOS network stack
+- Request-tab context menu with close-current, close-all, and new-request actions
+- Active-environment variable highlighting and completion across request URLs, Params, Headers, authentication, JSON/raw bodies, forms, and Multipart fields, with keyboard selection and Enter/Tab acceptance after typing `{{`
+- Per-request code generation for cURL, JavaScript Fetch, Python Requests, and Go net/http, with one-click copy and unexpanded environment-variable references
+- Syntax highlighting for generated Python and Go examples
+- Inline request-tab renaming by double-click, with Enter/blur confirmation and Esc cancellation
 
 ### Changed
 
@@ -29,7 +36,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Migrated local data to schema v9 while preserving existing requests, environments, extraction rules, tests, scripts, and older preferences
 - Localized built-in environment names and the starter collection data in Simplified Chinese
 - Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
-- Separated the URL group, Save action, and Send action with consistent toolbar spacing
+- Removed the request-toolbar Save button; `Ctrl+S` now updates collected requests directly or opens collection-folder selection for new requests
 - Refined the Nimbo app mark and replaced the toolbar settings glyph with a native-style rounded gear icon
 - Added a persistent interface-font preference with HarmonyOS Sans, system-default, and compact choices
 - Anchored per-request settings at the top and refined key-value table typography and column alignment
@@ -43,6 +50,11 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 
 ### Fixed
 
+- Preserved environment variable values and descriptions when toggling Secret by using stable row identity and field-level updates
+- Masked environment values immediately after Secret is enabled while retaining the underlying value when toggled back
+- Made URL variable completion accept both main/numpad Enter and Tab consistently, while retaining URL-editor focus without a trailing system focus ring
+- Separated environment Save and Delete actions with consistent spacing and left-aligned environment details on desktop and compact layouts
+- Evaluated response-time tests from the numeric timing snapshot instead of treating display values such as `684 ms` as numbers
 - Synchronized RichEditor changes before request dispatch so edited JSON bodies cannot send stale content
 - Kept the global search control centered when the desktop window is maximized
 - Reserved response-header space correctly so the final JSON lines remain reachable
@@ -64,6 +76,13 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Removed decorative checks from key-value headers, replaced the Method caret glyph with a balanced SVG icon, and refreshed open tabs immediately after collection-request renames
 - Added focused URL protocol completion: `h` + Tab expands to `http://` and `hs` + Tab expands to `https://`
 - Made response search directly discoverable, reduced its input typography, and added `Esc` dismissal with automatic focus
+- Restored reliable `Ctrl+Z` undo and `Ctrl+Shift+Z` / `Ctrl+Y` redo in styled JSON and JavaScript editors
+- Restored `Ctrl+A` select-all in code surfaces and reapplied syntax styling whenever generated-code languages change
+- Kept collection request names, saved request metadata, and matching open tabs synchronized after tab renaming
+- Routed script-completion navigation and acceptance through RichEditor key dispatch so Up/Down, Enter, and Tab cannot be consumed as caret movement, newline, or focus traversal
+- Kept empty and environment-variable authentication secrets visible for editing and completion, while masking only non-empty literal Bearer tokens, Basic passwords, and API key values
+- Refreshed environment value editors immediately when Secret changes and aligned masked-value padding with the normal value column
+- Kept the active script-completion candidate visible by automatically scrolling the compact suggestion list during keyboard navigation
 
 ## [0.1.0-alpha] - 2026-09-10
 

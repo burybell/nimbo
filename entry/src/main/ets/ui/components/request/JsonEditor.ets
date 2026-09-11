@@ -1,3 +1,4 @@
+import { KeyValueItem } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { JsonCodeSurface } from '../common/JsonCodeSurface';
@@ -5,6 +6,7 @@ import { JsonCodeSurface } from '../common/JsonCodeSurface';
 @Component
 export struct JsonEditor {
   @Prop value: string = '';
+  @Prop variables: KeyValueItem[] = [];
   @Prop readOnly: boolean = false;
   @State wrap: boolean = true;
   @State validation: string = '';
@@ -62,6 +64,7 @@ export struct JsonEditor {
 
       JsonCodeSurface({
         value: this.value,
+        variables: this.variables,
         readOnly: this.readOnly,
         wrap: this.wrap,
         onChange: (value: string) => {

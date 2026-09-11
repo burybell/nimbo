@@ -18,15 +18,19 @@ export struct Workspace {
   @State contentOpacity: number = 1;
   @Prop phone: boolean = false;
   @Prop environments: EnvironmentModel[] = [];
+  @Prop selectedEnvironmentId: string = '';
+  onSaveRequest: (id: string) => void = () => {};
   onSelectTab: (id: string) => void = () => {};
   onCloseTab: (id: string) => void = () => {};
+  onCloseAllTabs: () => void = () => {};
   onCreateTab: () => void = () => {};
+  onRenameRequest: (id: string, name: string) => void = () => {};
   onUpdateRequest: (id: string, request: RequestDraft) => void = () => {};
-  onSaveRequest: (id: string) => void = () => {};
   onPreviewLargeResponse: (id: string) => void = () => {};
   onSaveBinary: (response: ResponseModel) => void = () => {};
   onCopyResponseBody: (response: ResponseModel) => void = () => {};
   onDownloadResponseBody: (response: ResponseModel) => void = () => {};
+  onCopyGeneratedCode: (value: string) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -135,7 +139,9 @@ export struct Workspace {
           activeTabId: $activeTabId,
           onSelect: (id: string) => this.selectTab(id),
           onClose: this.onCloseTab,
-          onCreate: this.onCreateTab
+          onCloseAll: this.onCloseAllTabs,
+          onCreate: this.onCreateTab,
+          onRename: this.onRenameRequest
         })
       }
 
@@ -151,9 +157,11 @@ export struct Workspace {
             request: this.tabs[this.activeIndex()].request,
             response: this.tabs[this.activeIndex()].response,
             environments: this.environments,
+            selectedEnvironmentId: this.selectedEnvironmentId,
+            onSaveRequest: () => this.onSaveRequest(this.activeTabId),
+            onCopyGeneratedCode: this.onCopyGeneratedCode,
             phone: true,
-            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
-            onSave: () => this.onSaveRequest(this.activeTabId)
+            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
           })
           .layoutWeight(1)
           .opacity(this.contentOpacity)
@@ -176,8 +184,10 @@ export struct Workspace {
             request: this.tabs[this.activeIndex()].request,
             response: this.tabs[this.activeIndex()].response,
             environments: this.environments,
-            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
-            onSave: () => this.onSaveRequest(this.activeTabId)
+            selectedEnvironmentId: this.selectedEnvironmentId,
+            onSaveRequest: () => this.onSaveRequest(this.activeTabId),
+            onCopyGeneratedCode: this.onCopyGeneratedCode,
+            onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
           })
             .height(`${Math.round(this.splitRatio * 100)}%`)
 

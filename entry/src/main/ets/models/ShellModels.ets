@@ -2,7 +2,7 @@ export type NavigationDestination = 'workspace' | 'collections' | 'environments'
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'postResponse' |
-  'extract' | 'tests' | 'settings';
+  'extract' | 'tests' | 'generate' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
@@ -155,6 +155,16 @@ export interface ResponseErrorModel {
   details: string;
 }
 
+export interface ResponseTiming {
+  dnsMs: number;
+  connectMs: number;
+  tlsMs: number;
+  sendMs: number;
+  waitMs: number;
+  downloadMs: number;
+  totalMs: number;
+}
+
 export interface ResponseModel {
   status: ResponseStatus;
   statusCode: number;
@@ -168,6 +178,7 @@ export interface ResponseModel {
   contentType: string;
   size: string;
   duration: string;
+  timing: ResponseTiming;
   protocol: string;
   error: ResponseErrorModel;
   previewAvailable: boolean;

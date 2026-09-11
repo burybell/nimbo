@@ -567,6 +567,14 @@ export struct NimboWindow {
   private renameRequest(name: string): void {
     const id = this.renamingRequestId;
     if (id.length === 0) return;
+    this.applyRequestName(id, name);
+    this.renamingRequestId = '';
+    this.hideOverlay();
+  }
+
+  private applyRequestName(id: string, value: string): void {
+    const name = value.trim();
+    if (id.length === 0 || name.length === 0) return;
     this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
       id: node.id, type: node.type, name, method: node.method,
       expanded: node.expanded, children: node.children
@@ -578,8 +586,6 @@ export struct NimboWindow {
       id: tab.id, name, method: tab.method, dirty: tab.dirty,
       pinned: tab.pinned, loading: tab.loading, request: tab.request, response: tab.response
     } : tab);
-    this.renamingRequestId = '';
-    this.hideOverlay();
     this.persistLocalData();
     this.showToast($r('app.string.toast_saved'));
   }
@@ -813,6 +819,7 @@ export struct NimboWindow {
       contentType: response.contentType,
       size: response.size,
       duration: response.duration,
+      timing: response.timing,
       protocol: response.protocol,
       error: response.error,
       previewAvailable: response.previewAvailable,
@@ -950,7 +957,8 @@ export struct NimboWindow {
       headers: response.headers, cookies: response.cookies, body: response.body,
       binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
       contentType: response.contentType, size: response.size, duration: response.duration,
-      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      timing: response.timing, protocol: response.protocol, error: response.error,
+      previewAvailable: response.previewAvailable,
       scriptResults: response.scriptResults, extractionResults: results, testResults: response.testResults
     };
   }
@@ -962,7 +970,8 @@ export struct NimboWindow {
       headers: response.headers, cookies: response.cookies, body: response.body,
       binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
       contentType: response.contentType, size: response.size, duration: response.duration,
-      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      timing: response.timing, protocol: response.protocol, error: response.error,
+      previewAvailable: response.previewAvailable,
       scriptResults: response.scriptResults, extractionResults: response.extractionResults, testResults: results
     };
   }
@@ -1092,7 +1101,8 @@ export struct NimboWindow {
       headers: response.headers, cookies: response.cookies, body: response.body,
       binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
       contentType: response.contentType, size: response.size, duration: response.duration,
-      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      timing: response.timing, protocol: response.protocol, error: response.error,
+      previewAvailable: response.previewAvailable,
       scriptResults, extractionResults: response.extractionResults, testResults: response.testResults
     };
   }
@@ -1154,6 +1164,7 @@ export struct NimboWindow {
           contentType: response.contentType,
           size: response.size,
           duration: response.duration,
+          timing: response.timing,
           protocol: response.protocol,
           error: response.error,
           previewAvailable: true,
@@ -1245,6 +1256,7 @@ export struct NimboWindow {
         contentType: response.contentType,
         size: `${response.size} · 1.0 MB preview`,
         duration: response.duration,
+        timing: response.timing,
         protocol: response.protocol,
         error: response.error,
         previewAvailable: false,
@@ -1509,6 +1521,16 @@ export struct NimboWindow {
     }
   }
 
+  private async copyGeneratedCode(value: string): Promise<void> {
+    try {
+      const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, value);
+      await pasteboard.getSystemPasteboard().setData(data);
+      this.showToast($r('app.string.copied'));
+    } catch (_error) {
+      this.showToast($r('app.string.toast_copy_failed'));
+    }
+  }
+
   private async exportNimbo(includeSecrets: boolean): Promise<void> {
     try {
       const date = new Date().toISOString().substring(0, 10);
@@ -1690,14 +1712,18 @@ export struct NimboWindow {
             activeTabId: $activeTabId,
             phone: this.isPhone(),
             environments: this.environments,
+            selectedEnvironmentId: this.selectedEnvironmentId,
             onSelectTab: (id: string) => {
               this.activeTabId = id;
               this.persistLocalData();
             },
             onCloseTab: (id: string) => this.closeTab(id),
+            onCloseAllTabs: () => this.closeAllTabs(),
             onCreateTab: () => this.createTab(),
+            onRenameRequest: (id: string, name: string) => this.applyRequestName(id, name),
             onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
             onSaveRequest: (id: string) => this.beginSaveRequest(id),
+            onCopyGeneratedCode: (value: string) => this.copyGeneratedCode(value),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response),
             onCopyResponseBody: (response: ResponseModel) => this.copyResponseBody(response),
@@ -1763,6 +1789,16 @@ export struct NimboWindow {
         this.activeTabId = this.tabs[nextIndex].id;
       }
     }
+    this.persistLocalData();
+  }
+
+  private closeAllTabs(): void {
+    this.tabs.forEach((tab: RequestTabModel) => {
+      this.requestSerials.set(tab.id, (this.requestSerials.get(tab.id) ?? 0) + 1);
+      this.requestController.cancel(tab.id);
+    });
+    this.tabs = [];
+    this.activeTabId = '';
     this.persistLocalData();
   }
 
@@ -1879,6 +1915,11 @@ export struct NimboWindow {
       .width('100%')
       .height('100%')
       .backgroundColor(ColorTokens.bgApp)
+      .keyboardShortcut('s', [ModifierKey.CTRL], () => {
+        if (this.activeOverlay.length === 0 && this.activeTabId.length > 0) {
+          this.beginSaveRequest(this.activeTabId);
+        }
+      })
 
       if (this.activeOverlay === 'create-collection') {
         CollectionNameDialog({
@@ -2041,6 +2082,14 @@ export struct NimboWindow {
       }
     })
     .onKeyEvent((event: KeyEvent) => {
+      if (event.type === KeyType.Down && event.keyCode === 2035 &&
+        event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
+        if (this.activeOverlay.length === 0 && this.activeTabId.length > 0) {
+          const requestId = this.activeTabId;
+          setTimeout(() => this.beginSaveRequest(requestId), 0);
+        }
+        return true;
+      }
       if (event.type === KeyType.Down && event.keyCode === 2027 &&
         event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
         if (this.activeOverlay === 'global-search') this.hideOverlay();

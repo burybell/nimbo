@@ -1,11 +1,13 @@
-import { AuthConfig, AuthType } from '../../../models/ShellModels';
+import { AuthConfig, AuthType, KeyValueItem } from '../../../models/ShellModels';
 import { SecretInput } from '../common/SecretInput';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { VariableTextInput } from './VariableTextInput';
 
 @Component
 export struct AuthEditor {
   @Prop config: AuthConfig;
+  @Prop variables: KeyValueItem[] = [];
   onChange: (config: AuthConfig) => void = () => {};
 
   private update(type: AuthType, bearerToken: string, username: string, password: string,
@@ -68,6 +70,8 @@ export struct AuthEditor {
           this.fieldLabel($r('app.string.auth_token_label'))
           SecretInput({
             value: this.config.bearerToken,
+            variables: this.variables,
+            inputId: 'nimbo-auth-bearer',
             placeholder: $r('app.string.auth_bearer'),
             onChange: (value: string) => this.update(this.config.type, value, this.config.username,
               this.config.password, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
@@ -77,34 +81,46 @@ export struct AuthEditor {
             .fontColor(ColorTokens.textTertiary)
         } else if (this.config.type === 'basic') {
           this.fieldLabel($r('app.string.auth_username_label'))
-          TextInput({ text: this.config.username, placeholder: $r('app.string.username') })
-            .fontSize(13)
-            .height(SizeTokens.controlMedium)
-            .backgroundColor(ColorTokens.bgSurface)
+          VariableTextInput({
+            value: this.config.username,
+            variables: this.variables,
+            inputId: 'nimbo-auth-username',
+            fontSize: 13,
+            fillColor: ColorTokens.bgSurface,
+            placeholder: $r('app.string.username'),
+            onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
+              value, this.config.password, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
+          })
             .border({ width: 1, color: ColorTokens.borderDefault })
             .borderRadius(RadiusTokens.small)
-            .onChange((value: string) => this.update(this.config.type, this.config.bearerToken,
-              value, this.config.password, this.config.apiKey, this.config.apiValue, this.config.apiLocation))
           this.fieldLabel($r('app.string.auth_password_label'))
           SecretInput({
             value: this.config.password,
+            variables: this.variables,
+            inputId: 'nimbo-auth-password',
             placeholder: $r('app.string.password'),
             onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, value, this.config.apiKey, this.config.apiValue, this.config.apiLocation)
           })
         } else {
           this.fieldLabel($r('app.string.auth_key_label'))
-          TextInput({ text: this.config.apiKey, placeholder: 'X-API-Key' })
-            .fontSize(13)
-            .height(SizeTokens.controlMedium)
-            .backgroundColor(ColorTokens.bgSurface)
+          VariableTextInput({
+            value: this.config.apiKey,
+            variables: this.variables,
+            inputId: 'nimbo-auth-api-key',
+            fontSize: 13,
+            fillColor: ColorTokens.bgSurface,
+            placeholder: 'X-API-Key',
+            onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
+              this.config.username, this.config.password, value, this.config.apiValue, this.config.apiLocation)
+          })
             .border({ width: 1, color: ColorTokens.borderDefault })
             .borderRadius(RadiusTokens.small)
-            .onChange((value: string) => this.update(this.config.type, this.config.bearerToken,
-              this.config.username, this.config.password, value, this.config.apiValue, this.config.apiLocation))
           this.fieldLabel($r('app.string.auth_value_label'))
           SecretInput({
             value: this.config.apiValue,
+            variables: this.variables,
+            inputId: 'nimbo-auth-api-value',
             placeholder: $r('app.string.api_key_value'),
             onChange: (value: string) => this.update(this.config.type, this.config.bearerToken,
               this.config.username, this.config.password, this.config.apiKey, value, this.config.apiLocation)

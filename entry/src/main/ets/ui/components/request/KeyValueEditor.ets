@@ -4,10 +4,12 @@ import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { MultipartTypeSelector } from './MultipartTypeSelector';
+import { VariableTextInput } from './VariableTextInput';
 
 @Component
 export struct KeyValueEditor {
   @Prop items: KeyValueItem[] = [];
+  @Prop variables: KeyValueItem[] = [];
   @Prop mode: KeyValueMode = 'params';
   @Prop showDescription: boolean = true;
   @Prop showType: boolean = false;
@@ -42,20 +44,47 @@ export struct KeyValueEditor {
     }));
   }
 
-  private updateItem(id: string, key: string, value: string, description: string,
-    enabled: boolean, type: 'text' | 'file'): void {
+  private updateEnabled(id: string, enabled: boolean): void {
     this.onChange(this.items.map((item: KeyValueItem) => {
       if (item.id !== id) return item;
-      return {
-        id: item.id,
-        enabled,
-        key,
-        value,
-        description,
-        type,
-        secret: item.secret
-      };
+      return { id: item.id, enabled, key: item.key, value: item.value, description: item.description,
+        type: item.type, secret: item.secret };
     }));
+  }
+
+  private updateKey(id: string, key: string): void {
+    this.onChange(this.items.map((item: KeyValueItem) => item.id === id ? {
+      id: item.id, enabled: item.enabled, key, value: item.value, description: item.description,
+      type: item.type, secret: item.secret
+    } : item));
+  }
+
+  private updateValue(id: string, value: string): void {
+    this.onChange(this.items.map((item: KeyValueItem) => item.id === id ? {
+      id: item.id, enabled: item.enabled, key: item.key, value, description: item.description,
+      type: item.type, secret: item.secret
+    } : item));
+  }
+
+  private updateDescription(id: string, description: string): void {
+    this.onChange(this.items.map((item: KeyValueItem) => item.id === id ? {
+      id: item.id, enabled: item.enabled, key: item.key, value: item.value, description,
+      type: item.type, secret: item.secret
+    } : item));
+  }
+
+  private updateType(id: string, type: 'text' | 'file'): void {
+    this.onChange(this.items.map((item: KeyValueItem) => item.id === id ? {
+      id: item.id, enabled: item.enabled, key: item.key, value: item.value, description: item.description,
+      type, secret: item.secret
+    } : item));
+  }
+
+  private updateFile(id: string, value: string): void {
+    this.onChange(this.items.map((item: KeyValueItem) => item.id === id ? {
+      id: item.id, enabled: item.enabled, key: item.key, value, description: item.description,
+      type: 'file', secret: item.secret
+    } : item));
   }
 
   private addItem(): void {
@@ -101,10 +130,37 @@ export struct KeyValueEditor {
       const picker = new filePicker.DocumentViewPicker();
       const uris = await picker.select();
       if (uris.length > 0) {
-        this.updateItem(item.id, item.key, uris[0], item.description, item.enabled, 'file');
+        this.updateFile(item.id, uris[0]);
       }
     } catch (_error) {
       // Cancelling the system picker keeps the previous selection.
+    }
+  }
+
+  @Builder
+  private textValueInput(item: KeyValueItem) {
+    if (item.secret) {
+      TextInput({ text: item.value, placeholder: $r('app.string.field_value_placeholder') })
+        .type(InputType.Password)
+        .showPasswordIcon(false)
+        .fontSize(12)
+        .fontColor(ColorTokens.textPrimary)
+        .placeholderColor(ColorTokens.textTertiary)
+        .height(SizeTokens.controlMedium)
+        .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2 })
+        .backgroundColor(ColorTokens.bgWorkspace)
+        .borderRadius(RadiusTokens.small)
+        .layoutWeight(4)
+        .onChange((value: string) => this.updateValue(item.id, value))
+    } else {
+      VariableTextInput({
+        value: item.value,
+        variables: this.variables,
+        inputId: `nimbo-${this.mode}-${item.id}-value`,
+        placeholder: $r('app.string.field_value_placeholder'),
+        onChange: (value: string) => this.updateValue(item.id, value)
+      })
+        .layoutWeight(4)
     }
   }
 
@@ -249,15 +305,15 @@ export struct KeyValueEditor {
               .unselectedColor(ColorTokens.borderDefault)
               .width(18)
               .height(18)
-              .onChange((enabled: boolean) => this.updateItem(item.id, item.key, item.value,
-                item.description, enabled, item.type))
-            TextInput({ text: item.key, placeholder: $r('app.string.field_key_placeholder') })
-              .fontSize(12)
-              .height(SizeTokens.controlMedium)
-              .backgroundColor(ColorTokens.bgWorkspace)
+              .onChange((enabled: boolean) => this.updateEnabled(item.id, enabled))
+            VariableTextInput({
+              value: item.key,
+              variables: this.variables,
+              inputId: `nimbo-${this.mode}-${item.id}-key`,
+              placeholder: $r('app.string.field_key_placeholder'),
+              onChange: (value: string) => this.updateKey(item.id, value)
+            })
               .layoutWeight(3)
-              .onChange((value: string) => this.updateItem(item.id, value, item.value,
-                item.description, item.enabled, item.type))
             if (this.showType && item.type === 'file') {
               Button() {
                 Text(item.value.length > 0 ? item.value : $r('app.string.file_choose'))
@@ -272,14 +328,7 @@ export struct KeyValueEditor {
                 .layoutWeight(4)
                 .onClick(() => this.selectItemFile(item))
             } else {
-              TextInput({ text: item.value, placeholder: $r('app.string.field_value_placeholder') })
-                .type(item.secret ? InputType.Password : InputType.Normal)
-                .fontSize(12)
-                .height(SizeTokens.controlMedium)
-                .backgroundColor(ColorTokens.bgWorkspace)
-                .layoutWeight(4)
-                .onChange((value: string) => this.updateItem(item.id, item.key, value,
-                  item.description, item.enabled, item.type))
+              this.textValueInput(item)
             }
             if (this.showSecret) {
               Checkbox({ name: `${item.id}-secret` })
@@ -294,8 +343,7 @@ export struct KeyValueEditor {
             if (this.showType) {
               MultipartTypeSelector({
                 value: item.type,
-                onChange: (type: 'text' | 'file') => this.updateItem(item.id, item.key, item.value,
-                  item.description, item.enabled, type)
+                onChange: (type: 'text' | 'file') => this.updateType(item.id, type)
               })
             }
             if (this.showDescription) {
@@ -304,8 +352,7 @@ export struct KeyValueEditor {
                 .height(SizeTokens.controlMedium)
                 .backgroundColor(ColorTokens.bgWorkspace)
                 .layoutWeight(3)
-                .onChange((value: string) => this.updateItem(item.id, item.key, item.value,
-                  value, item.enabled, item.type))
+                .onChange((value: string) => this.updateDescription(item.id, value))
             }
             Text('⧉')
               .fontSize(15)
@@ -327,7 +374,7 @@ export struct KeyValueEditor {
           .transition(TransitionEffect.OPACITY
             .combine(TransitionEffect.scale({ x: 1, y: 0.82, centerY: '0%' }))
             .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
-        }, (item: KeyValueItem) => `${item.id}-${item.type}-${item.secret}`)
+        }, (item: KeyValueItem) => `${item.id}-${this.showSecret && item.secret ? 'secret' : 'plain'}`)
 
         Row({ space: SpacingTokens.x2 }) {
           Text('+')

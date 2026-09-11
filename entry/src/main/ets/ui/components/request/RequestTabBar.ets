@@ -1,7 +1,12 @@
-import { RequestTabModel } from '../../../models/ShellModels';
+import { ContextMenuItemModel, RequestTabModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
+import { NimboContextMenu } from '../common/NimboContextMenu';
+
+interface PopupVisibilityEvent {
+  isVisible: boolean;
+}
 
 @Component
 export struct RequestTabBar {
@@ -9,8 +14,62 @@ export struct RequestTabBar {
   @Link activeTabId: string;
   onSelect: (id: string) => void = () => {};
   onClose: (id: string) => void = () => {};
+  onCloseAll: () => void = () => {};
   onCreate: () => void = () => {};
+  onRename: (id: string, name: string) => void = () => {};
   @State hoveredTabId: string = '';
+  @State menuTabId: string = '';
+  @State menuOffsetX: number = 0;
+  @State menuOffsetY: number = 0;
+  @State editingTabId: string = '';
+  @State editingName: string = '';
+
+  private beginRename(tab: RequestTabModel): void {
+    this.editingTabId = tab.id;
+    this.editingName = tab.name;
+  }
+
+  private commitRename(tab: RequestTabModel): void {
+    if (this.editingTabId !== tab.id) return;
+    const name = this.editingName.trim();
+    this.editingTabId = '';
+    this.editingName = '';
+    if (name.length > 0 && name !== tab.name) this.onRename(tab.id, name);
+  }
+
+  private cancelRename(): void {
+    this.editingTabId = '';
+    this.editingName = '';
+  }
+
+  private menuItems(): ContextMenuItemModel[] {
+    return [
+      { id: 'close-current', label: $r('app.string.tab_menu_close_current'), icon: '×', dangerous: false },
+      { id: 'close-all', label: $r('app.string.tab_menu_close_all'), icon: '⊗', dangerous: false },
+      { id: 'new-request', label: $r('app.string.tab_menu_new_request'), icon: '+', dangerous: false }
+    ];
+  }
+
+  private handleMenuAction(action: string): void {
+    const tabId = this.menuTabId;
+    this.menuTabId = '';
+    if (action === 'close-current') {
+      if (tabId.length > 0) this.onClose(tabId);
+    } else if (action === 'close-all') {
+      this.onCloseAll();
+    } else if (action === 'new-request') {
+      this.onCreate();
+    }
+  }
+
+  @Builder
+  private tabMenu() {
+    NimboContextMenu({
+      items: this.menuItems(),
+      onSelect: (id: string) => this.handleMenuAction(id),
+      onDismiss: () => { this.menuTabId = ''; }
+    })
+  }
 
   private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
@@ -31,12 +90,40 @@ export struct RequestTabBar {
                 .fontSize(10)
                 .fontWeight(FontWeight.Medium)
                 .fontColor(this.methodColor(tab.method))
-              Text(tab.name)
-                .fontSize(12)
-                .fontColor(ColorTokens.textPrimary)
-                .layoutWeight(1)
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
+              if (this.editingTabId === tab.id) {
+                TextInput({ text: this.editingName })
+                  .id('nimboRequestTabRenameInput')
+                  .layoutWeight(1)
+                  .height(28)
+                  .fontSize(12)
+                  .fontColor(ColorTokens.textPrimary)
+                  .backgroundColor(Color.Transparent)
+                  .padding(0)
+                  .defaultFocus(true)
+                  .selectAll(true)
+                  .enterKeyType(EnterKeyType.Done)
+                  .onChange((value: string) => { this.editingName = value; })
+                  .onSubmit(() => this.commitRename(tab))
+                  .onBlur(() => this.commitRename(tab))
+                  .onAppear(() => {
+                    setTimeout(() => focusControl.requestFocus('nimboRequestTabRenameInput'), 20);
+                  })
+                  .onKeyEvent((event: KeyEvent) => {
+                    if (event.type === KeyType.Down && event.keyCode === 2070) {
+                      this.cancelRename();
+                      return true;
+                    }
+                    return false;
+                  })
+              } else {
+                Text(tab.name)
+                  .fontSize(12)
+                  .fontColor(ColorTokens.textPrimary)
+                  .layoutWeight(1)
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .gesture(TapGesture({ count: 2 }).onAction(() => this.beginRename(tab)))
+              }
               if (tab.dirty) {
                 Text('●')
                   .fontSize(7)
@@ -68,10 +155,29 @@ export struct RequestTabBar {
               .combine(TransitionEffect.scale({ x: 0.94, y: 1, centerX: '0%', centerY: '50%' }))
               .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
             .onHover((hovered: boolean) => { this.hoveredTabId = hovered ? tab.id : ''; })
+            .onMouse((event: MouseEvent) => {
+              if (event.action === MouseAction.Press && event.button === MouseButton.Right) {
+                this.menuOffsetX = event.x;
+                this.menuOffsetY = event.y - SizeTokens.requestTabBarHeight;
+                this.menuTabId = tab.id;
+              }
+            })
             .onClick(() => {
               this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
                 this.onSelect(tab.id);
               });
+            })
+            .bindPopup(this.menuTabId === tab.id, {
+              builder: this.tabMenu,
+              placement: Placement.BottomLeft,
+              offset: { x: this.menuOffsetX, y: this.menuOffsetY },
+              popupColor: Color.Transparent,
+              enableArrow: false,
+              autoCancel: true,
+              targetSpace: 0,
+              onStateChange: (event: PopupVisibilityEvent) => {
+                if (!event.isVisible && this.menuTabId === tab.id) this.menuTabId = '';
+              }
             })
           }, (tab: RequestTabModel) => `${tab.id}-${tab.name}-${tab.method}-${tab.dirty}`)
         }

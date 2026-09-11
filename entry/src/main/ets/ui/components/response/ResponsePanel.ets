@@ -10,6 +10,7 @@ import { MotionTokens } from '../../tokens/MotionTokens';
 import { MediaViewer } from './MediaViewer';
 import { TestResultsView } from './TestResultsView';
 import { ScriptResultsView } from './ScriptResultsView';
+import { ResponseTimeline } from './ResponseTimeline';
 
 @Component
 export struct ResponsePanel {
@@ -381,18 +382,8 @@ export struct ResponsePanel {
             .transition(TransitionEffect.OPACITY
               .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
         } else {
-          Column({ space: SpacingTokens.x2 }) {
-            Text($r('app.string.response_timing_unavailable'))
-              .fontSize(14)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(ColorTokens.textPrimary)
-            Text($r('app.string.response_timing_description'))
-              .fontSize(12)
-              .fontColor(ColorTokens.textTertiary)
-          }
+          ResponseTimeline({ timing: this.response.timing })
           .layoutWeight(1)
-          .width('100%')
-          .justifyContent(FlexAlign.Center)
           .transition(TransitionEffect.OPACITY
             .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
         }

@@ -26,7 +26,8 @@ export class ResponseTestService {
     if (rule.kind === 'durationLessThan') {
       const expectedText = rule.expected.trim();
       const expected = Number(expectedText);
-      const actual = Number(response.duration);
+      const displayedDuration = Number.parseFloat(response.duration);
+      const actual = response.timing.totalMs > 0 ? response.timing.totalMs : displayedDuration;
       if (expectedText.length === 0 || Number.isNaN(expected) || expected < 0) return ResponseTestService.result(rule,
         'failed', response.duration,
         'configurationInvalid');

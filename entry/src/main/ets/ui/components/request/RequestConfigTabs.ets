@@ -57,6 +57,7 @@ export struct RequestConfigTabs {
           this.extractionCount > 0 ? this.extractionCount.toString() : '')
         this.tabItem('tests', $r('app.string.tab_tests'),
           this.testCount > 0 ? this.testCount.toString() : '')
+        this.tabItem('generate', $r('app.string.tab_generate'))
         this.tabItem('settings', $r('app.string.nav_settings'))
       }
     }

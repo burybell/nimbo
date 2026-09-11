@@ -2,6 +2,7 @@ import { BodyType, KeyValueItem } from '../../../models/ShellModels';
 import filePicker from '@ohos.file.picker';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { JsonCodeSurface } from '../common/JsonCodeSurface';
 import { JsonEditor } from './JsonEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 
@@ -9,6 +10,7 @@ import { KeyValueEditor } from './KeyValueEditor';
 export struct BodyEditor {
   @Prop bodyType: BodyType = 'none';
   @Prop bodyText: string = '';
+  @Prop variables: KeyValueItem[] = [];
   @Prop formItems: KeyValueItem[] = [];
   @Prop multipartItems: KeyValueItem[] = [];
   @Prop binaryFileName: string = '';
@@ -72,23 +74,21 @@ export struct BodyEditor {
         .width('100%')
         .justifyContent(FlexAlign.Center)
       } else if (this.bodyType === 'json') {
-        JsonEditor({ value: this.bodyText, onChange: this.onTextChange })
+        JsonEditor({ value: this.bodyText, variables: this.variables, onChange: this.onTextChange })
           .layoutWeight(1)
       } else if (this.bodyType === 'text') {
-        TextArea({ text: this.bodyText, placeholder: $r('app.string.body_text_placeholder') })
-          .fontSize(13)
-          .fontFamily('monospace')
-          .fontColor(ColorTokens.textPrimary)
-          .height('100%')
-          .padding(SpacingTokens.x3)
-          .backgroundColor(ColorTokens.bgWorkspace)
-          .border({ width: 1, color: ColorTokens.borderSubtle })
-          .borderRadius(RadiusTokens.small)
+        JsonCodeSurface({
+          value: this.bodyText,
+          variables: this.variables,
+          syntaxHighlight: false,
+          placeholder: $r('app.string.body_text_placeholder'),
+          onChange: this.onTextChange
+        })
           .layoutWeight(1)
-          .onChange((value: string) => this.onTextChange(value))
       } else if (this.bodyType === 'form') {
         KeyValueEditor({
           items: this.formItems,
+          variables: this.variables,
           mode: 'form',
           showDescription: true,
           onChange: this.onFormChange
@@ -96,6 +96,7 @@ export struct BodyEditor {
       } else if (this.bodyType === 'multipart') {
         KeyValueEditor({
           items: this.multipartItems,
+          variables: this.variables,
           mode: 'multipart',
           showDescription: true,
           showType: true,

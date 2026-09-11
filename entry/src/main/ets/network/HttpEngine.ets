@@ -23,6 +23,11 @@ export class HttpEngine {
     return http.RequestMethod.GET;
   }
 
+  private phaseDuration(end: number, start: number): number {
+    if (end <= 0) return 0;
+    return Math.max(0, end - Math.max(0, start));
+  }
+
   async execute(id: string, request: HttpEngineRequest): Promise<HttpEngineResponse> {
     this.cancel(id);
     const task = http.createHttp();
@@ -73,12 +78,30 @@ export class HttpEngine {
       } else if (typeof response.result === 'string') {
         body = new util.TextEncoder().encodeInto(response.result).buffer as ArrayBuffer;
       }
+      const performance = response.performanceTiming;
+      const dnsEnd = performance.dnsTiming;
+      const connectEnd = performance.tcpTiming;
+      const tlsEnd = performance.tlsTiming;
+      const connectionEnd = Math.max(dnsEnd, connectEnd, tlsEnd);
+      const sendEnd = performance.firstSendTiming;
+      const receiveStart = performance.firstReceiveTiming;
+      const finish = performance.totalFinishTiming;
+      const measuredTotal = Date.now() - startedAt;
       return {
         statusCode: Number(response.responseCode),
         headers: response.header as Record<string, string | Array<string>>,
         cookies: response.cookies,
         body,
-        durationMs: Date.now() - startedAt,
+        durationMs: measuredTotal,
+        timing: {
+          dnsMs: Math.max(0, dnsEnd),
+          connectMs: this.phaseDuration(connectEnd, dnsEnd),
+          tlsMs: this.phaseDuration(tlsEnd, Math.max(dnsEnd, connectEnd)),
+          sendMs: this.phaseDuration(sendEnd, connectionEnd),
+          waitMs: this.phaseDuration(receiveStart, sendEnd),
+          downloadMs: this.phaseDuration(finish, receiveStart),
+          totalMs: performance.totalTiming > 0 ? performance.totalTiming : measuredTotal
+        },
         protocol: response.connectionExtraInfo ? response.connectionExtraInfo.networkProtocolName : 'HTTP'
       };
     } catch (error) {

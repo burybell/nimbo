@@ -18,6 +18,7 @@ import { SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { AuthEditor } from './AuthEditor';
 import { BodyEditor } from './BodyEditor';
+import { CodeGenerationEditor } from './CodeGenerationEditor';
 import { ExtractionEditor } from './ExtractionEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 import { PreRequestScriptEditor } from './PreRequestScriptEditor';
@@ -31,9 +32,11 @@ export struct RequestPanel {
   @Prop request: RequestDraft;
   @Prop phone: boolean = false;
   @Prop environments: EnvironmentModel[] = [];
+  @Prop selectedEnvironmentId: string = '';
+  onSaveRequest: () => void = () => {};
+  onCopyGeneratedCode: (value: string) => void = () => {};
   @Prop response: ResponseModel;
   onChange: (request: RequestDraft) => void = () => {};
-  onSave: () => void = () => {};
 
   private emit(method: HttpMethod, url: string, lifecycle: RequestLifecycle,
     activeConfigTab: RequestConfigTab, params: KeyValueItem[], headers: KeyValueItem[],
@@ -83,6 +86,11 @@ export struct RequestPanel {
     return this.request.headers.filter((item: KeyValueItem) => item.enabled).length;
   }
 
+  private activeVariables(): KeyValueItem[] {
+    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
+    return environment ? environment.variables : [];
+  }
+
   build() {
     Column() {
       RequestToolbar({
@@ -90,6 +98,7 @@ export struct RequestPanel {
         url: this.request.url,
         lifecycle: this.request.lifecycle,
         phone: this.phone,
+        variables: this.activeVariables(),
         onMethodChange: (method: HttpMethod) => this.emitCore(method, this.request.url,
           this.request.lifecycle, this.request.activeConfigTab),
         onUrlChange: (url: string) => this.emitCore(this.request.method, url,
@@ -97,8 +106,7 @@ export struct RequestPanel {
         onSend: () => this.emitCore(this.request.method, this.request.url, 'sending',
           this.request.activeConfigTab),
         onCancel: () => this.emitCore(this.request.method, this.request.url, 'idle',
-          this.request.activeConfigTab),
-        onSave: this.onSave
+          this.request.activeConfigTab)
       })
         .padding({ left: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,
           right: this.phone ? SpacingTokens.x3 : SpacingTokens.x4,
@@ -120,6 +128,7 @@ export struct RequestPanel {
         Scroll() {
           KeyValueEditor({
             items: this.request.params,
+            variables: this.activeVariables(),
             mode: 'params',
             showDescription: true,
             onChange: (items: KeyValueItem[]) => this.emit(this.request.method, this.request.url,
@@ -139,6 +148,7 @@ export struct RequestPanel {
         Scroll() {
           KeyValueEditor({
             items: this.request.headers,
+            variables: this.activeVariables(),
             mode: 'headers',
             showDescription: true,
             onChange: (items: KeyValueItem[]) => this.emit(this.request.method, this.request.url,
@@ -157,6 +167,7 @@ export struct RequestPanel {
       } else if (this.request.activeConfigTab === 'auth') {
         AuthEditor({
           config: this.request.auth,
+          variables: this.activeVariables(),
           onChange: (auth: AuthConfig) => this.emit(this.request.method, this.request.url,
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
@@ -168,6 +179,7 @@ export struct RequestPanel {
       } else if (this.request.activeConfigTab === 'body') {
         BodyEditor({
           bodyType: this.request.bodyType,
+          variables: this.activeVariables(),
           bodyText: this.request.bodyText,
           formItems: this.request.formItems,
           multipartItems: this.request.multipartItems,
@@ -211,6 +223,7 @@ export struct RequestPanel {
       } else if (this.request.activeConfigTab === 'postResponse') {
         PreRequestScriptEditor({
           script: this.request.postResponseScript,
+          scope: 'postResponse',
           hint: $r('app.string.script_post_response_hint'),
           apiHint: $r('app.string.script_post_response_api_hint'),
           editorPlaceholder: $r('app.string.script_post_response_placeholder'),
@@ -250,6 +263,14 @@ export struct RequestPanel {
           .layoutWeight(1)
           .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
             .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      } else if (this.request.activeConfigTab === 'generate') {
+        CodeGenerationEditor({
+          request: this.request,
+          onCopy: this.onCopyGeneratedCode
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
       } else {
         RequestSettingsEditor({
           settings: this.request.settings,
@@ -267,6 +288,11 @@ export struct RequestPanel {
     .height('100%')
     .backgroundColor(ColorTokens.bgWorkspace)
     .onKeyEvent((event: KeyEvent) => {
+      if (event.type === KeyType.Down && event.keyCode === 2035 &&
+        event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
+        setTimeout(() => this.onSaveRequest(), 0);
+        return true;
+      }
       if (event.type === KeyType.Down && event.keyCode === 2054 &&
         event.getModifierKeyState !== undefined && event.getModifierKeyState(['ctrl'])) {
         this.emitCore(this.request.method, this.request.url,

@@ -13,6 +13,7 @@ interface CurlToken {
 export struct CurlCodeSurface {
   @Watch('handleExternalValue') @Prop value: string = '';
   @Prop invalid: boolean = false;
+  @Prop readOnly: boolean = false;
   onChange: (value: string) => void = () => {};
   private controller: RichEditorStyledStringController = new RichEditorStyledStringController();
   private displayedValue: string = '';
@@ -158,6 +159,7 @@ export struct CurlCodeSurface {
   }
 
   private willChange(change: StyledStringChangeValue): boolean {
+    if (this.readOnly) return false;
     if (this.applyingStyle) return true;
     const current = this.controller.getStyledString().getString();
     const start = change.range.start ?? 0;
@@ -204,6 +206,7 @@ export struct CurlCodeSurface {
         .caretColor(ColorTokens.brand500)
         .selectedBackgroundColor(ColorTokens.codeSelection)
         .copyOptions(CopyOptions.LocalDevice)
+        .enableKeyboardOnFocus(!this.readOnly)
         .placeholder('curl https://api.example.com/users', { fontColor: ColorTokens.codeLineNumber })
         .onAppear(() => {
           this.registerContentListener();

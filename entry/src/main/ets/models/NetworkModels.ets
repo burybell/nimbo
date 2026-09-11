@@ -1,4 +1,4 @@
-import { HttpMethod } from './ShellModels';
+import { HttpMethod, ResponseTiming } from './ShellModels';
 
 export interface HttpMultipartPart {
   name: string;
@@ -24,5 +24,6 @@ export interface HttpEngineResponse {
   cookies: string;
   body: ArrayBuffer;
   durationMs: number;
+  timing: ResponseTiming;
   protocol: string;
 }

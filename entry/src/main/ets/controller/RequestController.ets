@@ -298,6 +298,7 @@ export class RequestController {
       contentType,
       size: this.formatSize(size),
       duration: `${result.durationMs} ms`,
+      timing: result.timing,
       protocol: result.protocol,
       error: { type: 'unknown', title: '', message: '', code: '', details: '' },
       previewAvailable: status === 'large',

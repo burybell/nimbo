@@ -173,10 +173,17 @@ export class CurlCodec {
 
   static encode(request: RequestDraft): string {
     const parts: string[] = ['curl', '-X', request.method, CurlCodec.quote(CurlCodec.urlWithParams(request))];
-    request.headers.filter((item: KeyValueItem) => item.enabled && item.key.length > 0)
-      .forEach((item: KeyValueItem) => parts.push('-H', CurlCodec.quote(`${item.key}: ${item.value}`)));
+    const headers = request.headers.filter((item: KeyValueItem) => item.enabled && item.key.length > 0);
+    headers.forEach((item: KeyValueItem) => parts.push('-H', CurlCodec.quote(`${item.key}: ${item.value}`)));
+    if (request.bodyType === 'json' &&
+      !headers.some((item: KeyValueItem) => item.key.toLowerCase() === 'content-type')) {
+      parts.push('-H', CurlCodec.quote('Content-Type: application/json'));
+    }
     if (request.auth.type === 'bearer') parts.push('-H', CurlCodec.quote(`Authorization: Bearer ${request.auth.bearerToken}`));
     if (request.auth.type === 'basic') parts.push('-u', CurlCodec.quote(`${request.auth.username}:${request.auth.password}`));
+    if (request.auth.type === 'apiKey' && request.auth.apiLocation === 'header' && request.auth.apiKey.length > 0) {
+      parts.push('-H', CurlCodec.quote(`${request.auth.apiKey}: ${request.auth.apiValue}`));
+    }
     if (request.bodyType === 'json' || request.bodyType === 'text') parts.push('--data-raw', CurlCodec.quote(request.bodyText));
     if (request.bodyType === 'form') request.formItems.filter((item: KeyValueItem) => item.enabled)
       .forEach((item: KeyValueItem) => parts.push('--data-urlencode', CurlCodec.quote(`${item.key}=${item.value}`)));
@@ -188,8 +195,16 @@ export class CurlCodec {
   private static urlWithParams(request: RequestDraft): string {
     const params: string[] = [];
     request.params.filter((item: KeyValueItem) => item.enabled && item.key.length > 0)
-      .forEach((item: KeyValueItem) => params.push(`${encodeURIComponent(item.key)}=${encodeURIComponent(item.value)}`));
+      .forEach((item: KeyValueItem) => params.push(
+        `${CurlCodec.encodeQueryPart(item.key)}=${CurlCodec.encodeQueryPart(item.value)}`));
+    if (request.auth.type === 'apiKey' && request.auth.apiLocation === 'query' && request.auth.apiKey.length > 0) {
+      params.push(`${CurlCodec.encodeQueryPart(request.auth.apiKey)}=${CurlCodec.encodeQueryPart(request.auth.apiValue)}`);
+    }
     if (params.length === 0) return request.url;
     return `${request.url}${request.url.includes('?') ? '&' : '?'}${params.join('&')}`;
+  }
+
+  private static encodeQueryPart(value: string): string {
+    return value.includes('{{') ? value : encodeURIComponent(value);
   }
 }

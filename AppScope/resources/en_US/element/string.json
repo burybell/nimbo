@@ -316,6 +316,14 @@
       "name": "response_timing_description",
       "value": "Detailed DNS, connection, TLS, and download timing is not available yet."
     },
+    { "name": "timeline_total", "value": "Total time" },
+    { "name": "timeline_dns", "value": "DNS lookup" },
+    { "name": "timeline_connect", "value": "Connection" },
+    { "name": "timeline_tls", "value": "TLS handshake" },
+    { "name": "timeline_send", "value": "Request sent" },
+    { "name": "timeline_wait", "value": "Waiting (TTFB)" },
+    { "name": "timeline_download", "value": "Response download" },
+    { "name": "timeline_reuse_hint", "value": "A 0 ms stage usually means the connection, DNS result, or TLS session was reused." },
     {
       "name": "response_large",
       "value": "Large response"
@@ -685,6 +693,18 @@
       "value": "Tests"
     },
     {
+      "name": "tab_generate",
+      "value": "Generate"
+    },
+    {
+      "name": "generate_hint",
+      "value": "Generate request code examples from the current draft. Environment variable references are preserved."
+    },
+    {
+      "name": "generate_copy",
+      "value": "Copy code"
+    },
+    {
       "name": "tests_hint",
       "value": "Run deterministic assertions after each response. Rules are saved with the request; results are not persisted."
     },
@@ -785,6 +805,9 @@
       "name": "tab_timeline",
       "value": "Timeline"
     },
+    { "name": "tab_menu_close_current", "value": "Close current" },
+    { "name": "tab_menu_close_all", "value": "Close all" },
+    { "name": "tab_menu_new_request", "value": "New request" },
     {
       "name": "body_none",
       "value": "None"

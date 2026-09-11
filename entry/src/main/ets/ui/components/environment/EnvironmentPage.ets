@@ -82,13 +82,16 @@ export struct EnvironmentPage {
                 .fontColor(ColorTokens.textTertiary).maxLines(2)
             }
             .layoutWeight(1)
-            if (!this.selectedEnvironment().system) {
-              Button($r('app.string.action_delete')).fontSize(11).fontColor(ColorTokens.httpDelete)
-                .backgroundColor(ColorTokens.statusDangerBackground).borderRadius(RadiusTokens.small)
-                .onClick(() => this.onDelete(this.selectedId))
+            .alignItems(HorizontalAlign.Start)
+            Row({ space: SpacingTokens.x2 }) {
+              if (!this.selectedEnvironment().system) {
+                Button($r('app.string.action_delete')).fontSize(11).fontColor(ColorTokens.httpDelete)
+                  .backgroundColor(ColorTokens.statusDangerBackground).borderRadius(RadiusTokens.small)
+                  .onClick(() => this.onDelete(this.selectedId))
+              }
+              Button($r('app.string.action_save')).fontSize(12).fontColor(ColorTokens.textOnBrand)
+                .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium).onClick(this.onSaved)
             }
-            Button($r('app.string.action_save')).fontSize(12).fontColor(ColorTokens.textOnBrand)
-              .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium).onClick(this.onSaved)
           }
           .width('100%').height(68).padding({ left: SpacingTokens.x4, right: SpacingTokens.x3 })
           .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
@@ -173,21 +176,24 @@ export struct EnvironmentPage {
               .fontSize(12)
               .fontColor(ColorTokens.textTertiary)
           }
+          .alignItems(HorizontalAlign.Start)
           Blank()
-          if (!this.selectedEnvironment().system) {
-            Button($r('app.string.action_delete'))
-              .fontSize(12)
-              .fontColor(ColorTokens.httpDelete)
-              .backgroundColor(ColorTokens.statusDangerBackground)
+          Row({ space: SpacingTokens.x2 }) {
+            if (!this.selectedEnvironment().system) {
+              Button($r('app.string.action_delete'))
+                .fontSize(12)
+                .fontColor(ColorTokens.httpDelete)
+                .backgroundColor(ColorTokens.statusDangerBackground)
+                .borderRadius(RadiusTokens.medium)
+                .onClick(() => this.onDelete(this.selectedId))
+            }
+            Button($r('app.string.action_save'))
+              .fontSize(13)
+              .fontColor(ColorTokens.textOnBrand)
+              .backgroundColor(ColorTokens.brand500)
               .borderRadius(RadiusTokens.medium)
-              .onClick(() => this.onDelete(this.selectedId))
+              .onClick(this.onSaved)
           }
-          Button($r('app.string.action_save'))
-            .fontSize(13)
-            .fontColor(ColorTokens.textOnBrand)
-            .backgroundColor(ColorTokens.brand500)
-            .borderRadius(RadiusTokens.medium)
-            .onClick(this.onSaved)
         }
         .width('100%')
         .height(76)

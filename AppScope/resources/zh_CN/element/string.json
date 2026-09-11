@@ -316,6 +316,14 @@
       "name": "response_timing_description",
       "value": "详细的 DNS、连接、TLS 和下载计时暂不可用。"
     },
+    { "name": "timeline_total", "value": "总耗时" },
+    { "name": "timeline_dns", "value": "DNS 解析" },
+    { "name": "timeline_connect", "value": "建立连接" },
+    { "name": "timeline_tls", "value": "TLS 握手" },
+    { "name": "timeline_send", "value": "发送请求" },
+    { "name": "timeline_wait", "value": "等待响应 (TTFB)" },
+    { "name": "timeline_download", "value": "下载响应" },
+    { "name": "timeline_reuse_hint", "value": "阶段显示 0 ms 通常表示连接、DNS 或 TLS 会话被复用。" },
     {
       "name": "response_large",
       "value": "大型响应"
@@ -685,6 +693,18 @@
       "value": "测试"
     },
     {
+      "name": "tab_generate",
+      "value": "生成"
+    },
+    {
+      "name": "generate_hint",
+      "value": "根据当前请求生成代码示例；环境变量引用会原样保留。"
+    },
+    {
+      "name": "generate_copy",
+      "value": "复制代码"
+    },
+    {
       "name": "tests_hint",
       "value": "每次收到响应后执行确定性的断言。规则随请求保存，执行结果不会持久化。"
     },
@@ -785,6 +805,9 @@
       "name": "tab_timeline",
       "value": "时间线"
     },
+    { "name": "tab_menu_close_current", "value": "关闭当前" },
+    { "name": "tab_menu_close_all", "value": "关闭全部" },
+    { "name": "tab_menu_new_request", "value": "新建请求" },
     {
       "name": "body_none",
       "value": "无"

@@ -1,7 +1,7 @@
 import { RequestScript } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
-import { JsonCodeSurface } from '../common/JsonCodeSurface';
+import { JavaScriptCompletionScope, JsonCodeSurface } from '../common/JsonCodeSurface';
 
 @Component
 export struct PreRequestScriptEditor {
@@ -9,6 +9,7 @@ export struct PreRequestScriptEditor {
   @Prop hint: ResourceStr = $r('app.string.script_pre_request_hint');
   @Prop apiHint: ResourceStr = $r('app.string.script_pre_request_api_hint');
   @Prop editorPlaceholder: ResourceStr = $r('app.string.script_pre_request_placeholder');
+  @Prop scope: JavaScriptCompletionScope = 'preRequest';
   onChange: (script: RequestScript) => void = () => {};
 
   build() {
@@ -42,6 +43,7 @@ export struct PreRequestScriptEditor {
       JsonCodeSurface({
         value: this.script.source,
         language: 'javascript',
+        completionScope: this.scope,
         placeholder: this.editorPlaceholder,
         onChange: (source: string) => this.onChange({ enabled: this.script.enabled, source })
       })
