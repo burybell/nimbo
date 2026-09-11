@@ -41,9 +41,10 @@ Nimbo 是一款面向开发者的鸿蒙电脑原生 API 调试客户端。它以
 - `screenshots/01-request-response.png`：请求与 JSON 响应
 - `screenshots/02-collections.png`：中文集合与文件夹操作
 - `screenshots/03-environments.png`：环境变量管理
-- `screenshots/04-image-preview.png`：图片响应预览
+- `screenshots/04-history.png`：请求历史与状态记录
 - `screenshots/05-settings.png`：外观与字体设置
 - `Nimbo-示例集合.postman_collection.json`：截图与体验用中文示例集合
+- `package/Nimbo-0.1.0-PC-release-signed.app`：使用共享发布证书和 Nimbo 发布 Profile 构建的正式提审包
 - `package/Nimbo-0.1.0-PC-release-unsigned.hap`：PC 专用 Release 未签名包，可用于 AppGallery Connect 云管理签名流程
 - `package/Nimbo-0.1.0-PC-release-debug-profile-signed.hap`：使用现有设备调试 Profile 签名的模拟器测试包，不可提交商店
 - `package/SHA256SUMS.txt`：安装包完整性校验值
@@ -59,11 +60,14 @@ Nimbo 是一款面向开发者的鸿蒙电脑原生 API 调试客户端。它以
 
 ## 安装包签名状态
 
-当前代码产物已经是 `release` 模式、`debug: false`，模块只声明 `2in1`。但本机现有签名 Profile 为 `type: debug` 且绑定模拟器设备，因此目录中的已签名 HAP 只能用于测试，不能直接上传应用市场。
+`Nimbo-0.1.0-PC-release-signed.app` 已使用 `/Users/lake/app` 中的共享发布密钥、发布证书及 Nimbo 独立发布 Profile 完成签名，可用于 AppGallery Connect 软件包上传。验收结果：
 
-正式提交可选择以下一种方式：
+- 构建模式：Release
+- 包名：`com.nimbo.app`
+- APP ID：`6917615930484878194`
+- Profile 类型：`release`
+- 设备类型：`2in1`
+- 版本：`0.1.0`（`1000000`）
+- APP 签名：验证通过，签名证书与共享发布证书一致
 
-1. 通过 DevEco Studio 上传 `Nimbo-0.1.0-PC-release-unsigned.hap`，在 AppGallery Connect 使用云管理签名。
-2. 在 AppGallery Connect 申请发布证书与发布 Profile，然后在本机配置相应 `.p12`、`.cer`、`.p7b`，重新构建正式签名 HAP。
-
-不要将 `Nimbo-0.1.0-PC-release-debug-profile-signed.hap` 上传到应用市场。
+提审时请上传 `.app` 文件。不要上传目录中的调试 Profile 签名 HAP。
