@@ -347,6 +347,8 @@ Milestone 11 将后续候选能力收敛为不依赖账号、云端或 Runner �
 
 第一批进度（2026-09-11）：已实现 OpenAPI 3.0 / 3.1 与 Swagger 2.0 JSON 本地导入。新增独立解析服务和四步导入预览，支持首个 Server、Server Variable 默认值、Tag 文件夹、Path/Query/Header 参数、JSON 示例、表单/Multipart、Basic/Bearer/API Key，并对未赋值 Path 参数、Cookie 参数和不支持的认证给出警告。入口已加入新建 Split Button 与全局搜索，导入结果复用现有 Collection / Request 持久化路径。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。YAML、远程 URL 和外部 `$ref` 暂不在第一批支持范围。
 
+第一批 UI 收口（2026-09-11）：Postman Collection/Environment、OpenAPI 3.x 与 Swagger 2.0 合并为统一“导入 API 文件”弹窗；可点击选择或将 JSON 文件拖入 Drop Zone，读取后自动识别格式并进入同一预览/原子导入流程。全局搜索同步合并为单一入口。新建 Split Button 的下拉菜单改为覆盖层展示，展开与关闭均不再改变侧栏高度或挤压 Workspace Tab。
+
 第二批进度（2026-09-11）：请求配置新增“提取”页，可保存多条 JSONPath → 环境变量规则并基于当前响应只读预览。发送得到 2xx/3xx JSON 响应后才执行规则，每条规则必须明确目标环境；同名变量默认报告冲突，只有开启“允许覆盖”才会更新，敏感值可写入 Secret 变量。成功、路径未匹配、JSON/JSONPath 无效、目标环境缺失和覆盖冲突均显示逐条结果，执行结果仅保留在当前响应、不进入长期持久化。JSONPath 当前支持根 `$`、点属性、引号属性、数组索引和属性/数组通配符；过滤器、递归下降和脚本表达式暂缓。持久化 schema 升级至 v6，旧请求自动补齐空规则且不丢数据。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。
 
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、任意 JavaScript Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的其他能力。

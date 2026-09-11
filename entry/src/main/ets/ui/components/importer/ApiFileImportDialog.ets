@@ -4,22 +4,28 @@ import { MotionTokens } from '../../tokens/MotionTokens';
 import filePicker from '@ohos.file.picker';
 import { fileIo } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
+import unifiedDataChannel from '@ohos.data.unifiedDataChannel';
+import { PostmanCodec, PostmanImportResult } from '../../../services/PostmanCodec';
 import { OpenApiCodec, OpenApiImportResult } from '../../../services/OpenApiCodec';
 
 @Component
-export struct OpenApiImportDialog {
+export struct ApiFileImportDialog {
   @State step: string = 'select';
+  @State dragging: boolean = false;
   @State fileName: string = '';
   @State importName: string = '';
-  @State specification: string = '';
+  @State formatName: string = '';
   @State requestCount: number = 0;
   @State folderCount: number = 0;
+  @State environmentCount: number = 0;
   @State warningText: string = '';
   @State errorText: string = '';
-  private parsedResult: OpenApiImportResult | undefined = undefined;
+  private postmanResult: PostmanImportResult | undefined = undefined;
+  private openApiResult: OpenApiImportResult | undefined = undefined;
   onCancel: () => void = () => {};
   onComplete: () => void = () => {};
-  onImport: (result: OpenApiImportResult) => void = () => {};
+  onImportPostman: (result: PostmanImportResult) => void = () => {};
+  onImportOpenApi: (result: OpenApiImportResult) => void = () => {};
 
   private displayName(uri: string): string {
     const slash = uri.lastIndexOf('/');
@@ -47,33 +53,87 @@ export struct OpenApiImportDialog {
     }
   }
 
-  private async selectFile(): Promise<void> {
+  private resetResult(): void {
+    this.postmanResult = undefined;
+    this.openApiResult = undefined;
+    this.requestCount = 0;
+    this.folderCount = 0;
+    this.environmentCount = 0;
+    this.warningText = '';
+  }
+
+  private analyze(text: string): void {
+    let probe: Record<string, Object>;
     try {
-      const picker = new filePicker.DocumentViewPicker();
-      const uris = await picker.select();
-      if (uris.length === 0) return;
-      this.fileName = this.displayName(uris[0]);
-      this.errorText = '';
-      this.step = 'analyzing';
-      const result = OpenApiCodec.parse(await this.readText(uris[0]));
-      this.parsedResult = result;
+      probe = JSON.parse(text) as Record<string, Object>;
+    } catch (_error) {
+      throw new Error('The selected file is not valid JSON.');
+    }
+    if (Object.keys(probe).includes('openapi') || Object.keys(probe).includes('swagger')) {
+      const result = OpenApiCodec.parse(text);
+      this.openApiResult = result;
       this.importName = result.name;
-      this.specification = result.specification;
+      this.formatName = result.specification;
       this.requestCount = result.requestCount;
       this.folderCount = result.folderCount;
       this.warningText = result.warnings.join('\n');
+      return;
+    }
+    const result = PostmanCodec.parse(text);
+    this.postmanResult = result;
+    this.importName = result.name;
+    this.formatName = result.environments.length > 0 ? 'Postman Environment' : 'Postman Collection v2';
+    this.requestCount = result.requestCount;
+    this.folderCount = result.folderCount;
+    this.environmentCount = result.environments.length;
+    this.warningText = result.warnings.join('\n');
+  }
+
+  private async processUri(uri: string): Promise<void> {
+    try {
+      this.resetResult();
+      this.fileName = this.displayName(uri);
+      this.errorText = '';
+      this.step = 'analyzing';
+      this.analyze(await this.readText(uri));
       this.step = 'preview';
     } catch (error) {
-      this.parsedResult = undefined;
+      this.resetResult();
       this.errorText = `${error}`.replace('Error: ', '');
       this.step = 'select';
     }
   }
 
+  private async selectFile(): Promise<void> {
+    try {
+      const picker = new filePicker.DocumentViewPicker();
+      const uris = await picker.select();
+      if (uris.length > 0) await this.processUri(uris[0]);
+    } catch (error) {
+      this.errorText = `${error}`.replace('Error: ', '');
+    }
+  }
+
+  private acceptDrop(event: DragEvent): void {
+    this.dragging = false;
+    try {
+      const records = event.getData().getRecords();
+      const file = records.find((record: unifiedDataChannel.UnifiedRecord) =>
+        record instanceof unifiedDataChannel.File) as unifiedDataChannel.File | undefined;
+      if (file === undefined || file.uri.length === 0) {
+        this.errorText = 'Drop a readable JSON file.';
+        return;
+      }
+      this.processUri(file.uri);
+    } catch (_error) {
+      this.errorText = 'The dropped file could not be read.';
+    }
+  }
+
   private importFile(): void {
-    if (!this.parsedResult) return;
-    this.onImport(this.parsedResult);
-    this.step = 'result';
+    if (this.postmanResult !== undefined) this.onImportPostman(this.postmanResult);
+    if (this.openApiResult !== undefined) this.onImportOpenApi(this.openApiResult);
+    if (this.postmanResult !== undefined || this.openApiResult !== undefined) this.step = 'result';
   }
 
   @Builder
@@ -82,43 +142,57 @@ export struct OpenApiImportDialog {
       Text(label).fontSize(12).fontColor(ColorTokens.textTertiary)
       Blank()
       Text(value).fontSize(13).fontColor(ColorTokens.textPrimary)
+        .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
     }.width('100%').height(34)
   }
 
   @Builder
   private content() {
     if (this.step === 'select') {
-      Column({ space: SpacingTokens.x4 }) {
+      Column({ space: SpacingTokens.x3 }) {
         Text('{ }').fontSize(28).fontWeight(FontWeight.Medium).fontColor(ColorTokens.brand500)
-        Text($r('app.string.openapi_select_title')).fontSize(16).fontWeight(FontWeight.Medium)
+        Text($r('app.string.api_import_select_title')).fontSize(16).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
-        Text($r('app.string.openapi_support_hint')).fontSize(12).fontColor(ColorTokens.textTertiary)
+        Text($r('app.string.api_import_support_hint')).fontSize(12).fontColor(ColorTokens.textTertiary)
+          .textAlign(TextAlign.Center)
+        Text($r('app.string.api_import_drop_hint')).fontSize(12).fontColor(ColorTokens.brand600)
         Button($r('app.string.select_file')).height(SizeTokens.controlLarge).fontSize(13)
           .fontColor(ColorTokens.textOnBrand).backgroundColor(ColorTokens.brand500)
           .borderRadius(RadiusTokens.medium).onClick(() => this.selectFile())
         if (this.errorText.length > 0) {
           Text(this.errorText).fontSize(12).fontColor(ColorTokens.httpDelete).textAlign(TextAlign.Center)
         }
-      }.width('100%').height(270).justifyContent(FlexAlign.Center)
+      }
+      .width('100%').height(280).justifyContent(FlexAlign.Center)
+      .backgroundColor(this.dragging ? ColorTokens.bgSurfaceActive : ColorTokens.bgWorkspace)
+      .border({ width: this.dragging ? 2 : 1,
+        color: this.dragging ? ColorTokens.borderFocus : ColorTokens.borderSubtle,
+        style: BorderStyle.Dashed })
+      .borderRadius(RadiusTokens.large)
+      .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
+      .onDragEnter((_event: DragEvent) => { this.dragging = true; })
+      .onDragLeave((_event: DragEvent) => { this.dragging = false; })
+      .onDrop((event: DragEvent) => this.acceptDrop(event))
     } else if (this.step === 'analyzing') {
       Column({ space: SpacingTokens.x4 }) {
         LoadingProgress().width(34).height(34).color(ColorTokens.brand500)
         Text($r('app.string.analyzing_import')).fontSize(16).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
         Text(this.fileName).fontSize(12).fontColor(ColorTokens.textTertiary)
-      }.width('100%').height(270).justifyContent(FlexAlign.Center)
+      }.width('100%').height(280).justifyContent(FlexAlign.Center)
     } else if (this.step === 'preview') {
       Column({ space: SpacingTokens.x2 }) {
         Text($r('app.string.import_preview')).fontSize(15).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary).width('100%')
+        this.summaryRow($r('app.string.api_import_format'), this.formatName)
         this.summaryRow($r('app.string.collection_name'), this.importName)
-        this.summaryRow($r('app.string.api_specification'), this.specification)
         this.summaryRow($r('app.string.requests'), this.requestCount.toString())
         this.summaryRow($r('app.string.folders'), this.folderCount.toString())
+        this.summaryRow($r('app.string.nav_environments'), this.environmentCount.toString())
         Row() {
           Text($r('app.string.unsupported_features')).fontSize(12).fontColor(ColorTokens.textTertiary)
           Blank()
-          Text(this.parsedResult ? this.parsedResult.warnings.length.toString() : '0').fontSize(13)
+          Text(this.warningText.length > 0 ? '!' : '0').fontSize(13)
             .fontColor(this.warningText.length > 0 ? ColorTokens.statusClientError : ColorTokens.statusSuccess)
         }.width('100%').height(34)
         if (this.warningText.length > 0) {
@@ -130,14 +204,8 @@ export struct OpenApiImportDialog {
         Text('✓').fontSize(34).fontColor(ColorTokens.statusSuccess)
         Text($r('app.string.import_complete')).fontSize(17).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
-        Row({ space: SpacingTokens.x2 }) {
-          Text(this.requestCount.toString()).fontSize(14).fontColor(ColorTokens.textPrimary)
-          Text($r('app.string.requests')).fontSize(14).fontColor(ColorTokens.textPrimary)
-          Text('·').fontSize(14).fontColor(ColorTokens.textTertiary)
-          Text(this.folderCount.toString()).fontSize(14).fontColor(ColorTokens.textPrimary)
-          Text($r('app.string.folders')).fontSize(14).fontColor(ColorTokens.textPrimary)
-        }
-      }.width('100%').height(270).justifyContent(FlexAlign.Center)
+        Text(this.formatName).fontSize(13).fontColor(ColorTokens.textSecondary)
+      }.width('100%').height(280).justifyContent(FlexAlign.Center)
     }
   }
 
@@ -146,7 +214,7 @@ export struct OpenApiImportDialog {
       Column().width('100%').height('100%').backgroundColor(ColorTokens.overlayScrim).onClick(this.onCancel)
       Column({ space: SpacingTokens.x4 }) {
         Row() {
-          Text($r('app.string.openapi_title')).fontSize(18).fontWeight(FontWeight.Medium)
+          Text($r('app.string.api_import_title')).fontSize(18).fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
           Blank()
           Text('×').fontSize(20).fontColor(ColorTokens.textTertiary).onClick(this.onCancel)
@@ -180,9 +248,8 @@ export struct OpenApiImportDialog {
           }
         }.width('100%')
       }
-      .width(580).padding(SpacingTokens.x6).backgroundColor(ColorTokens.bgSurface)
-      .borderRadius(RadiusTokens.large)
-      .shadow({ radius: 20, color: ColorTokens.shadowDefault, offsetY: 8 })
+      .width(600).padding(SpacingTokens.x6).backgroundColor(ColorTokens.bgSurface)
+      .borderRadius(RadiusTokens.large).shadow({ radius: 20, color: ColorTokens.shadowDefault, offsetY: 8 })
       .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 8 }))
         .combine(TransitionEffect.scale({ x: 0.96, y: 0.96 }))
         .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))

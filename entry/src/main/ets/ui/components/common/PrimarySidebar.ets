@@ -11,14 +11,12 @@ export struct PrimarySidebar {
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   onCreateRequest: () => void = () => {};
   onImportCurl: () => void = () => {};
-  onImportPostman: () => void = () => {};
-  onImportOpenApi: () => void = () => {};
+  onImportApiFile: () => void = () => {};
   @State importMenuOpen: boolean = false;
   @State hoveredItemId: string = '';
   private importItems: ContextMenuItemModel[] = [
     { id: 'curl', label: $r('app.string.import_curl'), icon: '>_', dangerous: false },
-    { id: 'postman', label: $r('app.string.import_postman'), icon: 'P', dangerous: false },
-    { id: 'openapi', label: $r('app.string.import_openapi'), icon: '{}', dangerous: false }
+    { id: 'api-file', label: $r('app.string.import_api_file'), icon: '{}', dangerous: false }
   ];
 
   private handleImport(action: string): void {
@@ -26,8 +24,7 @@ export struct PrimarySidebar {
       this.importMenuOpen = false;
     });
     if (action === 'curl') this.onImportCurl();
-    if (action === 'postman') this.onImportPostman();
-    if (action === 'openapi') this.onImportOpenApi();
+    if (action === 'api-file') this.onImportApiFile();
   }
 
   private mainItems: NavigationItemModel[] = [
@@ -128,15 +125,14 @@ export struct PrimarySidebar {
           .clip(true)
 
           if (this.importMenuOpen) {
-            NimboContextMenu({ items: this.importItems, accentIcons: true,
+            NimboContextMenu({ items: this.importItems, accentIcons: true, widthValue: 208,
               onSelect: (action: string) => this.handleImport(action) })
               .position({ x: 0, y: SizeTokens.controlLarge + SpacingTokens.x2 })
               .zIndex(10)
           }
         }
         .width('100%')
-        .height(this.importMenuOpen ? SizeTokens.controlLarge + SpacingTokens.x2 + 110 :
-          SizeTokens.controlLarge)
+        .height(SizeTokens.controlLarge)
         .clip(false)
         .zIndex(10)
       }

@@ -51,8 +51,7 @@ import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
 import { EnvironmentPage } from '../ui/components/environment/EnvironmentPage';
 import { HistoryPage } from '../ui/components/history/HistoryPage';
 import { ImportCurlDialog } from '../ui/components/importer/ImportCurlDialog';
-import { PostmanImportDialog } from '../ui/components/importer/PostmanImportDialog';
-import { OpenApiImportDialog } from '../ui/components/importer/OpenApiImportDialog';
+import { ApiFileImportDialog } from '../ui/components/importer/ApiFileImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { GlobalSearchDialog, GlobalSearchItem } from '../ui/components/search/GlobalSearchDialog';
@@ -329,10 +328,9 @@ export struct NimboWindow {
         subtitle: $r('app.string.search_command'), keywords: 'new request create 新建 请求', icon: '+' },
       { id: 'command:curl', title: $r('app.string.import_curl'),
         subtitle: $r('app.string.search_command'), keywords: 'import curl 导入', icon: '↗' },
-      { id: 'command:postman', title: $r('app.string.import_postman'),
-        subtitle: $r('app.string.search_command'), keywords: 'import postman collection 导入 集合', icon: '⇥' },
-      { id: 'command:openapi', title: $r('app.string.import_openapi'),
-        subtitle: $r('app.string.search_command'), keywords: 'import openapi swagger schema 导入 接口 文档', icon: '{}' },
+      { id: 'command:api-file', title: $r('app.string.import_api_file'),
+        subtitle: $r('app.string.search_command'),
+        keywords: 'import postman openapi swagger collection schema 导入 集合 接口 文档', icon: '{}' },
       { id: 'command:environments', title: $r('app.string.search_manage_environments'),
         subtitle: $r('app.string.search_command'), keywords: 'environment manage 环境 管理', icon: '◎' },
       { id: 'command:settings', title: $r('app.string.nav_settings'),
@@ -383,12 +381,8 @@ export struct NimboWindow {
       this.showOverlay('curl');
       return;
     }
-    if (item.id === 'command:postman') {
-      this.showOverlay('postman');
-      return;
-    }
-    if (item.id === 'command:openapi') {
-      this.showOverlay('openapi');
+    if (item.id === 'command:api-file') {
+      this.showOverlay('api-file');
       return;
     }
     if (item.id === 'command:settings') {
@@ -1668,8 +1662,7 @@ export struct NimboWindow {
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
               onCreateRequest: () => this.createTab(),
               onImportCurl: () => this.showOverlay('curl'),
-              onImportPostman: () => this.showOverlay('postman'),
-              onImportOpenApi: () => this.showOverlay('openapi')
+              onImportApiFile: () => this.showOverlay('api-file')
             })
 
             this.mainContent()
@@ -1771,17 +1764,11 @@ export struct NimboWindow {
           }
         })
       }
-      if (this.activeOverlay === 'postman') {
-        PostmanImportDialog({
+      if (this.activeOverlay === 'api-file') {
+        ApiFileImportDialog({
           onCancel: () => this.hideOverlay(),
-          onImport: (result: PostmanImportResult) => this.applyPostmanImport(result),
-          onComplete: () => { this.hideOverlay(); this.showToast($r('app.string.toast_imported')); }
-        })
-      }
-      if (this.activeOverlay === 'openapi') {
-        OpenApiImportDialog({
-          onCancel: () => this.hideOverlay(),
-          onImport: (result: OpenApiImportResult) => this.applyOpenApiImport(result),
+          onImportPostman: (result: PostmanImportResult) => this.applyPostmanImport(result),
+          onImportOpenApi: (result: OpenApiImportResult) => this.applyOpenApiImport(result),
           onComplete: () => { this.hideOverlay(); this.showToast($r('app.string.toast_imported')); }
         })
       }

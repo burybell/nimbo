@@ -17,6 +17,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - AppGallery-ready PC artwork, five verified 16:9 screenshots, Chinese listing copy, and an importable showcase collection
 - OpenAPI 3.0/3.1 and Swagger 2.0 JSON import with tag folders, request previews, generated body examples, and unsupported-feature warnings
 - Response JSONPath preview and post-response environment extraction with explicit targets, secret flags, visible outcomes, and overwrite protection
+- Unified API-file importer with drag-and-drop format detection for Postman, OpenAPI 3.x, and Swagger 2.0; import menus now overlay without shifting the workspace
 
 ### Changed
 
