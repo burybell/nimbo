@@ -8,12 +8,16 @@ interface JsonToken {
   color: ResourceColor;
 }
 
+export type CodeLanguage = 'json' | 'javascript';
+
 @Component
 export struct JsonCodeSurface {
   @Watch('handleExternalValue') @Prop value: string = '';
   @Prop readOnly: boolean = false;
   @Prop wrap: boolean = true;
   @Prop syntaxHighlight: boolean = true;
+  @Prop language: CodeLanguage = 'json';
+  @Prop placeholder: ResourceStr = '{\n  "key": "value"\n}';
   @Watch('handleVisualChange') @Prop query: string = '';
   @Watch('handleSearchNavigation') @Prop searchIndex: number = 0;
   @Watch('handleSearchNavigation') @Prop searchRevision: number = 0;
@@ -45,7 +49,7 @@ export struct JsonCodeSurface {
     return index < source.length ? source[index] : '';
   }
 
-  private tokens(source: string): JsonToken[] {
+  private jsonTokens(source: string): JsonToken[] {
     const tokens: JsonToken[] = [];
     let index = 0;
     while (index < source.length) {
@@ -100,6 +104,89 @@ export struct JsonCodeSurface {
       index += 1;
     }
     return tokens;
+  }
+
+  private isIdentifierStart(character: string): boolean {
+    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+      character === '_' || character === '$';
+  }
+
+  private isIdentifierPart(character: string): boolean {
+    return this.isIdentifierStart(character) || this.isDigit(character);
+  }
+
+  private isJavaScriptKeyword(value: string): boolean {
+    return ['break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete',
+      'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in',
+      'instanceof', 'let', 'new', 'return', 'switch', 'throw', 'try', 'typeof', 'var', 'void',
+      'while', 'with', 'yield', 'async', 'await', 'of'].includes(value);
+  }
+
+  private javascriptTokens(source: string): JsonToken[] {
+    const tokens: JsonToken[] = [];
+    let index = 0;
+    while (index < source.length) {
+      const character = source[index];
+      if (character === '/' && source[index + 1] === '/') {
+        const start = index;
+        index += 2;
+        while (index < source.length && source[index] !== '\n') index += 1;
+        tokens.push({ start, length: index - start, color: ColorTokens.codeLineNumber });
+        continue;
+      }
+      if (character === '/' && source[index + 1] === '*') {
+        const start = index;
+        index += 2;
+        while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) index += 1;
+        index = Math.min(source.length, index + 2);
+        tokens.push({ start, length: index - start, color: ColorTokens.codeLineNumber });
+        continue;
+      }
+      if (character === '"' || character === "'" || character === '`') {
+        const start = index;
+        const delimiter = character;
+        index += 1;
+        let escaped = false;
+        while (index < source.length) {
+          const current = source[index];
+          index += 1;
+          if (escaped) escaped = false;
+          else if (current === '\\') escaped = true;
+          else if (current === delimiter) break;
+        }
+        tokens.push({ start, length: index - start, color: ColorTokens.codeString });
+        continue;
+      }
+      if (this.isDigit(character)) {
+        const start = index;
+        index += 1;
+        while (index < source.length && (this.isDigit(source[index]) ||
+          source[index] === '.' || source[index] === '_')) index += 1;
+        tokens.push({ start, length: index - start, color: ColorTokens.codeNumber });
+        continue;
+      }
+      if (this.isIdentifierStart(character)) {
+        const start = index;
+        index += 1;
+        while (index < source.length && this.isIdentifierPart(source[index])) index += 1;
+        const value = source.substring(start, index);
+        if (this.isJavaScriptKeyword(value)) {
+          tokens.push({ start, length: index - start, color: ColorTokens.codeKey });
+        } else if (value === 'true' || value === 'false' || value === 'null' || value === 'undefined') {
+          tokens.push({ start, length: index - start, color: ColorTokens.codeLiteral });
+        }
+        continue;
+      }
+      if ('{}[]():;,.=+-*/!?<>'.includes(character)) {
+        tokens.push({ start: index, length: 1, color: ColorTokens.codePunctuation });
+      }
+      index += 1;
+    }
+    return tokens;
+  }
+
+  private tokens(source: string): JsonToken[] {
+    return this.language === 'javascript' ? this.javascriptTokens(source) : this.jsonTokens(source);
   }
 
   private fontStyle(color: ResourceColor, weight: FontWeight = FontWeight.Regular): TextStyle {
@@ -199,8 +286,8 @@ export struct JsonCodeSurface {
     this.scheduleHighlight();
   }
 
-  private isInsideString(source: string, offset: number): boolean {
-    let inside = false;
+  private stringDelimiter(source: string, offset: number): string {
+    let delimiter = '';
     let escaped = false;
     for (let index = 0; index < offset; index += 1) {
       const character = source[index];
@@ -208,11 +295,14 @@ export struct JsonCodeSurface {
         escaped = false;
       } else if (character === '\\') {
         escaped = true;
-      } else if (character === '"') {
-        inside = !inside;
+      } else if (delimiter.length > 0 && character === delimiter) {
+        delimiter = '';
+      } else if (delimiter.length === 0 && (character === '"' ||
+        (this.language === 'javascript' && (character === "'" || character === '`')))) {
+        delimiter = character;
       }
     }
-    return inside;
+    return delimiter;
   }
 
   private closingCharacter(character: string): string {
@@ -220,6 +310,8 @@ export struct JsonCodeSurface {
     if (character === '[') return ']';
     if (character === '(') return ')';
     if (character === '"') return '"';
+    if (this.language === 'javascript' && character === "'") return "'";
+    if (this.language === 'javascript' && character === '`') return '`';
     return '';
   }
 
@@ -228,11 +320,14 @@ export struct JsonCodeSurface {
     if (character === ']') return '[';
     if (character === ')') return '(';
     if (character === '"') return '"';
+    if (this.language === 'javascript' && character === "'") return "'";
+    if (this.language === 'javascript' && character === '`') return '`';
     return '';
   }
 
   private isClosingCharacter(character: string): boolean {
-    return character === '}' || character === ']' || character === ')' || character === '"';
+    return character === '}' || character === ']' || character === ')' || character === '"' ||
+      (this.language === 'javascript' && (character === "'" || character === '`'));
   }
 
   private replaceEditorValue(current: string, start: number, end: number, replacement: string,
@@ -289,7 +384,7 @@ export struct JsonCodeSurface {
   }
 
   private consumeColon(current: string, start: number, end: number): boolean {
-    if (start !== end || this.isInsideString(current, start)) return false;
+    if (start !== end || this.stringDelimiter(current, start).length > 0) return false;
     const next = current[start] ?? '';
     const replacement = next === ' ' || next === '\t' ? ':' : ': ';
     this.replaceEditorValue(current, start, end, replacement, start + replacement.length);
@@ -308,7 +403,8 @@ export struct JsonCodeSurface {
       return true;
     }
     const closing = this.closingCharacter(character);
-    if (closing.length === 0 || (character === '"' && start === end && this.isInsideString(current, start))) {
+    const quote = character === '"' || character === "'" || character === '`';
+    if (closing.length === 0 || (quote && start === end && this.stringDelimiter(current, start).length > 0)) {
       return false;
     }
     this.replaceWithPair(current, start, end, character, closing);
@@ -432,7 +528,7 @@ export struct JsonCodeSurface {
         .selectedBackgroundColor(ColorTokens.codeSelection)
         .copyOptions(CopyOptions.LocalDevice)
         .enableKeyboardOnFocus(!this.readOnly)
-        .placeholder('{\n  "key": "value"\n}', { fontColor: ColorTokens.codeLineNumber })
+        .placeholder(this.placeholder, { fontColor: ColorTokens.codeLineNumber })
         .aboutToIMEInput((value: RichEditorInsertValue) => this.beforeInput(value))
         .aboutToDelete((value: RichEditorDeleteValue) => this.beforeDelete(value))
         .onKeyEvent((event: KeyEvent) => {

@@ -20,6 +20,7 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 - A unified title-bar importer with highlighted cURL editing and drag-and-drop API files, with automatic Postman Collection/Environment and OpenAPI 3.x / Swagger 2.0 JSON detection
 - Response JSONPath preview and explicit environment-variable extraction with overwrite protection
 - Declarative response tests for status, timing, headers, and JSONPath with per-rule results
+- Sandboxed Pre-request and Post-response JavaScript with guarded request/response APIs, atomic environment writes, and visible console and execution results
 - Local Nimbo backup export with secrets redacted by default
 - Light, dark, and system themes
 - English and Simplified Chinese interfaces
@@ -40,7 +41,26 @@ Save it into a collection
 Reuse it with environments and history
 ```
 
-WebSocket, SSE, GraphQL, gRPC, collection runners, scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
+WebSocket, SSE, GraphQL, gRPC, collection runners, collection-level scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
+
+## Request scripts
+
+Pre-request scripts can update the current send without rewriting the saved request:
+
+```javascript
+nimbo.request.headers.set('Authorization', `Bearer ${nimbo.environment.get('token')}`);
+nimbo.request.url = `${nimbo.request.url}?source=nimbo`;
+```
+
+Post-response scripts receive a read-only response and can publish values to the active environment:
+
+```javascript
+const payload = JSON.parse(nimbo.response.body);
+nimbo.environment.set('responseId', payload.id);
+console.log(nimbo.response.statusCode, payload.id);
+```
+
+Each execution uses a fresh sandbox with time, memory, stack, source, concurrency, and console-output limits. Request and environment changes are applied only after a successful script. The fixed order is Pre-request, variable resolution, HTTP, Post-response, JSONPath extraction, then declarative tests.
 
 ## Requirements
 

@@ -1,0 +1,6 @@
+{
+  "name": "libnimbo_script.so",
+  "types": "./index.d.ts",
+  "version": "0.1.0",
+  "description": "Sandboxed JavaScript runtime for Nimbo request scripts"
+}

@@ -577,6 +577,42 @@
       "value": "正文"
     },
     {
+      "name": "tab_pre_request",
+      "value": "前置脚本"
+    },
+    {
+      "name": "script_pre_request_hint",
+      "value": "在变量替换和发送前运行。只有脚本成功时才会应用请求与环境修改。"
+    },
+    {
+      "name": "script_enabled",
+      "value": "启用脚本"
+    },
+    {
+      "name": "script_pre_request_api_hint",
+      "value": "可用 API：nimbo.request · nimbo.request.headers · nimbo.environment · console"
+    },
+    {
+      "name": "script_pre_request_placeholder",
+      "value": "// 在发送前准备请求\nnimbo.request.headers.set('X-Token', nimbo.environment.get('token'));"
+    },
+    { "name": "tab_post_response", "value": "后置脚本" },
+    { "name": "script_post_response_hint", "value": "收到 HTTP 响应后、提取与测试前运行。只有脚本成功时才会应用环境修改。" },
+    { "name": "script_post_response_api_hint", "value": "可用 API：nimbo.response · nimbo.response.headers · nimbo.environment · console" },
+    { "name": "script_post_response_placeholder", "value": "// 读取本次响应\nconst data = JSON.parse(nimbo.response.body);\nnimbo.environment.set('responseId', data.id);" },
+    { "name": "tab_scripts", "value": "脚本" },
+    { "name": "script_results_empty", "value": "暂无脚本结果" },
+    { "name": "script_results_empty_hint", "value": "启用请求脚本并发送后，可在这里查看执行结果和控制台输出。" },
+    { "name": "script_phase_pre_request", "value": "前置脚本" },
+    { "name": "script_phase_post_response", "value": "后置脚本" },
+    { "name": "script_status_success", "value": "执行成功" },
+    { "name": "script_status_error", "value": "执行失败" },
+    { "name": "script_status_timeout", "value": "执行超时" },
+    { "name": "script_status_memory_limit", "value": "超出内存限制" },
+    { "name": "script_console", "value": "控制台" },
+    { "name": "script_console_empty", "value": "没有控制台输出" },
+    { "name": "script_error_detail", "value": "错误" },
+    {
       "name": "tab_extract",
       "value": "提取"
     },

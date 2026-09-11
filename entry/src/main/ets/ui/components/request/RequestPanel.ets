@@ -8,6 +8,7 @@ import {
   RequestConfigTab,
   RequestDraft,
   RequestLifecycle,
+  RequestScript,
   RequestSettings,
   ResponseModel,
   TestRule
@@ -19,6 +20,7 @@ import { AuthEditor } from './AuthEditor';
 import { BodyEditor } from './BodyEditor';
 import { ExtractionEditor } from './ExtractionEditor';
 import { KeyValueEditor } from './KeyValueEditor';
+import { PreRequestScriptEditor } from './PreRequestScriptEditor';
 import { RequestConfigTabs } from './RequestConfigTabs';
 import { RequestSettingsEditor } from './RequestSettingsEditor';
 import { RequestToolbar } from './RequestToolbar';
@@ -39,7 +41,9 @@ export struct RequestPanel {
     multipartItems: KeyValueItem[], binaryFileName: string,
     settings: RequestSettings = this.request.settings,
     extractionRules: ExtractionRule[] = this.request.extractionRules,
-    testRules: TestRule[] = this.request.testRules): void {
+    testRules: TestRule[] = this.request.testRules,
+    preRequestScript: RequestScript = this.request.preRequestScript,
+    postResponseScript: RequestScript = this.request.postResponseScript): void {
     this.onChange({
       method,
       url,
@@ -53,6 +57,8 @@ export struct RequestPanel {
       formItems,
       multipartItems,
       binaryFileName,
+      preRequestScript,
+      postResponseScript,
       extractionRules,
       testRules,
       settings
@@ -102,6 +108,8 @@ export struct RequestPanel {
         activeTab: this.request.activeConfigTab,
         headerCount: this.enabledHeaderCount(),
         bodyHasContent: this.bodyHasContent(),
+        preRequestEnabled: this.request.preRequestScript.enabled,
+        postResponseEnabled: this.request.postResponseScript.enabled,
         extractionCount: this.request.extractionRules.filter((rule: ExtractionRule) => rule.enabled).length,
         testCount: this.request.testRules.filter((rule: TestRule) => rule.enabled).length,
         onChange: (tab: RequestConfigTab) => this.emitCore(this.request.method, this.request.url,
@@ -184,6 +192,33 @@ export struct RequestPanel {
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
             this.request.multipartItems, binaryFileName)
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      } else if (this.request.activeConfigTab === 'preRequest') {
+        PreRequestScriptEditor({
+          script: this.request.preRequestScript,
+          onChange: (script: RequestScript) => this.emit(this.request.method, this.request.url,
+            this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
+            this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
+            this.request.multipartItems, this.request.binaryFileName, this.request.settings,
+            this.request.extractionRules, this.request.testRules, script)
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      } else if (this.request.activeConfigTab === 'postResponse') {
+        PreRequestScriptEditor({
+          script: this.request.postResponseScript,
+          hint: $r('app.string.script_post_response_hint'),
+          apiHint: $r('app.string.script_post_response_api_hint'),
+          editorPlaceholder: $r('app.string.script_post_response_placeholder'),
+          onChange: (script: RequestScript) => this.emit(this.request.method, this.request.url,
+            this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
+            this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
+            this.request.multipartItems, this.request.binaryFileName, this.request.settings,
+            this.request.extractionRules, this.request.testRules, this.request.preRequestScript, script)
         })
           .layoutWeight(1)
           .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))

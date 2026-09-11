@@ -8,6 +8,7 @@ export struct ResponseTabs {
   @Prop activeTab: ResponseTab = 'body';
   @Prop headerCount: number = 0;
   @Prop cookieCount: number = 0;
+  @Prop scriptCount: number = 0;
   @Prop testCount: number = 0;
   onChange: (tab: ResponseTab) => void = () => {};
 
@@ -39,13 +40,19 @@ export struct ResponseTabs {
   }
 
   build() {
-    Row() {
-      this.tabItem('body', $r('app.string.tab_body'))
-      this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount)
-      this.tabItem('cookies', $r('app.string.tab_cookies'), this.cookieCount)
-      this.tabItem('tests', $r('app.string.tab_tests'), this.testCount)
-      this.tabItem('timeline', $r('app.string.tab_timeline'))
+    Scroll() {
+      Row() {
+        this.tabItem('body', $r('app.string.tab_body'))
+        this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount)
+        this.tabItem('cookies', $r('app.string.tab_cookies'), this.cookieCount)
+        this.tabItem('scripts', $r('app.string.tab_scripts'), this.scriptCount)
+        this.tabItem('tests', $r('app.string.tab_tests'), this.testCount)
+        this.tabItem('timeline', $r('app.string.tab_timeline'))
+      }
     }
     .height(38)
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+    .align(Alignment.TopStart)
   }
 }
