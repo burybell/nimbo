@@ -9,7 +9,8 @@ import {
   RequestDraft,
   RequestLifecycle,
   RequestSettings,
-  ResponseModel
+  ResponseModel,
+  TestRule
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
@@ -21,6 +22,7 @@ import { KeyValueEditor } from './KeyValueEditor';
 import { RequestConfigTabs } from './RequestConfigTabs';
 import { RequestSettingsEditor } from './RequestSettingsEditor';
 import { RequestToolbar } from './RequestToolbar';
+import { TestsEditor } from './TestsEditor';
 
 @Component
 export struct RequestPanel {
@@ -36,7 +38,8 @@ export struct RequestPanel {
     auth: AuthConfig, bodyType: BodyType, bodyText: string, formItems: KeyValueItem[],
     multipartItems: KeyValueItem[], binaryFileName: string,
     settings: RequestSettings = this.request.settings,
-    extractionRules: ExtractionRule[] = this.request.extractionRules): void {
+    extractionRules: ExtractionRule[] = this.request.extractionRules,
+    testRules: TestRule[] = this.request.testRules): void {
     this.onChange({
       method,
       url,
@@ -51,6 +54,7 @@ export struct RequestPanel {
       multipartItems,
       binaryFileName,
       extractionRules,
+      testRules,
       settings
     });
   }
@@ -99,6 +103,7 @@ export struct RequestPanel {
         headerCount: this.enabledHeaderCount(),
         bodyHasContent: this.bodyHasContent(),
         extractionCount: this.request.extractionRules.filter((rule: ExtractionRule) => rule.enabled).length,
+        testCount: this.request.testRules.filter((rule: TestRule) => rule.enabled).length,
         onChange: (tab: RequestConfigTab) => this.emitCore(this.request.method, this.request.url,
           this.request.lifecycle, tab)
       })
@@ -193,6 +198,19 @@ export struct RequestPanel {
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
             this.request.multipartItems, this.request.binaryFileName, this.request.settings, rules)
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      } else if (this.request.activeConfigTab === 'tests') {
+        TestsEditor({
+          rules: this.request.testRules,
+          phone: this.phone,
+          onChange: (rules: TestRule[]) => this.emit(this.request.method, this.request.url,
+            this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
+            this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
+            this.request.multipartItems, this.request.binaryFileName, this.request.settings,
+            this.request.extractionRules, rules)
         })
           .layoutWeight(1)
           .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))

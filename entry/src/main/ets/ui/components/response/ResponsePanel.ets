@@ -8,6 +8,7 @@ import { RawViewer } from './RawViewer';
 import { ResponseHeader } from './ResponseHeader';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { MediaViewer } from './MediaViewer';
+import { TestResultsView } from './TestResultsView';
 
 @Component
 export struct ResponsePanel {
@@ -365,6 +366,11 @@ export struct ResponsePanel {
           this.metadataRows(this.response.headers, $r('app.string.response_no_headers'))
         } else if (this.activeTab === 'cookies') {
           this.metadataRows(this.response.cookies, $r('app.string.response_no_cookies'))
+        } else if (this.activeTab === 'tests') {
+          TestResultsView({ results: this.response.testResults })
+            .layoutWeight(1)
+            .transition(TransitionEffect.OPACITY
+              .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
         } else {
           Column({ space: SpacingTokens.x2 }) {
             Text($r('app.string.response_timing_unavailable'))

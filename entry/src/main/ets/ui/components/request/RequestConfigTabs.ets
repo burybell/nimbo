@@ -9,6 +9,7 @@ export struct RequestConfigTabs {
   @Prop headerCount: number = 0;
   @Prop bodyHasContent: boolean = false;
   @Prop extractionCount: number = 0;
+  @Prop testCount: number = 0;
   onChange: (tab: RequestConfigTab) => void = () => {};
 
   @Builder
@@ -49,6 +50,8 @@ export struct RequestConfigTabs {
       this.tabItem('body', $r('app.string.tab_body'), this.bodyHasContent ? '●' : '')
       this.tabItem('extract', $r('app.string.tab_extract'),
         this.extractionCount > 0 ? this.extractionCount.toString() : '')
+      this.tabItem('tests', $r('app.string.tab_tests'),
+        this.testCount > 0 ? this.testCount.toString() : '')
       this.tabItem('settings', $r('app.string.nav_settings'))
       Blank()
     }

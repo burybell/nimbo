@@ -1,13 +1,13 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'extract' | 'settings';
+export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'extract' | 'tests' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
 export type BodyType = 'none' | 'json' | 'text' | 'form' | 'multipart' | 'binary';
 export type ResponseStatus = 'empty' | 'sending' | 'success' | 'error' | 'large' | 'binary' | 'cancelled';
-export type ResponseTab = 'body' | 'headers' | 'cookies' | 'timeline';
+export type ResponseTab = 'body' | 'headers' | 'cookies' | 'tests' | 'timeline';
 export type ResponseBodyMode = 'pretty' | 'raw';
 export type ResponseMediaKind = 'none' | 'image' | 'video';
 export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
@@ -86,6 +86,30 @@ export interface ExtractionResult {
   message: string;
 }
 
+export type TestRuleKind = 'statusEquals' | 'durationLessThan' | 'headerExists' | 'headerEquals' |
+  'jsonPathExists' | 'jsonPathEquals';
+export type TestResultStatus = 'passed' | 'failed' | 'notRun';
+export type TestResultMessage = 'configurationInvalid' | 'statusMatched' | 'statusMismatch' |
+  'durationMatched' | 'durationMismatch' | 'durationUnavailable' | 'headerPresent' | 'headerMissing' |
+  'headerMatched' | 'headerMismatch' | 'jsonPathMatched' | 'jsonPathMismatch' | 'jsonPathNoMatch' |
+  'invalidJson' | 'invalidJsonPath' | 'responseUnavailable';
+
+export interface TestRule {
+  id: string;
+  enabled: boolean;
+  kind: TestRuleKind;
+  target: string;
+  expected: string;
+}
+
+export interface TestResult {
+  ruleId: string;
+  status: TestResultStatus;
+  actual: string;
+  expected: string;
+  message: TestResultMessage;
+}
+
 export interface RequestDraft {
   method: HttpMethod;
   url: string;
@@ -100,6 +124,7 @@ export interface RequestDraft {
   multipartItems: KeyValueItem[];
   binaryFileName: string;
   extractionRules: ExtractionRule[];
+  testRules: TestRule[];
   settings: RequestSettings;
 }
 
@@ -128,6 +153,7 @@ export interface ResponseModel {
   error: ResponseErrorModel;
   previewAvailable: boolean;
   extractionResults: ExtractionResult[];
+  testResults: TestResult[];
 }
 
 export type EnvironmentKind = 'development' | 'staging' | 'production' | 'custom';

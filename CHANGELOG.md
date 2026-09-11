@@ -17,13 +17,14 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - AppGallery-ready PC artwork, five verified 16:9 screenshots, Chinese listing copy, and an importable showcase collection
 - OpenAPI 3.0/3.1 and Swagger 2.0 JSON import with tag folders, request previews, generated body examples, and unsupported-feature warnings
 - Response JSONPath preview and post-response environment extraction with explicit targets, secret flags, visible outcomes, and overwrite protection
+- Declarative response tests for status code, response time, headers, and JSONPath with localized pass/fail details
 - Unified title-bar import dialog with cURL and API-file tabs; cURL input has syntax highlighting, while API files support drag-and-drop detection for Postman, OpenAPI 3.x, and Swagger 2.0 without shifting the workspace
 
 ### Changed
 
 - Reworked the HTTP method picker with method-specific colors and a top-layer menu
 - Combined New and import actions into a single split button and removed the duplicate settings entry
-- Migrated local data to schema v5 while preserving existing environment values, imported environments, and older preferences
+- Migrated local data to schema v7 while preserving existing requests, environments, extraction rules, and older preferences
 - Localized built-in environment names and the starter collection data in Simplified Chinese
 - Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
 - Separated the URL group, Save action, and Send action with consistent toolbar spacing

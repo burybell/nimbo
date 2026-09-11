@@ -48,6 +48,7 @@ export struct Workspace {
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
       extractionRules: request.extractionRules,
+      testRules: request.testRules,
       settings: request.settings
     };
   }

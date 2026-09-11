@@ -8,7 +8,8 @@ import {
   RequestDraft,
   RequestTabModel,
   ResponseModel,
-  ResponseStatus
+  ResponseStatus,
+  TestResult
 } from '../models/ShellModels';
 import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import {
@@ -23,6 +24,7 @@ import { ShellState } from '../state/ShellState';
 import { createDefaultEnvironments, createDefaultPreferences, normalizeEnvironments } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
 import { JsonPathResult, JsonPathService } from '../services/JsonPathService';
+import { ResponseTestService } from '../services/ResponseTestService';
 import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
 import { PostmanImportResult } from '../services/PostmanCodec';
 import { OpenApiImportResult } from '../services/OpenApiCodec';
@@ -780,6 +782,7 @@ export struct NimboWindow {
       previous.bodyType !== next.bodyType || previous.bodyText !== next.bodyText ||
       previous.formItems !== next.formItems || previous.multipartItems !== next.multipartItems ||
       previous.binaryFileName !== next.binaryFileName || previous.extractionRules !== next.extractionRules ||
+      previous.testRules !== next.testRules ||
       previous.settings !== next.settings;
   }
 
@@ -800,7 +803,8 @@ export struct NimboWindow {
       protocol: response.protocol,
       error: response.error,
       previewAvailable: response.previewAvailable,
-      extractionResults: response.extractionResults
+      extractionResults: response.extractionResults,
+      testResults: response.testResults
     };
   }
 
@@ -819,6 +823,7 @@ export struct NimboWindow {
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
       extractionRules: request.extractionRules,
+      testRules: request.testRules,
       settings: request.settings
     };
   }
@@ -928,7 +933,19 @@ export struct NimboWindow {
       binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
       contentType: response.contentType, size: response.size, duration: response.duration,
       protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
-      extractionResults: results
+      extractionResults: results, testResults: response.testResults
+    };
+  }
+
+  private applyResponseTests(request: RequestDraft, response: ResponseModel): ResponseModel {
+    const results: TestResult[] = ResponseTestService.run(request.testRules, response);
+    return {
+      status: response.status, statusCode: response.statusCode, statusText: response.statusText,
+      headers: response.headers, cookies: response.cookies, body: response.body,
+      binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
+      contentType: response.contentType, size: response.size, duration: response.duration,
+      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      extractionResults: response.extractionResults, testResults: results
     };
   }
 
@@ -962,13 +979,15 @@ export struct NimboWindow {
           protocol: response.protocol,
           error: response.error,
           previewAvailable: true,
-          extractionResults: response.extractionResults
+          extractionResults: response.extractionResults,
+          testResults: response.testResults
         };
       } catch (_error) {
         // Fall back to the existing binary download view if preview preparation fails.
       }
     }
     if (this.requestSerials.get(id) !== serial) return;
+    response = this.applyResponseTests(request, response);
     response = this.applyResponseExtractions(request, response);
     this.applyRealResponse(id, response);
   }
@@ -1037,7 +1056,8 @@ export struct NimboWindow {
         protocol: response.protocol,
         error: response.error,
         previewAvailable: false,
-        extractionResults: response.extractionResults
+        extractionResults: response.extractionResults,
+        testResults: response.testResults
       };
       return {
         id: tab.id,

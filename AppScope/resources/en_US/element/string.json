@@ -645,6 +645,103 @@
       "value": "Saved"
     },
     {
+      "name": "tab_tests",
+      "value": "Tests"
+    },
+    {
+      "name": "tests_hint",
+      "value": "Run deterministic assertions after each response. Rules are saved with the request; results are not persisted."
+    },
+    {
+      "name": "tests_add",
+      "value": "+ Add test"
+    },
+    {
+      "name": "test_status_equals",
+      "value": "Status code equals"
+    },
+    {
+      "name": "test_duration_less_than",
+      "value": "Response time less than"
+    },
+    {
+      "name": "test_header_exists",
+      "value": "Header exists"
+    },
+    {
+      "name": "test_header_equals",
+      "value": "Header equals"
+    },
+    {
+      "name": "test_jsonpath_exists",
+      "value": "JSONPath exists"
+    },
+    {
+      "name": "test_jsonpath_equals",
+      "value": "JSONPath equals"
+    },
+    {
+      "name": "test_header_name",
+      "value": "Header name"
+    },
+    {
+      "name": "test_status_code",
+      "value": "Status code"
+    },
+    {
+      "name": "test_milliseconds",
+      "value": "Milliseconds"
+    },
+    {
+      "name": "test_expected_value",
+      "value": "Expected value"
+    },
+    {
+      "name": "test_passed",
+      "value": "Passed"
+    },
+    {
+      "name": "test_failed",
+      "value": "Failed"
+    },
+    {
+      "name": "test_not_run",
+      "value": "Not run"
+    },
+    {
+      "name": "test_actual",
+      "value": "Actual"
+    },
+    {
+      "name": "tests_passed_summary",
+      "value": "tests passed"
+    },
+    {
+      "name": "tests_no_results",
+      "value": "No test results"
+    },
+    {
+      "name": "tests_no_results_hint",
+      "value": "Add an enabled test and send the request."
+    },
+    { "name": "test_expected", "value": "Expected" },
+    { "name": "test_message_configuration_invalid", "value": "The test configuration is incomplete or invalid." },
+    { "name": "test_message_status_matched", "value": "Status code matched." },
+    { "name": "test_message_status_mismatch", "value": "Status code did not match." },
+    { "name": "test_message_duration_matched", "value": "Response completed within the limit." },
+    { "name": "test_message_duration_mismatch", "value": "Response exceeded the time limit." },
+    { "name": "test_message_duration_unavailable", "value": "Response duration was unavailable." },
+    { "name": "test_message_header_present", "value": "Header was present." },
+    { "name": "test_message_header_missing", "value": "Header was not present." },
+    { "name": "test_message_header_matched", "value": "Header value matched." },
+    { "name": "test_message_header_mismatch", "value": "Header value did not match." },
+    { "name": "test_message_jsonpath_matched", "value": "JSONPath matched a response value." },
+    { "name": "test_message_jsonpath_mismatch", "value": "JSONPath value did not match." },
+    { "name": "test_message_jsonpath_no_match", "value": "JSONPath did not match a value." },
+    { "name": "test_message_invalid_json", "value": "Response body is not valid JSON." },
+    { "name": "test_message_invalid_jsonpath", "value": "JSONPath is invalid." },
+    { "name": "test_message_response_unavailable", "value": "No HTTP response was available." },
+    {
       "name": "tab_cookies",
       "value": "Cookies"
     },

@@ -34,7 +34,8 @@ export function createEmptyResponse(): ResponseModel {
     protocol: '',
     error: { type: 'unknown', title: '', message: '', code: '', details: '' },
     previewAvailable: false,
-    extractionResults: []
+    extractionResults: [],
+    testResults: []
   };
 }
 
@@ -59,7 +60,8 @@ export function createSuccessResponse(): ResponseModel {
     protocol: 'HTTP/2',
     error: { type: 'unknown', title: '', message: '', code: '', details: '' },
     previewAvailable: true,
-    extractionResults: []
+    extractionResults: [],
+    testResults: []
   };
 }
 
@@ -129,6 +131,7 @@ export function createEmptyRequest(method: HttpMethod = 'GET'): RequestDraft {
     multipartItems: [],
     binaryFileName: '',
     extractionRules: [],
+    testRules: [],
     settings: {
       timeoutMs: 30000,
       followRedirects: true,

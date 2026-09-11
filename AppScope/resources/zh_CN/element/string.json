@@ -645,6 +645,103 @@
       "value": "已保存"
     },
     {
+      "name": "tab_tests",
+      "value": "测试"
+    },
+    {
+      "name": "tests_hint",
+      "value": "每次收到响应后执行确定性的断言。规则随请求保存，执行结果不会持久化。"
+    },
+    {
+      "name": "tests_add",
+      "value": "+ 添加测试"
+    },
+    {
+      "name": "test_status_equals",
+      "value": "状态码等于"
+    },
+    {
+      "name": "test_duration_less_than",
+      "value": "响应时间小于"
+    },
+    {
+      "name": "test_header_exists",
+      "value": "标头存在"
+    },
+    {
+      "name": "test_header_equals",
+      "value": "标头等于"
+    },
+    {
+      "name": "test_jsonpath_exists",
+      "value": "JSONPath 存在"
+    },
+    {
+      "name": "test_jsonpath_equals",
+      "value": "JSONPath 等于"
+    },
+    {
+      "name": "test_header_name",
+      "value": "标头名称"
+    },
+    {
+      "name": "test_status_code",
+      "value": "状态码"
+    },
+    {
+      "name": "test_milliseconds",
+      "value": "毫秒"
+    },
+    {
+      "name": "test_expected_value",
+      "value": "期望值"
+    },
+    {
+      "name": "test_passed",
+      "value": "通过"
+    },
+    {
+      "name": "test_failed",
+      "value": "失败"
+    },
+    {
+      "name": "test_not_run",
+      "value": "未执行"
+    },
+    {
+      "name": "test_actual",
+      "value": "实际值"
+    },
+    {
+      "name": "tests_passed_summary",
+      "value": "项测试通过"
+    },
+    {
+      "name": "tests_no_results",
+      "value": "暂无测试结果"
+    },
+    {
+      "name": "tests_no_results_hint",
+      "value": "添加并启用测试后发送请求。"
+    },
+    { "name": "test_expected", "value": "期望值" },
+    { "name": "test_message_configuration_invalid", "value": "测试配置不完整或格式无效。" },
+    { "name": "test_message_status_matched", "value": "状态码符合预期。" },
+    { "name": "test_message_status_mismatch", "value": "状态码与期望值不一致。" },
+    { "name": "test_message_duration_matched", "value": "响应在限定时间内完成。" },
+    { "name": "test_message_duration_mismatch", "value": "响应时间超过限定值。" },
+    { "name": "test_message_duration_unavailable", "value": "无法获取响应耗时。" },
+    { "name": "test_message_header_present", "value": "响应中存在该标头。" },
+    { "name": "test_message_header_missing", "value": "响应中不存在该标头。" },
+    { "name": "test_message_header_matched", "value": "标头值符合预期。" },
+    { "name": "test_message_header_mismatch", "value": "标头值与期望值不一致。" },
+    { "name": "test_message_jsonpath_matched", "value": "JSONPath 匹配到响应值。" },
+    { "name": "test_message_jsonpath_mismatch", "value": "JSONPath 的值与期望值不一致。" },
+    { "name": "test_message_jsonpath_no_match", "value": "JSONPath 未匹配到值。" },
+    { "name": "test_message_invalid_json", "value": "响应正文不是有效的 JSON。" },
+    { "name": "test_message_invalid_jsonpath", "value": "JSONPath 格式无效。" },
+    { "name": "test_message_response_unavailable", "value": "没有可供测试的 HTTP 响应。" },
+    {
       "name": "tab_cookies",
       "value": "Cookie"
     },

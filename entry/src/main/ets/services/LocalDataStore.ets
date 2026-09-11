@@ -32,7 +32,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 6;
+  static readonly schemaVersion: number = 7;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -49,7 +49,7 @@ export class LocalDataStore {
         state = versioned as PersistedAppState;
         state.preferences.interfaceFont = 'harmony';
         state.schemaVersion = LocalDataStore.schemaVersion;
-      } else if (versioned.schemaVersion === 5) {
+      } else if (versioned.schemaVersion === 5 || versioned.schemaVersion === 6) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else {
@@ -63,7 +63,7 @@ export class LocalDataStore {
         typeof state.activeEnvironmentId !== 'string' || !LocalDataStore.validPreferences(state.preferences)) {
         return undefined;
       }
-      LocalDataStore.normalizeExtractionState(state);
+      LocalDataStore.normalizeRequestState(state);
       return state;
     } catch (_error) {
       return undefined;
@@ -72,9 +72,10 @@ export class LocalDataStore {
 
   private static normalizeRequest(request: RequestDraft): void {
     if (!Array.isArray(request.extractionRules)) request.extractionRules = [];
+    if (!Array.isArray(request.testRules)) request.testRules = [];
   }
 
-  private static normalizeExtractionState(state: PersistedAppState): void {
+  private static normalizeRequestState(state: PersistedAppState): void {
     state.requests.forEach((request: PersistedRequestModel) => LocalDataStore.normalizeRequest(request.request));
     state.tabs.forEach((tab: PersistedTabModel) => {
       LocalDataStore.normalizeRequest(tab.request);

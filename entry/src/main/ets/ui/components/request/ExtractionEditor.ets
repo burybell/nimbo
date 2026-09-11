@@ -131,12 +131,12 @@ export struct ExtractionEditor {
           .onChange((enabled: boolean) => this.update(this.changed(rule, enabled, rule.variableName,
             rule.jsonPath, rule.environmentId, rule.secret, rule.overwrite)))
         TextInput({ text: rule.variableName, placeholder: $r('app.string.extraction_variable') })
-          .height(SizeTokens.controlMedium).layoutWeight(1).fontSize(12)
+          .height(SizeTokens.controlMedium).layoutWeight(1).fontSize(11)
           .backgroundColor(ColorTokens.bgApp).borderRadius(RadiusTokens.small)
           .onChange((variableName: string) => this.update(this.changed(rule, rule.enabled, variableName,
             rule.jsonPath, rule.environmentId, rule.secret, rule.overwrite)))
         TextInput({ text: rule.jsonPath, placeholder: '$.data.accessToken' })
-          .height(SizeTokens.controlMedium).layoutWeight(1).fontSize(12).fontFamily('monospace')
+          .height(SizeTokens.controlMedium).layoutWeight(1).fontSize(11).fontFamily('monospace')
           .backgroundColor(ColorTokens.bgApp).borderRadius(RadiusTokens.small)
           .onChange((jsonPath: string) => this.update(this.changed(rule, rule.enabled, rule.variableName,
             jsonPath, rule.environmentId, rule.secret, rule.overwrite)))
@@ -144,6 +144,7 @@ export struct ExtractionEditor {
           .selected(this.environmentIndex(rule.environmentId))
           .value(this.environmentName(rule.environmentId))
           .height(SizeTokens.controlMedium).width(this.phone ? '100%' : 150)
+          .font({ size: 11 }).optionFont({ size: 11 }).selectedOptionFont({ size: 11 })
           .backgroundColor(ColorTokens.bgApp).borderRadius(RadiusTokens.small)
           .onSelect((index: number) => this.update(this.changed(rule, rule.enabled, rule.variableName,
             rule.jsonPath, index === 0 ? '' : this.environments[index - 1].id, rule.secret, rule.overwrite)))

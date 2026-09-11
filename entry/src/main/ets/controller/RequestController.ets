@@ -301,7 +301,8 @@ export class RequestController {
       protocol: result.protocol,
       error: { type: 'unknown', title: '', message: '', code: '', details: '' },
       previewAvailable: status === 'large',
-      extractionResults: []
+      extractionResults: [],
+      testResults: []
     };
   }
 
