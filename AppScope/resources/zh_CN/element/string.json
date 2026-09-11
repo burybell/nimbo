@@ -169,6 +169,18 @@
       "value": "导入 API 文件"
     },
     {
+      "name": "import_title",
+      "value": "导入"
+    },
+    {
+      "name": "import_tab_curl",
+      "value": "cURL"
+    },
+    {
+      "name": "import_tab_api_file",
+      "value": "API 文件"
+    },
+    {
       "name": "api_import_title",
       "value": "导入 API 文件"
     },

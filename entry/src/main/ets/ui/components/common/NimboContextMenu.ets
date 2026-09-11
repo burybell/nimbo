@@ -7,7 +7,6 @@ import { MotionTokens } from '../../tokens/MotionTokens';
 export struct NimboContextMenu {
   @Prop items: ContextMenuItemModel[] = [];
   @Prop accentIcons: boolean = false;
-  @Prop widthValue: number = 184;
   @State hoveredItemId: string = '';
   onSelect: (id: string) => void = () => {};
   onDismiss: () => void = () => {};
@@ -30,11 +29,8 @@ export struct NimboContextMenu {
             .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
             .borderRadius(RadiusTokens.small)
           Text(item.label)
-            .layoutWeight(1)
             .fontSize(13)
             .fontColor(item.dangerous ? ColorTokens.httpDelete : ColorTokens.textPrimary)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
         .width('100%')
         .height(34)
@@ -45,7 +41,7 @@ export struct NimboContextMenu {
         .onClick(() => this.onSelect(item.id))
       }, (item: ContextMenuItemModel) => item.id)
     }
-    .width(this.widthValue)
+    .width(184)
     .padding(SpacingTokens.x1)
     .backgroundColor(ColorTokens.bgSurface)
     .border({ width: 1, color: ColorTokens.borderSubtle })

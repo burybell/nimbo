@@ -17,7 +17,7 @@ Nimbo 是一款为 HarmonyOS 打造的快速、原生、本地优先 API 调试�
 - 持久化系统环境、导入环境与请求变量解析
 - 跨请求、集合、历史、环境和命令的全局搜索
 - 本地请求历史和工作区恢复
-- cURL 导入/导出，以及可拖放并自动识别 Postman Collection/Environment、OpenAPI 3.x / Swagger 2.0 JSON 的统一导入器
+- Title Bar 统一导入入口，cURL 输入支持语法高亮；API 文件可拖放并自动识别 Postman Collection/Environment、OpenAPI 3.x / Swagger 2.0 JSON
 - 响应 JSONPath 预览与指定环境变量提取，默认保护已有变量不被覆盖
 - Nimbo 本地备份导出，默认对密钥信息脱敏
 - Light、Dark 和跟随系统主题

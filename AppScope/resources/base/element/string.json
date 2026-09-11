@@ -169,6 +169,18 @@
       "value": "Import API file"
     },
     {
+      "name": "import_title",
+      "value": "Import"
+    },
+    {
+      "name": "import_tab_curl",
+      "value": "cURL"
+    },
+    {
+      "name": "import_tab_api_file",
+      "value": "API file"
+    },
+    {
       "name": "api_import_title",
       "value": "Import API file"
     },

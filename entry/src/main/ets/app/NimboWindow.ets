@@ -50,7 +50,6 @@ import { NimboToast } from '../ui/components/common/NimboToast';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
 import { EnvironmentPage } from '../ui/components/environment/EnvironmentPage';
 import { HistoryPage } from '../ui/components/history/HistoryPage';
-import { ImportCurlDialog } from '../ui/components/importer/ImportCurlDialog';
 import { ApiFileImportDialog } from '../ui/components/importer/ApiFileImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
@@ -326,11 +325,9 @@ export struct NimboWindow {
     const items: GlobalSearchItem[] = [
       { id: 'command:new', title: $r('app.string.search_new_request'),
         subtitle: $r('app.string.search_command'), keywords: 'new request create 新建 请求', icon: '+' },
-      { id: 'command:curl', title: $r('app.string.import_curl'),
-        subtitle: $r('app.string.search_command'), keywords: 'import curl 导入', icon: '↗' },
-      { id: 'command:api-file', title: $r('app.string.import_api_file'),
+      { id: 'command:import', title: $r('app.string.import_title'),
         subtitle: $r('app.string.search_command'),
-        keywords: 'import postman openapi swagger collection schema 导入 集合 接口 文档', icon: '{}' },
+        keywords: 'import curl postman openapi swagger collection schema 导入 集合 接口 文档', icon: '⇧' },
       { id: 'command:environments', title: $r('app.string.search_manage_environments'),
         subtitle: $r('app.string.search_command'), keywords: 'environment manage 环境 管理', icon: '◎' },
       { id: 'command:settings', title: $r('app.string.nav_settings'),
@@ -377,12 +374,8 @@ export struct NimboWindow {
       this.createTab();
       return;
     }
-    if (item.id === 'command:curl') {
-      this.showOverlay('curl');
-      return;
-    }
-    if (item.id === 'command:api-file') {
-      this.showOverlay('api-file');
+    if (item.id === 'command:import') {
+      this.showOverlay('import');
       return;
     }
     if (item.id === 'command:settings') {
@@ -1641,7 +1634,8 @@ export struct NimboWindow {
             this.persistLocalData();
           },
           onSettings: () => this.selectDestination('settings'),
-          onSearch: () => this.showOverlay('global-search')
+          onSearch: () => this.showOverlay('global-search'),
+          onImport: () => this.showOverlay('import')
         })
 
         if (this.isPhone()) {
@@ -1660,9 +1654,7 @@ export struct NimboWindow {
               compact: this.isCompact(),
               activeDestination: this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
-              onCreateRequest: () => this.createTab(),
-              onImportCurl: () => this.showOverlay('curl'),
-              onImportApiFile: () => this.showOverlay('api-file')
+              onCreateRequest: () => this.createTab()
             })
 
             this.mainContent()
@@ -1754,19 +1746,14 @@ export struct NimboWindow {
           onConfirm: (name: string, targetId: string) => this.saveRequestToCollection(name, targetId)
         })
       }
-      if (this.activeOverlay === 'curl') {
-        ImportCurlDialog({
+      if (this.activeOverlay === 'import') {
+        ApiFileImportDialog({
           onCancel: () => this.hideOverlay(),
-          onImport: (result: CurlImportResult) => {
+          onImportCurl: (result: CurlImportResult) => {
             this.hideOverlay();
             this.createImportedRequest(result, 'Imported cURL');
             this.showToast($r('app.string.toast_imported'));
-          }
-        })
-      }
-      if (this.activeOverlay === 'api-file') {
-        ApiFileImportDialog({
-          onCancel: () => this.hideOverlay(),
+          },
           onImportPostman: (result: PostmanImportResult) => this.applyPostmanImport(result),
           onImportOpenApi: (result: OpenApiImportResult) => this.applyOpenApiImport(result),
           onComplete: () => { this.hideOverlay(); this.showToast($r('app.string.toast_imported')); }

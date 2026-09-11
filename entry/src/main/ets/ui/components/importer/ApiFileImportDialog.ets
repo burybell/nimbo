@@ -7,9 +7,15 @@ import { util } from '@kit.ArkTS';
 import unifiedDataChannel from '@ohos.data.unifiedDataChannel';
 import { PostmanCodec, PostmanImportResult } from '../../../services/PostmanCodec';
 import { OpenApiCodec, OpenApiImportResult } from '../../../services/OpenApiCodec';
+import { CurlCodec, CurlImportResult } from '../../../services/CurlCodec';
+import { CurlCodeSurface } from '../common/CurlCodeSurface';
 
 @Component
 export struct ApiFileImportDialog {
+  @State activeTab: string = 'curl';
+  @State curlText: string = "curl -X GET 'https://api.example.com/users'";
+  @State curlState: string = 'idle';
+  @State curlErrorText: string = '';
   @State step: string = 'select';
   @State dragging: boolean = false;
   @State fileName: string = '';
@@ -26,6 +32,18 @@ export struct ApiFileImportDialog {
   onComplete: () => void = () => {};
   onImportPostman: (result: PostmanImportResult) => void = () => {};
   onImportOpenApi: (result: OpenApiImportResult) => void = () => {};
+  onImportCurl: (result: CurlImportResult) => void = () => {};
+
+  private importCurl(): void {
+    try {
+      const result = CurlCodec.parse(this.curlText);
+      this.curlState = 'importing';
+      setTimeout(() => this.onImportCurl(result), 120);
+    } catch (error) {
+      this.curlState = 'invalid';
+      this.curlErrorText = `${error}`.replace('Error: ', '');
+    }
+  }
 
   private displayName(uri: string): string {
     const slash = uri.lastIndexOf('/');
@@ -148,7 +166,24 @@ export struct ApiFileImportDialog {
 
   @Builder
   private content() {
-    if (this.step === 'select') {
+    if (this.activeTab === 'curl') {
+      Column({ space: SpacingTokens.x3 }) {
+        Text($r('app.string.curl_paste_hint')).fontSize(12).fontColor(ColorTokens.textTertiary).width('100%')
+        CurlCodeSurface({
+          value: this.curlText,
+          invalid: this.curlState === 'invalid',
+          onChange: (value: string) => {
+            this.curlText = value;
+            this.curlState = 'idle';
+            this.curlErrorText = '';
+          }
+        }).height(190)
+        if (this.curlErrorText.length > 0) {
+          Text(this.curlErrorText).fontSize(12).fontColor(ColorTokens.httpDelete).width('100%')
+        }
+        Text($r('app.string.curl_values_hint')).fontSize(11).fontColor(ColorTokens.textTertiary).width('100%')
+      }.width('100%').alignItems(HorizontalAlign.Start)
+    } else if (this.step === 'select') {
       Column({ space: SpacingTokens.x3 }) {
         Text('{ }').fontSize(28).fontWeight(FontWeight.Medium).fontColor(ColorTokens.brand500)
         Text($r('app.string.api_import_select_title')).fontSize(16).fontWeight(FontWeight.Medium)
@@ -163,7 +198,7 @@ export struct ApiFileImportDialog {
           Text(this.errorText).fontSize(12).fontColor(ColorTokens.httpDelete).textAlign(TextAlign.Center)
         }
       }
-      .width('100%').height(280).justifyContent(FlexAlign.Center)
+      .width('100%').height(220).justifyContent(FlexAlign.Center)
       .backgroundColor(this.dragging ? ColorTokens.bgSurfaceActive : ColorTokens.bgWorkspace)
       .border({ width: this.dragging ? 2 : 1,
         color: this.dragging ? ColorTokens.borderFocus : ColorTokens.borderSubtle,
@@ -179,7 +214,7 @@ export struct ApiFileImportDialog {
         Text($r('app.string.analyzing_import')).fontSize(16).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
         Text(this.fileName).fontSize(12).fontColor(ColorTokens.textTertiary)
-      }.width('100%').height(280).justifyContent(FlexAlign.Center)
+      }.width('100%').height(220).justifyContent(FlexAlign.Center)
     } else if (this.step === 'preview') {
       Column({ space: SpacingTokens.x2 }) {
         Text($r('app.string.import_preview')).fontSize(15).fontWeight(FontWeight.Medium)
@@ -205,7 +240,7 @@ export struct ApiFileImportDialog {
         Text($r('app.string.import_complete')).fontSize(17).fontWeight(FontWeight.Medium)
           .fontColor(ColorTokens.textPrimary)
         Text(this.formatName).fontSize(13).fontColor(ColorTokens.textSecondary)
-      }.width('100%').height(280).justifyContent(FlexAlign.Center)
+      }.width('100%').height(220).justifyContent(FlexAlign.Center)
     }
   }
 
@@ -214,41 +249,67 @@ export struct ApiFileImportDialog {
       Column().width('100%').height('100%').backgroundColor(ColorTokens.overlayScrim).onClick(this.onCancel)
       Column({ space: SpacingTokens.x4 }) {
         Row() {
-          Text($r('app.string.api_import_title')).fontSize(18).fontWeight(FontWeight.Medium)
+          Text($r('app.string.import_title')).fontSize(18).fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
           Blank()
           Text('×').fontSize(20).fontColor(ColorTokens.textTertiary).onClick(this.onCancel)
         }.width('100%')
-        Row({ space: SpacingTokens.x2 }) {
-          Text($r('app.string.step_select')).fontSize(11)
-            .fontColor(this.step === 'select' ? ColorTokens.brand600 : ColorTokens.textTertiary)
-          Text('—').fontColor(ColorTokens.borderDefault)
-          Text($r('app.string.step_analyze')).fontSize(11)
-            .fontColor(this.step === 'analyzing' ? ColorTokens.brand600 : ColorTokens.textTertiary)
-          Text('—').fontColor(ColorTokens.borderDefault)
-          Text($r('app.string.step_preview')).fontSize(11)
-            .fontColor(this.step === 'preview' ? ColorTokens.brand600 : ColorTokens.textTertiary)
-          Text('—').fontColor(ColorTokens.borderDefault)
-          Text($r('app.string.step_result')).fontSize(11)
-            .fontColor(this.step === 'result' ? ColorTokens.brand600 : ColorTokens.textTertiary)
-        }.width('100%')
+        Row() {
+          Text($r('app.string.import_tab_curl'))
+            .height(38).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
+            .fontSize(13).fontWeight(this.activeTab === 'curl' ? FontWeight.Medium : FontWeight.Regular)
+            .fontColor(this.activeTab === 'curl' ? ColorTokens.textPrimary : ColorTokens.textSecondary)
+            .border({ width: { bottom: this.activeTab === 'curl' ? 2 : 0 }, color: ColorTokens.brand500 })
+            .onClick(() => { this.activeTab = 'curl'; })
+          Text($r('app.string.import_tab_api_file'))
+            .height(38).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
+            .fontSize(13).fontWeight(this.activeTab === 'api' ? FontWeight.Medium : FontWeight.Regular)
+            .fontColor(this.activeTab === 'api' ? ColorTokens.textPrimary : ColorTokens.textSecondary)
+            .border({ width: { bottom: this.activeTab === 'api' ? 2 : 0 }, color: ColorTokens.brand500 })
+            .onClick(() => { this.activeTab = 'api'; })
+          Blank()
+        }.width('100%').height(39).border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+        if (this.activeTab === 'api') {
+          Row({ space: SpacingTokens.x2 }) {
+            Text($r('app.string.step_select')).fontSize(11)
+              .fontColor(this.step === 'select' ? ColorTokens.brand600 : ColorTokens.textTertiary)
+            Text('—').fontColor(ColorTokens.borderDefault)
+            Text($r('app.string.step_analyze')).fontSize(11)
+              .fontColor(this.step === 'analyzing' ? ColorTokens.brand600 : ColorTokens.textTertiary)
+            Text('—').fontColor(ColorTokens.borderDefault)
+            Text($r('app.string.step_preview')).fontSize(11)
+              .fontColor(this.step === 'preview' ? ColorTokens.brand600 : ColorTokens.textTertiary)
+            Text('—').fontColor(ColorTokens.borderDefault)
+            Text($r('app.string.step_result')).fontSize(11)
+              .fontColor(this.step === 'result' ? ColorTokens.brand600 : ColorTokens.textTertiary)
+          }.width('100%')
+        }
         this.content()
         Row({ space: SpacingTokens.x3 }) {
           Blank()
-          if (this.step !== 'analyzing') {
+          if (this.activeTab === 'curl') {
+            Button($r('app.string.action_cancel')).height(SizeTokens.controlMedium).fontSize(13)
+              .fontColor(ColorTokens.textPrimary).backgroundColor(ColorTokens.bgSurface)
+              .border({ width: 1, color: ColorTokens.borderDefault }).borderRadius(RadiusTokens.medium)
+              .onClick(this.onCancel)
+            Button(this.curlState === 'importing' ? $r('app.string.importing') : $r('app.string.import_action'))
+              .height(SizeTokens.controlMedium).fontSize(13).fontColor(ColorTokens.textOnBrand)
+              .backgroundColor(ColorTokens.brand500).borderRadius(RadiusTokens.medium)
+              .enabled(this.curlState !== 'importing').onClick(() => this.importCurl())
+          } else if (this.step !== 'analyzing') {
             Button(this.step === 'result' ? $r('app.string.action_done') : $r('app.string.action_cancel'))
               .height(SizeTokens.controlMedium).fontSize(13).fontColor(ColorTokens.textPrimary)
               .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderDefault })
               .borderRadius(RadiusTokens.medium).onClick(this.step === 'result' ? this.onComplete : this.onCancel)
           }
-          if (this.step === 'preview') {
+          if (this.activeTab === 'api' && this.step === 'preview') {
             Button($r('app.string.import_action')).height(SizeTokens.controlMedium).fontSize(13)
               .fontColor(ColorTokens.textOnBrand).backgroundColor(ColorTokens.brand500)
               .borderRadius(RadiusTokens.medium).onClick(() => this.importFile())
           }
         }.width('100%')
       }
-      .width(600).padding(SpacingTokens.x6).backgroundColor(ColorTokens.bgSurface)
+      .width(760).padding(SpacingTokens.x6).backgroundColor(ColorTokens.bgSurface)
       .borderRadius(RadiusTokens.large).shadow({ radius: 20, color: ColorTokens.shadowDefault, offsetY: 8 })
       .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 8 }))
         .combine(TransitionEffect.scale({ x: 0.96, y: 0.96 }))

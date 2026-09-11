@@ -37,7 +37,9 @@ export default class EntryAbility extends UIAbility {
   onConfigurationUpdate(newConfig: Configuration): void {
     if (!this.mainWindow || newConfig.colorMode === undefined) return;
     try {
-      this.mainWindow.setDecorButtonStyle({ buttonIconSize: 24, colorMode: newConfig.colorMode });
+      this.mainWindow.setDecorButtonStyle({ buttonIconSize: 18, buttonBackgroundSize: 32,
+        spacingBetweenButtons: 8, closeButtonRightMargin: 12, buttonBackgroundCornerRadius: 16,
+        colorMode: newConfig.colorMode });
     } catch (error) {
       hilog.warn(DOMAIN, 'Nimbo', 'Unable to update title button colors: %{public}s', JSON.stringify(error));
     }
@@ -66,7 +68,8 @@ export default class EntryAbility extends UIAbility {
       mainWindow.setWindowDecorVisible(false);
       mainWindow.setWindowDecorHeight(TITLE_BAR_HEIGHT);
       mainWindow.setWindowTitleMoveEnabled(true);
-      mainWindow.setDecorButtonStyle({ buttonIconSize: 24 });
+      mainWindow.setDecorButtonStyle({ buttonIconSize: 18, buttonBackgroundSize: 32,
+        spacingBetweenButtons: 8, closeButtonRightMargin: 12, buttonBackgroundCornerRadius: 16 });
       this.publishTitleButtonInset(mainWindow.getTitleButtonRect());
       mainWindow.on('windowTitleButtonRectChange', this.titleButtonRectChange);
     } catch (error) {
