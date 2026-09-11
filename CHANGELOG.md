@@ -19,12 +19,14 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Response JSONPath preview and post-response environment extraction with explicit targets, secret flags, visible outcomes, and overwrite protection
 - Declarative response tests for status code, response time, headers, and JSONPath with localized pass/fail details
 - Unified title-bar import dialog with cURL and API-file tabs; cURL input has syntax highlighting, while API files support drag-and-drop detection for Postman, OpenAPI 3.x, and Swagger 2.0 without shifting the workspace
+- Sandboxed QuickJS-NG runtime with asynchronous execution, time, memory, stack, source, concurrency, and console-output limits
+- Per-request Pre-request scripts with JavaScript editing and guarded `nimbo.request`, `nimbo.environment`, and `console` APIs
 
 ### Changed
 
 - Reworked the HTTP method picker with method-specific colors and a top-layer menu
 - Combined New and import actions into a single split button and removed the duplicate settings entry
-- Migrated local data to schema v7 while preserving existing requests, environments, extraction rules, and older preferences
+- Migrated local data to schema v8 while preserving existing requests, environments, extraction rules, tests, and older preferences
 - Localized built-in environment names and the starter collection data in Simplified Chinese
 - Removed the duplicate in-panel sending banner and pinned environment/history scroll content to the top
 - Separated the URL group, Save action, and Send action with consistent toolbar spacing

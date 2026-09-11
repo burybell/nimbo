@@ -577,6 +577,26 @@
       "value": "正文"
     },
     {
+      "name": "tab_pre_request",
+      "value": "前置脚本"
+    },
+    {
+      "name": "script_pre_request_hint",
+      "value": "在变量替换和发送前运行。只有脚本成功时才会应用请求与环境修改。"
+    },
+    {
+      "name": "script_enabled",
+      "value": "启用脚本"
+    },
+    {
+      "name": "script_api_hint",
+      "value": "可用 API：nimbo.request · nimbo.request.headers · nimbo.environment · console"
+    },
+    {
+      "name": "script_editor_placeholder",
+      "value": "// 在发送前准备请求\nnimbo.request.headers.set('X-Token', nimbo.environment.get('token'));"
+    },
+    {
       "name": "tab_extract",
       "value": "提取"
     },

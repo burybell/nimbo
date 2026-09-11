@@ -577,6 +577,26 @@
       "value": "Body"
     },
     {
+      "name": "tab_pre_request",
+      "value": "Pre-request"
+    },
+    {
+      "name": "script_pre_request_hint",
+      "value": "Runs before variable substitution and sending. Changes are applied only when the script succeeds."
+    },
+    {
+      "name": "script_enabled",
+      "value": "Enable script"
+    },
+    {
+      "name": "script_api_hint",
+      "value": "APIs: nimbo.request · nimbo.request.headers · nimbo.environment · console"
+    },
+    {
+      "name": "script_editor_placeholder",
+      "value": "// Prepare this request\nnimbo.request.headers.set('X-Token', nimbo.environment.get('token'));"
+    },
+    {
       "name": "tab_extract",
       "value": "Extract"
     },

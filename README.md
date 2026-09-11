@@ -20,6 +20,7 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 - A unified title-bar importer with highlighted cURL editing and drag-and-drop API files, with automatic Postman Collection/Environment and OpenAPI 3.x / Swagger 2.0 JSON detection
 - Response JSONPath preview and explicit environment-variable extraction with overwrite protection
 - Declarative response tests for status, timing, headers, and JSONPath with per-rule results
+- Sandboxed Pre-request JavaScript for changing the current send and writing active-environment variables without blocking the UI
 - Local Nimbo backup export with secrets redacted by default
 - Light, dark, and system themes
 - English and Simplified Chinese interfaces
@@ -40,7 +41,7 @@ Save it into a collection
 Reuse it with environments and history
 ```
 
-WebSocket, SSE, GraphQL, gRPC, collection runners, scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
+WebSocket, SSE, GraphQL, gRPC, collection runners, post-response and collection-level scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
 
 ## Requirements
 

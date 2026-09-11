@@ -20,6 +20,7 @@ Nimbo 是一款为 HarmonyOS 打造的快速、原生、本地优先 API 调试�
 - Title Bar 统一导入入口，cURL 输入支持语法高亮；API 文件可拖放并自动识别 Postman Collection/Environment、OpenAPI 3.x / Swagger 2.0 JSON
 - 响应 JSONPath 预览与指定环境变量提取，默认保护已有变量不被覆盖
 - 声明式响应测试，覆盖状态码、耗时、标头和 JSONPath，并逐项显示结果
+- 沙箱化 Pre-request JavaScript，可修改本次发送并写入当前环境变量，执行过程不阻塞 UI
 - Nimbo 本地备份导出，默认对密钥信息脱敏
 - Light、Dark 和跟随系统主题
 - 简体中文和英文界面
@@ -40,7 +41,7 @@ Nimbo 1.0 的核心工作流已经实现，可在 HarmonyOS PC 目标上运行�
 通过环境与历史记录重复调试
 ```
 
-WebSocket、SSE、GraphQL、gRPC、Collection Runner、脚本、AI、云同步和账号系统目前尚未实现。界面不会提前展示不可用的功能入口。
+WebSocket、SSE、GraphQL、gRPC、Collection Runner、Post-response 与集合级脚本、AI、云同步和账号系统目前尚未实现。界面不会提前展示不可用的功能入口。
 
 ## 环境要求
 

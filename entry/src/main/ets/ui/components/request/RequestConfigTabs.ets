@@ -8,6 +8,7 @@ export struct RequestConfigTabs {
   @Prop activeTab: RequestConfigTab = 'params';
   @Prop headerCount: number = 0;
   @Prop bodyHasContent: boolean = false;
+  @Prop preRequestEnabled: boolean = false;
   @Prop extractionCount: number = 0;
   @Prop testCount: number = 0;
   onChange: (tab: RequestConfigTab) => void = () => {};
@@ -48,6 +49,7 @@ export struct RequestConfigTabs {
       this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount > 0 ? this.headerCount.toString() : '')
       this.tabItem('auth', $r('app.string.tab_auth'))
       this.tabItem('body', $r('app.string.tab_body'), this.bodyHasContent ? '●' : '')
+      this.tabItem('preRequest', $r('app.string.tab_pre_request'), this.preRequestEnabled ? '●' : '')
       this.tabItem('extract', $r('app.string.tab_extract'),
         this.extractionCount > 0 ? this.extractionCount.toString() : '')
       this.tabItem('tests', $r('app.string.tab_tests'),

@@ -1,7 +1,7 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'extract' | 'tests' | 'settings';
+export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'extract' | 'tests' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
@@ -11,7 +11,7 @@ export type ResponseTab = 'body' | 'headers' | 'cookies' | 'tests' | 'timeline';
 export type ResponseBodyMode = 'pretty' | 'raw';
 export type ResponseMediaKind = 'none' | 'image' | 'video';
 export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
-  'connectionReset' | 'invalidUrl' | 'proxy' | 'cancelled' | 'unknown';
+  'connectionReset' | 'invalidUrl' | 'proxy' | 'script' | 'cancelled' | 'unknown';
 
 export interface NavigationItemModel {
   id: NavigationDestination;
@@ -110,6 +110,22 @@ export interface TestResult {
   message: TestResultMessage;
 }
 
+export interface RequestScript {
+  enabled: boolean;
+  source: string;
+}
+
+export type ScriptPhase = 'preRequest' | 'postResponse';
+export type ScriptExecutionStatus = 'success' | 'error' | 'timeout' | 'memoryLimit';
+
+export interface ScriptExecutionResult {
+  phase: ScriptPhase;
+  status: ScriptExecutionStatus;
+  error: string;
+  durationMs: number;
+  logs: string[];
+}
+
 export interface RequestDraft {
   method: HttpMethod;
   url: string;
@@ -123,6 +139,7 @@ export interface RequestDraft {
   formItems: KeyValueItem[];
   multipartItems: KeyValueItem[];
   binaryFileName: string;
+  preRequestScript: RequestScript;
   extractionRules: ExtractionRule[];
   testRules: TestRule[];
   settings: RequestSettings;
@@ -152,6 +169,7 @@ export interface ResponseModel {
   protocol: string;
   error: ResponseErrorModel;
   previewAvailable: boolean;
+  scriptResults: ScriptExecutionResult[];
   extractionResults: ExtractionResult[];
   testResults: TestResult[];
 }
