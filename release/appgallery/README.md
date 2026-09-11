@@ -43,7 +43,7 @@ Nimbo 是一款面向开发者的鸿蒙电脑原生 API 调试客户端。它以
 - `screenshots/03-environments.png`：环境变量管理
 - `screenshots/04-history.png`：请求历史与状态记录
 - `screenshots/05-settings.png`：外观与字体设置
-- `Nimbo-示例集合.postman_collection.json`：截图与体验用中文示例集合
+- `Nimbo-Sample-Collection.postman_collection.json`：截图与体验用中文示例集合
 - `package/Nimbo-0.1.0-PC-release-signed.app`：使用共享发布证书和 Nimbo 发布 Profile 构建的正式提审包
 - `package/Nimbo-0.1.0-PC-release-unsigned.hap`：PC 专用 Release 未签名包，可用于 AppGallery Connect 云管理签名流程
 - `package/Nimbo-0.1.0-PC-release-debug-profile-signed.hap`：使用现有设备调试 Profile 签名的模拟器测试包，不可提交商店
