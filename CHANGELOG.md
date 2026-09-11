@@ -15,6 +15,8 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Native image and video response previews with metadata tabs, playback controls, and original-file saving
 - Response-body search with match navigation, full-body clipboard copy, and content-type-aware downloads
 - AppGallery-ready PC artwork, five verified 16:9 screenshots, Chinese listing copy, and an importable showcase collection
+- OpenAPI 3.0/3.1 and Swagger 2.0 JSON import with tag folders, request previews, generated body examples, and unsupported-feature warnings
+- Response JSONPath preview and post-response environment extraction with explicit targets, secret flags, visible outcomes, and overwrite protection
 
 ### Changed
 

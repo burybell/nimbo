@@ -1,18 +1,22 @@
 import {
   AuthConfig,
   BodyType,
+  EnvironmentModel,
+  ExtractionRule,
   HttpMethod,
   KeyValueItem,
   RequestConfigTab,
   RequestDraft,
   RequestLifecycle,
-  RequestSettings
+  RequestSettings,
+  ResponseModel
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { AuthEditor } from './AuthEditor';
 import { BodyEditor } from './BodyEditor';
+import { ExtractionEditor } from './ExtractionEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 import { RequestConfigTabs } from './RequestConfigTabs';
 import { RequestSettingsEditor } from './RequestSettingsEditor';
@@ -22,6 +26,8 @@ import { RequestToolbar } from './RequestToolbar';
 export struct RequestPanel {
   @Prop request: RequestDraft;
   @Prop phone: boolean = false;
+  @Prop environments: EnvironmentModel[] = [];
+  @Prop response: ResponseModel;
   onChange: (request: RequestDraft) => void = () => {};
   onSave: () => void = () => {};
 
@@ -29,7 +35,8 @@ export struct RequestPanel {
     activeConfigTab: RequestConfigTab, params: KeyValueItem[], headers: KeyValueItem[],
     auth: AuthConfig, bodyType: BodyType, bodyText: string, formItems: KeyValueItem[],
     multipartItems: KeyValueItem[], binaryFileName: string,
-    settings: RequestSettings = this.request.settings): void {
+    settings: RequestSettings = this.request.settings,
+    extractionRules: ExtractionRule[] = this.request.extractionRules): void {
     this.onChange({
       method,
       url,
@@ -43,6 +50,7 @@ export struct RequestPanel {
       formItems,
       multipartItems,
       binaryFileName,
+      extractionRules,
       settings
     });
   }
@@ -90,6 +98,7 @@ export struct RequestPanel {
         activeTab: this.request.activeConfigTab,
         headerCount: this.enabledHeaderCount(),
         bodyHasContent: this.bodyHasContent(),
+        extractionCount: this.request.extractionRules.filter((rule: ExtractionRule) => rule.enabled).length,
         onChange: (tab: RequestConfigTab) => this.emitCore(this.request.method, this.request.url,
           this.request.lifecycle, tab)
       })
@@ -170,6 +179,20 @@ export struct RequestPanel {
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
             this.request.multipartItems, binaryFileName)
+        })
+          .layoutWeight(1)
+          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))
+            .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
+      } else if (this.request.activeConfigTab === 'extract') {
+        ExtractionEditor({
+          rules: this.request.extractionRules,
+          environments: this.environments,
+          response: this.response,
+          phone: this.phone,
+          onChange: (rules: ExtractionRule[]) => this.emit(this.request.method, this.request.url,
+            this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
+            this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,
+            this.request.multipartItems, this.request.binaryFileName, this.request.settings, rules)
         })
           .layoutWeight(1)
           .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 6 }))

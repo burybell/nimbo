@@ -333,7 +333,23 @@ URL 输入效率回归：请求 URL 输入框在内容精确为 `h` 时按 Tab �
 
 PC 发布素材回归：当前发布清单收口为 `2in1`，平板与手机响应式实现继续保留但不进入本次分发。首次安装的中文演示集合扩展为“用户服务 / 内容服务 / 媒体资源 / 响应示例 / 身份认证”，新增的请求均可打开真实示例 URL。`release/appgallery/` 提供 216×216 PNG 图标、五张真实模拟器 1920×1080 PNG 截图、中文商店文案、可导入 Postman 示例集合及 Release 构建产物。已确认 Release HAP 为 `debug: false` 且仅声明 `2in1`；本机现有 Profile 仍为设备绑定的 debug 类型，因此已签名包仅供模拟器测试，正式上架必须使用发布证书/Profile 或 AppGallery Connect 云管理签名。
 
-继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
+### Milestone 11 — API Schema & Response Workflows
+
+Milestone 11 将后续候选能力收敛为不依赖账号、云端或 Runner 的本地请求串联闭环。任意 JavaScript 执行不与声明式规则混在同一阶段，避免在缺少沙箱、超时和权限边界时引入脚本风险。
+
+分三批完成：
+
+1. OpenAPI 3.0 / 3.1 与 Swagger 2.0 导入：先支持本地 JSON 文件，按首个 Tag 生成文件夹，导入 Server、Path、Method、Query、Header、示例 Body 和 Basic / Bearer / API Key；导入前展示请求数、文件夹数和未支持项，失败不得污染现有集合
+2. Response JSONPath 与变量提取：支持预览匹配结果，将提取规则保存到请求，并在响应成功后写入明确选择的环境；缺失路径、类型不匹配和敏感值必须有可见结果，不允许静默覆盖
+3. 声明式 Tests：支持状态码、响应时间、Header 存在/相等、JSONPath 存在/相等等规则，在单次响应中展示逐项通过或失败；规则与结果分离，结果不进入长期持久化
+
+验收要求：常见 OpenAPI / Swagger JSON 能原子导入为可立即发送和保存的集合；导入引用 Schema 时能生成稳定 JSON 示例；JSONPath 提取不会跨请求或跨环境意外写值；Tests 不执行任意代码且每条规则都有确定结果；中英文、深浅主题、本地恢复和既有 Postman/cURL 导入不退化；构建无新增 warning。
+
+第一批进度（2026-09-11）：已实现 OpenAPI 3.0 / 3.1 与 Swagger 2.0 JSON 本地导入。新增独立解析服务和四步导入预览，支持首个 Server、Server Variable 默认值、Tag 文件夹、Path/Query/Header 参数、JSON 示例、表单/Multipart、Basic/Bearer/API Key，并对未赋值 Path 参数、Cookie 参数和不支持的认证给出警告。入口已加入新建 Split Button 与全局搜索，导入结果复用现有 Collection / Request 持久化路径。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。YAML、远程 URL 和外部 `$ref` 暂不在第一批支持范围。
+
+第二批进度（2026-09-11）：请求配置新增“提取”页，可保存多条 JSONPath → 环境变量规则并基于当前响应只读预览。发送得到 2xx/3xx JSON 响应后才执行规则，每条规则必须明确目标环境；同名变量默认报告冲突，只有开启“允许覆盖”才会更新，敏感值可写入 Secret 变量。成功、路径未匹配、JSON/JSONPath 无效、目标环境缺失和覆盖冲突均显示逐条结果，执行结果仅保留在当前响应、不进入长期持久化。JSONPath 当前支持根 `$`、点属性、引号属性、数组索引和属性/数组通配符；过滤器、递归下降和脚本表达式暂缓。持久化 schema 升级至 v6，旧请求自动补齐空规则且不丢数据。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。
+
+继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、任意 JavaScript Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的其他能力。
 
 ---
 

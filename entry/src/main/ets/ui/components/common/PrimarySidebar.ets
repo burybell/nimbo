@@ -12,11 +12,13 @@ export struct PrimarySidebar {
   onCreateRequest: () => void = () => {};
   onImportCurl: () => void = () => {};
   onImportPostman: () => void = () => {};
+  onImportOpenApi: () => void = () => {};
   @State importMenuOpen: boolean = false;
   @State hoveredItemId: string = '';
   private importItems: ContextMenuItemModel[] = [
     { id: 'curl', label: $r('app.string.import_curl'), icon: '>_', dangerous: false },
-    { id: 'postman', label: $r('app.string.import_postman'), icon: 'P', dangerous: false }
+    { id: 'postman', label: $r('app.string.import_postman'), icon: 'P', dangerous: false },
+    { id: 'openapi', label: $r('app.string.import_openapi'), icon: '{}', dangerous: false }
   ];
 
   private handleImport(action: string): void {
@@ -25,6 +27,7 @@ export struct PrimarySidebar {
     });
     if (action === 'curl') this.onImportCurl();
     if (action === 'postman') this.onImportPostman();
+    if (action === 'openapi') this.onImportOpenApi();
   }
 
   private mainItems: NavigationItemModel[] = [
@@ -132,7 +135,7 @@ export struct PrimarySidebar {
           }
         }
         .width('100%')
-        .height(this.importMenuOpen ? SizeTokens.controlLarge + SpacingTokens.x2 + 76 :
+        .height(this.importMenuOpen ? SizeTokens.controlLarge + SpacingTokens.x2 + 110 :
           SizeTokens.controlLarge)
         .clip(false)
         .zIndex(10)

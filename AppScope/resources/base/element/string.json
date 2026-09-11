@@ -161,6 +161,10 @@
       "value": "Import Postman"
     },
     {
+      "name": "import_openapi",
+      "value": "Import OpenAPI / Swagger"
+    },
+    {
       "name": "search_global",
       "value": "Search requests, collections, or history…"
     },
@@ -537,6 +541,74 @@
       "value": "Body"
     },
     {
+      "name": "tab_extract",
+      "value": "Extract"
+    },
+    {
+      "name": "extraction_hint",
+      "value": "Extract values from a successful JSON response into an explicit environment. Existing variables are protected unless overwrite is enabled."
+    },
+    {
+      "name": "extraction_variable",
+      "value": "Variable name"
+    },
+    {
+      "name": "extraction_select_environment",
+      "value": "Select environment"
+    },
+    {
+      "name": "extraction_not_run",
+      "value": "Not run: the response was not successful"
+    },
+    {
+      "name": "extraction_add",
+      "value": "+ Add extraction rule"
+    },
+    {
+      "name": "extraction_preview",
+      "value": "Preview"
+    },
+    {
+      "name": "extraction_preview_value",
+      "value": "Preview"
+    },
+    {
+      "name": "extraction_secret",
+      "value": "Secret"
+    },
+    {
+      "name": "extraction_overwrite",
+      "value": "Allow overwrite"
+    },
+    {
+      "name": "extraction_no_response",
+      "value": "Send the request once to preview the response"
+    },
+    {
+      "name": "extraction_no_match",
+      "value": "JSONPath did not match a value"
+    },
+    {
+      "name": "extraction_invalid_json",
+      "value": "The response body is not valid JSON"
+    },
+    {
+      "name": "extraction_invalid_path",
+      "value": "Invalid JSONPath"
+    },
+    {
+      "name": "extraction_target_missing",
+      "value": "The target environment no longer exists"
+    },
+    {
+      "name": "extraction_conflict",
+      "value": "Variable exists; enable overwrite to replace it"
+    },
+    {
+      "name": "extraction_saved",
+      "value": "Saved"
+    },
+    {
       "name": "tab_cookies",
       "value": "Cookies"
     },
@@ -803,6 +875,22 @@
     {
       "name": "postman_support_hint",
       "value": "Supports Collection v2, v2.1, and Environment JSON."
+    },
+    {
+      "name": "openapi_title",
+      "value": "Import OpenAPI / Swagger"
+    },
+    {
+      "name": "openapi_select_title",
+      "value": "Select an API schema"
+    },
+    {
+      "name": "openapi_support_hint",
+      "value": "Supports OpenAPI 3.0, 3.1, and Swagger 2.0 JSON."
+    },
+    {
+      "name": "api_specification",
+      "value": "Specification"
     },
     {
       "name": "select_file",

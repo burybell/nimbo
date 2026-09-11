@@ -161,6 +161,10 @@
       "value": "导入 Postman"
     },
     {
+      "name": "import_openapi",
+      "value": "导入 OpenAPI / Swagger"
+    },
+    {
       "name": "search_global",
       "value": "搜索请求、集合或历史记录…"
     },
@@ -537,6 +541,74 @@
       "value": "正文"
     },
     {
+      "name": "tab_extract",
+      "value": "提取"
+    },
+    {
+      "name": "extraction_hint",
+      "value": "从成功的 JSON 响应中提取值并写入指定环境。默认保护已有变量，需明确允许覆盖。"
+    },
+    {
+      "name": "extraction_variable",
+      "value": "变量名"
+    },
+    {
+      "name": "extraction_select_environment",
+      "value": "选择环境"
+    },
+    {
+      "name": "extraction_not_run",
+      "value": "未执行：响应未成功"
+    },
+    {
+      "name": "extraction_add",
+      "value": "+ 添加提取规则"
+    },
+    {
+      "name": "extraction_preview",
+      "value": "预览"
+    },
+    {
+      "name": "extraction_preview_value",
+      "value": "预览值"
+    },
+    {
+      "name": "extraction_secret",
+      "value": "敏感变量"
+    },
+    {
+      "name": "extraction_overwrite",
+      "value": "允许覆盖"
+    },
+    {
+      "name": "extraction_no_response",
+      "value": "请先发送一次请求以预览响应"
+    },
+    {
+      "name": "extraction_no_match",
+      "value": "JSONPath 未匹配到值"
+    },
+    {
+      "name": "extraction_invalid_json",
+      "value": "响应正文不是有效的 JSON"
+    },
+    {
+      "name": "extraction_invalid_path",
+      "value": "JSONPath 格式无效"
+    },
+    {
+      "name": "extraction_target_missing",
+      "value": "目标环境已不存在"
+    },
+    {
+      "name": "extraction_conflict",
+      "value": "变量已存在，请开启允许覆盖"
+    },
+    {
+      "name": "extraction_saved",
+      "value": "已保存"
+    },
+    {
       "name": "tab_cookies",
       "value": "Cookie"
     },
@@ -803,6 +875,22 @@
     {
       "name": "postman_support_hint",
       "value": "支持 Collection v2、v2.1 和 Environment JSON。"
+    },
+    {
+      "name": "openapi_title",
+      "value": "导入 OpenAPI / Swagger"
+    },
+    {
+      "name": "openapi_select_title",
+      "value": "选择 API 规范文件"
+    },
+    {
+      "name": "openapi_support_hint",
+      "value": "支持 OpenAPI 3.0、3.1 和 Swagger 2.0 JSON。"
+    },
+    {
+      "name": "api_specification",
+      "value": "规范版本"
     },
     {
       "name": "select_file",

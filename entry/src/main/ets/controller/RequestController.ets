@@ -300,7 +300,8 @@ export class RequestController {
       duration: `${result.durationMs} ms`,
       protocol: result.protocol,
       error: { type: 'unknown', title: '', message: '', code: '', details: '' },
-      previewAvailable: status === 'large'
+      previewAvailable: status === 'large',
+      extractionResults: []
     };
   }
 

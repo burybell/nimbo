@@ -1,7 +1,7 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'settings';
+export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'extract' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
@@ -66,6 +66,26 @@ export interface RequestSettings {
   useCookieJar: boolean;
 }
 
+export type ExtractionStatus = 'success' | 'notRun' | 'noMatch' | 'invalidJson' | 'invalidPath' |
+  'targetMissing' | 'conflict';
+
+export interface ExtractionRule {
+  id: string;
+  enabled: boolean;
+  variableName: string;
+  jsonPath: string;
+  environmentId: string;
+  secret: boolean;
+  overwrite: boolean;
+}
+
+export interface ExtractionResult {
+  ruleId: string;
+  status: ExtractionStatus;
+  value: string;
+  message: string;
+}
+
 export interface RequestDraft {
   method: HttpMethod;
   url: string;
@@ -79,6 +99,7 @@ export interface RequestDraft {
   formItems: KeyValueItem[];
   multipartItems: KeyValueItem[];
   binaryFileName: string;
+  extractionRules: ExtractionRule[];
   settings: RequestSettings;
 }
 
@@ -106,6 +127,7 @@ export interface ResponseModel {
   protocol: string;
   error: ResponseErrorModel;
   previewAvailable: boolean;
+  extractionResults: ExtractionResult[];
 }
 
 export type EnvironmentKind = 'development' | 'staging' | 'production' | 'custom';
