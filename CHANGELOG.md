@@ -83,6 +83,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Kept empty and environment-variable authentication secrets visible for editing and completion, while masking only non-empty literal Bearer tokens, Basic passwords, and API key values
 - Refreshed environment value editors immediately when Secret changes and aligned masked-value padding with the normal value column
 - Kept the active script-completion candidate visible by automatically scrolling the compact suggestion list during keyboard navigation
+- Replaced the sidebar New button's font plus with a fixed SVG so the icon remains centered and unclipped in non-maximized windows
 
 ## [0.1.0-alpha] - 2026-09-10
 

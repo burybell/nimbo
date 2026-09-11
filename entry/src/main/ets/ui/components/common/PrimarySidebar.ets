@@ -48,20 +48,24 @@ export struct PrimarySidebar {
   build() {
     Column() {
       if (this.compact) {
-        Button('+')
+        Button() {
+          Image($r('app.media.add_white'))
+            .width(18)
+            .height(18)
+            .objectFit(ImageFit.Contain)
+        }
           .width(SizeTokens.controlLarge)
           .height(SizeTokens.controlLarge)
-          .fontSize(20)
-          .fontColor(ColorTokens.textOnBrand)
           .backgroundColor(ColorTokens.brand500)
           .borderRadius(RadiusTokens.medium)
           .onClick(this.onCreateRequest)
       } else {
         Button() {
           Row({ space: SpacingTokens.x2 }) {
-            Text('+')
-              .fontSize(18)
-              .fontColor(ColorTokens.textOnBrand)
+            Image($r('app.media.add_white'))
+              .width(18)
+              .height(18)
+              .objectFit(ImageFit.Contain)
             Text($r('app.string.action_new'))
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
