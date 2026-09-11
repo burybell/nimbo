@@ -133,6 +133,7 @@ export function createEmptyRequest(method: HttpMethod = 'GET'): RequestDraft {
     multipartItems: [],
     binaryFileName: '',
     preRequestScript: { enabled: false, source: '' },
+    postResponseScript: { enabled: false, source: '' },
     extractionRules: [],
     testRules: [],
     settings: {

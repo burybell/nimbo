@@ -48,6 +48,7 @@ export struct Workspace {
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
       preRequestScript: request.preRequestScript,
+      postResponseScript: request.postResponseScript,
       extractionRules: request.extractionRules,
       testRules: request.testRules,
       settings: request.settings

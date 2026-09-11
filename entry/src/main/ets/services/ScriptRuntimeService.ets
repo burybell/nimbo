@@ -34,6 +34,26 @@ export interface PreRequestExecution {
   environmentWrites: Record<string, string>;
 }
 
+export interface ScriptResponseSnapshot {
+  statusCode: number;
+  statusText: string;
+  body: string;
+  headers: Record<string, string>;
+  contentType: string;
+  size: string;
+  duration: string;
+  protocol: string;
+}
+
+interface PostResponsePayload {
+  environmentWrites: Record<string, string>;
+}
+
+export interface PostResponseExecution {
+  result: ScriptResult;
+  environmentWrites: Record<string, string>;
+}
+
 export class ScriptRuntimeService {
   static readonly DEFAULT_TIMEOUT_MS: number = 500;
   static readonly DEFAULT_MEMORY_LIMIT_BYTES: number = 8 * 1024 * 1024;
@@ -120,6 +140,68 @@ export class ScriptRuntimeService {
       return {
         result: { status: 'error', value: '', error: message, durationMs: result.durationMs, logs: result.logs },
         request,
+        environmentWrites: {}
+      };
+    }
+  }
+
+  private static wrappedPostResponseSource(source: string, response: ScriptResponseSnapshot,
+    environment: ScriptEnvironmentSnapshot): string {
+    const input = JSON.stringify({ response, environment });
+    const inputLiteral = JSON.stringify(input);
+    const sourceLiteral = JSON.stringify(source);
+    return `(() => {
+  'use strict';
+  const state = JSON.parse(${inputLiteral});
+  const environmentWrites = {};
+  const headerName = (name) => Object.keys(state.response.headers)
+    .find((key) => key.toLowerCase() === String(name).toLowerCase());
+  const headers = Object.freeze({
+    get: (name) => { const key = headerName(name); return key === undefined ? undefined : state.response.headers[key]; }
+  });
+  const responseApi = Object.freeze({
+    statusCode: state.response.statusCode,
+    statusText: state.response.statusText,
+    body: state.response.body,
+    headers,
+    contentType: state.response.contentType,
+    size: state.response.size,
+    duration: state.response.duration,
+    protocol: state.response.protocol
+  });
+  const environmentApi = Object.freeze({
+    get: (name) => state.environment.values[String(name)],
+    set: (name, value) => {
+      if (!state.environment.available) throw new Error('No active environment');
+      const normalized = String(name).trim();
+      if (normalized.length === 0) throw new TypeError('Environment variable name cannot be empty');
+      const text = String(value);
+      state.environment.values[normalized] = text;
+      environmentWrites[normalized] = text;
+    }
+  });
+  Object.defineProperty(globalThis, 'nimbo', {
+    value: Object.freeze({ response: responseApi, environment: environmentApi }),
+    writable: false, configurable: false
+  });
+  Function(${sourceLiteral})();
+  return JSON.stringify({ environmentWrites });
+})()`;
+  }
+
+  static async runPostResponse(source: string, response: ScriptResponseSnapshot,
+    environment: ScriptEnvironmentSnapshot): Promise<PostResponseExecution> {
+    const result = await ScriptRuntimeService.run(
+      ScriptRuntimeService.wrappedPostResponseSource(source, response, environment));
+    if (result.status !== 'success') return { result, environmentWrites: {} };
+    try {
+      const payload = JSON.parse(result.value) as PostResponsePayload;
+      if (payload.environmentWrites === undefined) throw new Error('Script returned an invalid result');
+      return { result, environmentWrites: payload.environmentWrites };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to read script output';
+      return {
+        result: { status: 'error', value: '', error: message, durationMs: result.durationMs, logs: result.logs },
         environmentWrites: {}
       };
     }

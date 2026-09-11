@@ -9,6 +9,7 @@ export struct RequestConfigTabs {
   @Prop headerCount: number = 0;
   @Prop bodyHasContent: boolean = false;
   @Prop preRequestEnabled: boolean = false;
+  @Prop postResponseEnabled: boolean = false;
   @Prop extractionCount: number = 0;
   @Prop testCount: number = 0;
   onChange: (tab: RequestConfigTab) => void = () => {};
@@ -44,21 +45,26 @@ export struct RequestConfigTabs {
   }
 
   build() {
-    Row() {
-      this.tabItem('params', $r('app.string.tab_params'))
-      this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount > 0 ? this.headerCount.toString() : '')
-      this.tabItem('auth', $r('app.string.tab_auth'))
-      this.tabItem('body', $r('app.string.tab_body'), this.bodyHasContent ? '●' : '')
-      this.tabItem('preRequest', $r('app.string.tab_pre_request'), this.preRequestEnabled ? '●' : '')
-      this.tabItem('extract', $r('app.string.tab_extract'),
-        this.extractionCount > 0 ? this.extractionCount.toString() : '')
-      this.tabItem('tests', $r('app.string.tab_tests'),
-        this.testCount > 0 ? this.testCount.toString() : '')
-      this.tabItem('settings', $r('app.string.nav_settings'))
-      Blank()
+    Scroll() {
+      Row() {
+        this.tabItem('params', $r('app.string.tab_params'))
+        this.tabItem('headers', $r('app.string.tab_headers'), this.headerCount > 0 ? this.headerCount.toString() : '')
+        this.tabItem('auth', $r('app.string.tab_auth'))
+        this.tabItem('body', $r('app.string.tab_body'), this.bodyHasContent ? '●' : '')
+        this.tabItem('preRequest', $r('app.string.tab_pre_request'), this.preRequestEnabled ? '●' : '')
+        this.tabItem('postResponse', $r('app.string.tab_post_response'), this.postResponseEnabled ? '●' : '')
+        this.tabItem('extract', $r('app.string.tab_extract'),
+          this.extractionCount > 0 ? this.extractionCount.toString() : '')
+        this.tabItem('tests', $r('app.string.tab_tests'),
+          this.testCount > 0 ? this.testCount.toString() : '')
+        this.tabItem('settings', $r('app.string.nav_settings'))
+      }
     }
     .width('100%')
     .height(41)
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+    .align(Alignment.TopStart)
     .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
   }
 }

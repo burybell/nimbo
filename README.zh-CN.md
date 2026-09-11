@@ -20,7 +20,7 @@ Nimbo 是一款为 HarmonyOS 打造的快速、原生、本地优先 API 调试�
 - Title Bar 统一导入入口，cURL 输入支持语法高亮；API 文件可拖放并自动识别 Postman Collection/Environment、OpenAPI 3.x / Swagger 2.0 JSON
 - 响应 JSONPath 预览与指定环境变量提取，默认保护已有变量不被覆盖
 - 声明式响应测试，覆盖状态码、耗时、标头和 JSONPath，并逐项显示结果
-- 沙箱化 Pre-request JavaScript，可修改本次发送并写入当前环境变量，执行过程不阻塞 UI
+- 沙箱化 Pre-request 与 Post-response JavaScript，提供受限请求/响应 API、原子环境写入和可见的控制台与执行结果
 - Nimbo 本地备份导出，默认对密钥信息脱敏
 - Light、Dark 和跟随系统主题
 - 简体中文和英文界面
@@ -41,7 +41,26 @@ Nimbo 1.0 的核心工作流已经实现，可在 HarmonyOS PC 目标上运行�
 通过环境与历史记录重复调试
 ```
 
-WebSocket、SSE、GraphQL、gRPC、Collection Runner、Post-response 与集合级脚本、AI、云同步和账号系统目前尚未实现。界面不会提前展示不可用的功能入口。
+WebSocket、SSE、GraphQL、gRPC、Collection Runner、集合级脚本、AI、云同步和账号系统目前尚未实现。界面不会提前展示不可用的功能入口。
+
+## 请求脚本
+
+Pre-request 脚本可修改本次发送，不会反向改写已保存请求：
+
+```javascript
+nimbo.request.headers.set('Authorization', `Bearer ${nimbo.environment.get('token')}`);
+nimbo.request.url = `${nimbo.request.url}?source=nimbo`;
+```
+
+Post-response 脚本可读取只读响应，并将值写入当前环境：
+
+```javascript
+const payload = JSON.parse(nimbo.response.body);
+nimbo.environment.set('responseId', payload.id);
+console.log(nimbo.response.statusCode, payload.id);
+```
+
+每次执行都使用全新沙箱，并限制时间、内存、栈、源码大小、并发数和控制台输出。请求与环境修改只会在脚本成功后生效；固定顺序为 Pre-request、变量替换、HTTP、Post-response、JSONPath 提取、声明式 Tests。
 
 ## 环境要求
 

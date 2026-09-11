@@ -589,13 +589,29 @@
       "value": "Enable script"
     },
     {
-      "name": "script_api_hint",
+      "name": "script_pre_request_api_hint",
       "value": "APIs: nimbo.request · nimbo.request.headers · nimbo.environment · console"
     },
     {
-      "name": "script_editor_placeholder",
+      "name": "script_pre_request_placeholder",
       "value": "// Prepare this request\nnimbo.request.headers.set('X-Token', nimbo.environment.get('token'));"
     },
+    { "name": "tab_post_response", "value": "Post-response" },
+    { "name": "script_post_response_hint", "value": "Runs after an HTTP response and before extraction and tests. Environment changes apply only on success." },
+    { "name": "script_post_response_api_hint", "value": "APIs: nimbo.response · nimbo.response.headers · nimbo.environment · console" },
+    { "name": "script_post_response_placeholder", "value": "// Read the response\nconst data = JSON.parse(nimbo.response.body);\nnimbo.environment.set('responseId', data.id);" },
+    { "name": "tab_scripts", "value": "Scripts" },
+    { "name": "script_results_empty", "value": "No script results" },
+    { "name": "script_results_empty_hint", "value": "Enable a request script and send the request to see its result and console output." },
+    { "name": "script_phase_pre_request", "value": "Pre-request" },
+    { "name": "script_phase_post_response", "value": "Post-response" },
+    { "name": "script_status_success", "value": "Succeeded" },
+    { "name": "script_status_error", "value": "Failed" },
+    { "name": "script_status_timeout", "value": "Timed out" },
+    { "name": "script_status_memory_limit", "value": "Memory limit" },
+    { "name": "script_console", "value": "Console" },
+    { "name": "script_console_empty", "value": "No console output" },
+    { "name": "script_error_detail", "value": "Error" },
     {
       "name": "tab_extract",
       "value": "Extract"

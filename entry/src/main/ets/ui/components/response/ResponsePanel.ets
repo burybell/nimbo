@@ -9,6 +9,7 @@ import { ResponseHeader } from './ResponseHeader';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { MediaViewer } from './MediaViewer';
 import { TestResultsView } from './TestResultsView';
+import { ScriptResultsView } from './ScriptResultsView';
 
 @Component
 export struct ResponsePanel {
@@ -307,49 +308,6 @@ export struct ResponsePanel {
     Column() {
       if (this.response.status === 'empty') {
         this.emptyState($r('app.string.response_empty_title'), $r('app.string.response_empty_description'))
-      } else if (this.response.status === 'error' || this.response.status === 'cancelled') {
-        Column() {
-          ErrorPanel({ error: this.response.error, onRetry: this.onRetry })
-        }
-        .width('100%')
-        .height('100%')
-        .padding(SpacingTokens.x4)
-        .justifyContent(FlexAlign.Center)
-        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
-          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
-      } else if (this.response.status === 'large') {
-        LargeResponseViewer({
-          responseSize: this.response.size,
-          contentType: this.response.contentType,
-          previewAvailable: this.response.previewAvailable,
-          onPreview: this.onPreviewLarge
-        })
-          .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
-            .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
-      } else if (this.response.status === 'binary') {
-        Column({ space: SpacingTokens.x3 }) {
-          Text($r('app.string.response_binary'))
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(ColorTokens.textPrimary)
-          Text(this.response.contentType)
-            .fontSize(13)
-            .fontColor(ColorTokens.textSecondary)
-          Text(this.response.size)
-            .fontSize(12)
-            .fontColor(ColorTokens.textTertiary)
-          Button($r('app.string.response_download_binary'))
-            .fontSize(13)
-            .fontColor(ColorTokens.textOnBrand)
-            .backgroundColor(ColorTokens.brand500)
-            .borderRadius(RadiusTokens.medium)
-            .onClick(this.onSaveBinary)
-        }
-        .width('100%')
-        .height('100%')
-        .justifyContent(FlexAlign.Center)
-        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
-          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
       } else if (this.response.status === 'sending' && this.response.body.length === 0) {
         this.emptyState($r('app.string.response_waiting_title'), $r('app.string.response_waiting_description'), true)
       } else {
@@ -361,11 +319,62 @@ export struct ResponsePanel {
           }
         })
         if (this.activeTab === 'body') {
-          this.bodyContent()
+          if (this.response.status === 'error' || this.response.status === 'cancelled') {
+            Column() {
+              ErrorPanel({ error: this.response.error, onRetry: this.onRetry })
+            }
+            .width('100%')
+            .layoutWeight(1)
+            .padding(SpacingTokens.x4)
+            .justifyContent(FlexAlign.Center)
+            .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+              .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
+          } else if (this.response.status === 'large') {
+            LargeResponseViewer({
+              responseSize: this.response.size,
+              contentType: this.response.contentType,
+              previewAvailable: this.response.previewAvailable,
+              onPreview: this.onPreviewLarge
+            })
+              .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+                .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
+          } else if (this.response.status === 'binary') {
+            Column({ space: SpacingTokens.x3 }) {
+              Text($r('app.string.response_binary'))
+                .fontSize(17)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(ColorTokens.textPrimary)
+              Text(this.response.contentType)
+                .fontSize(13)
+                .fontColor(ColorTokens.textSecondary)
+              Text(this.response.size)
+                .fontSize(12)
+                .fontColor(ColorTokens.textTertiary)
+              Button($r('app.string.response_download_binary'))
+                .fontSize(13)
+                .fontColor(ColorTokens.textOnBrand)
+                .backgroundColor(ColorTokens.brand500)
+                .borderRadius(RadiusTokens.medium)
+                .onClick(this.onSaveBinary)
+            }
+            .width('100%')
+            .layoutWeight(1)
+            .justifyContent(FlexAlign.Center)
+            .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
+              .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
+          } else {
+            this.bodyContent()
+          }
         } else if (this.activeTab === 'headers') {
           this.metadataRows(this.response.headers, $r('app.string.response_no_headers'))
         } else if (this.activeTab === 'cookies') {
           this.metadataRows(this.response.cookies, $r('app.string.response_no_cookies'))
+        } else if (this.activeTab === 'scripts') {
+          ScriptResultsView({ results: this.response.scriptResults })
+            .layoutWeight(1)
+            .transition(TransitionEffect.OPACITY
+              .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }))
         } else if (this.activeTab === 'tests') {
           TestResultsView({ results: this.response.testResults })
             .layoutWeight(1)

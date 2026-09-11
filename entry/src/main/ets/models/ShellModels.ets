@@ -1,13 +1,14 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'extract' | 'tests' | 'settings';
+export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'postResponse' |
+  'extract' | 'tests' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
 export type KeyValueMode = 'params' | 'headers' | 'form' | 'multipart' | 'environment';
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apiKey';
 export type BodyType = 'none' | 'json' | 'text' | 'form' | 'multipart' | 'binary';
 export type ResponseStatus = 'empty' | 'sending' | 'success' | 'error' | 'large' | 'binary' | 'cancelled';
-export type ResponseTab = 'body' | 'headers' | 'cookies' | 'tests' | 'timeline';
+export type ResponseTab = 'body' | 'headers' | 'cookies' | 'scripts' | 'tests' | 'timeline';
 export type ResponseBodyMode = 'pretty' | 'raw';
 export type ResponseMediaKind = 'none' | 'image' | 'video';
 export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
@@ -140,6 +141,7 @@ export interface RequestDraft {
   multipartItems: KeyValueItem[];
   binaryFileName: string;
   preRequestScript: RequestScript;
+  postResponseScript: RequestScript;
   extractionRules: ExtractionRule[];
   testRules: TestRule[];
   settings: RequestSettings;

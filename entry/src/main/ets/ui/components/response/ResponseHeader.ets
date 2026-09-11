@@ -16,10 +16,11 @@ export struct ResponseHeader {
         activeTab: this.activeTab,
         headerCount: this.response.headers.length,
         cookieCount: this.response.cookies.length,
+        scriptCount: this.response.scriptResults.length,
         testCount: this.response.testResults.length,
         onChange: this.onTabChange
       })
-      Blank()
+      .layoutWeight(1)
       if (this.response.status === 'sending') {
         Row({ space: SpacingTokens.x2 }) {
           LoadingProgress()
@@ -30,7 +31,7 @@ export struct ResponseHeader {
             .fontSize(12)
             .fontColor(ColorTokens.brand600)
         }
-      } else {
+      } else if (this.response.statusCode > 0) {
         ResponseSummary({
           statusCode: this.response.statusCode,
           statusText: this.response.statusText,

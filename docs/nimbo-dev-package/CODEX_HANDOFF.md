@@ -367,6 +367,10 @@ Milestone 12 只实现单请求级 Pre-request / Post-response JavaScript，不�
 
 第二批进度（2026-09-11）：请求配置新增“前置脚本”页及独立启用开关，使用带行号、自动配对、缩进和 JavaScript 语法高亮的编辑表面。最小全局 API 包含可读写的 `nimbo.request.method/url/body/bodyType`、大小写不敏感的 `nimbo.request.headers.get/set/remove`、`nimbo.environment.get/set` 及受限 `console`；不提供文件、系统、模块加载或额外网络能力。每次执行使用全新 VM，用户代码通过独立 Function 运行，不能直接捕获桥接层内部状态。只有成功结果才会把请求修改应用到本次发送，并将环境写入一次性落盘；异常、超时、内存限制与取消均不会应用迟到或部分修改，请求编辑器原值也不会被脚本反向覆盖。持久化 schema 升级至 v8，旧请求自动补齐关闭状态的空脚本。MateBook Pro 模拟器已验证 Method、URL、Header、Body、环境写入和 console 日志能够从原生沙箱完整返回；签名 HAP 构建和安装启动通过，仍只保留 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。脚本日志与成功结果 UI、Post-response API 留到第三批，不提前展示未完成入口。
 
+第三批进度（2026-09-11）：请求配置新增“后置脚本”页，提供只读 `nimbo.response.statusCode/statusText/body/contentType/size/duration/protocol`、大小写不敏感的 `nimbo.response.headers.get`、`nimbo.environment.get/set` 与受限 `console`。后置脚本只在收到 HTTP 响应后执行；失败保留原始响应并继续执行声明式提取和 Tests，但不会应用任何环境写入。响应区新增“脚本”页，按阶段展示成功、异常、超时或内存限制、耗时、错误堆栈及逐行控制台；错误、Large 与 Binary 响应也统一保留响应 Tab，使脚本结果始终可达。执行链已固定为 Pre-request → 原子应用环境写入 → 变量替换 → HTTP → Post-response → 原子应用环境写入 → 声明式提取 → 声明式 Tests。请求与响应 Tab 在内容增多后改用不压缩文字的横向滚动布局。持久化 schema 升级至 v9，schema v1–v8 自动补齐关闭状态的后置脚本。MateBook Pro 模拟器通过真实 `GET /posts/1` 验证 `200 OK`、`nimbo.response.statusCode`、脚本成功结果、耗时和 console 输出；独立原生探针验证环境写入 `responseId=42` 仅在成功时返回，桥接内部状态不可捕获。仓库质量检查、签名 HAP 构建与安装启动通过，仍只保留 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。至此 Milestone 12 三批全部完成。
+
+继续暂缓：Collection Runner、集合级脚本、第三方脚本包、远程模块、完整 Postman `pm.*` 兼容层，以及 WebSocket、SSE、GraphQL、gRPC、AI、Cloud、Login 等既定后续范围。
+
 ---
 
 ## 6. 架构约束

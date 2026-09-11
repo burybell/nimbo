@@ -28,9 +28,11 @@ import { LocalDataStore } from '../services/LocalDataStore';
 import { JsonPathResult, JsonPathService } from '../services/JsonPathService';
 import { ResponseTestService } from '../services/ResponseTestService';
 import {
+  PostResponseExecution,
   PreRequestExecution,
   ScriptEnvironmentSnapshot,
   ScriptRequestSnapshot,
+  ScriptResponseSnapshot,
   ScriptResult,
   ScriptRuntimeService
 } from '../services/ScriptRuntimeService';
@@ -791,6 +793,7 @@ export struct NimboWindow {
       previous.bodyType !== next.bodyType || previous.bodyText !== next.bodyText ||
       previous.formItems !== next.formItems || previous.multipartItems !== next.multipartItems ||
       previous.binaryFileName !== next.binaryFileName || previous.preRequestScript !== next.preRequestScript ||
+      previous.postResponseScript !== next.postResponseScript ||
       previous.extractionRules !== next.extractionRules ||
       previous.testRules !== next.testRules ||
       previous.settings !== next.settings;
@@ -834,6 +837,7 @@ export struct NimboWindow {
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
       preRequestScript: request.preRequestScript,
+      postResponseScript: request.postResponseScript,
       extractionRules: request.extractionRules,
       testRules: request.testRules,
       settings: request.settings
@@ -991,6 +995,23 @@ export struct NimboWindow {
     return { available: environment.id.length > 0, values };
   }
 
+  private scriptResponseSnapshot(response: ResponseModel): ScriptResponseSnapshot {
+    const headers: Record<string, string> = {};
+    response.headers.forEach((item: KeyValueItem) => {
+      if (item.key.trim().length > 0) headers[item.key] = item.value;
+    });
+    return {
+      statusCode: response.statusCode,
+      statusText: response.statusText,
+      body: response.body,
+      headers,
+      contentType: response.contentType,
+      size: response.size,
+      duration: response.duration,
+      protocol: response.protocol
+    };
+  }
+
   private scriptBodyType(value: string, fallback: BodyType): BodyType {
     if (value === 'none' || value === 'json' || value === 'text' || value === 'form' ||
       value === 'multipart' || value === 'binary') return value;
@@ -1024,6 +1045,7 @@ export struct NimboWindow {
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
       preRequestScript: request.preRequestScript,
+      postResponseScript: request.postResponseScript,
       extractionRules: request.extractionRules,
       testRules: request.testRules,
       settings: request.settings
@@ -1055,9 +1077,10 @@ export struct NimboWindow {
     return updated;
   }
 
-  private scriptExecution(result: ScriptResult): ScriptExecutionResult {
+  private scriptExecution(result: ScriptResult,
+    phase: 'preRequest' | 'postResponse' = 'preRequest'): ScriptExecutionResult {
     return {
-      phase: 'preRequest', status: result.status, error: result.error,
+      phase, status: result.status, error: result.error,
       durationMs: result.durationMs, logs: result.logs
     };
   }
@@ -1143,9 +1166,21 @@ export struct NimboWindow {
       }
     }
     if (this.requestSerials.get(id) !== serial) return;
+    if (request.postResponseScript.enabled && request.postResponseScript.source.trim().length > 0 &&
+      response.status !== 'error' && response.status !== 'cancelled') {
+      const execution: PostResponseExecution = await ScriptRuntimeService.runPostResponse(
+        request.postResponseScript.source, this.scriptResponseSnapshot(response),
+        this.scriptEnvironmentSnapshot(environment));
+      if (this.requestSerials.get(id) !== serial) return;
+      scriptResults.push(this.scriptExecution(execution.result, 'postResponse'));
+      if (execution.result.status === 'success') {
+        environment = this.applyScriptEnvironmentWrites(environment, execution.environmentWrites);
+        if (Object.keys(execution.environmentWrites).length > 0) this.persistLocalData();
+      }
+    }
     response = this.responseWithScriptResults(response, scriptResults);
-    response = this.applyResponseTests(executedRequest, response);
     response = this.applyResponseExtractions(request, response);
+    response = this.applyResponseTests(executedRequest, response);
     this.applyRealResponse(id, response, executedRequest);
   }
 

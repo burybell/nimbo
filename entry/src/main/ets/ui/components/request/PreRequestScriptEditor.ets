@@ -6,6 +6,9 @@ import { JsonCodeSurface } from '../common/JsonCodeSurface';
 @Component
 export struct PreRequestScriptEditor {
   @Prop script: RequestScript = { enabled: false, source: '' };
+  @Prop hint: ResourceStr = $r('app.string.script_pre_request_hint');
+  @Prop apiHint: ResourceStr = $r('app.string.script_pre_request_api_hint');
+  @Prop editorPlaceholder: ResourceStr = $r('app.string.script_pre_request_placeholder');
   onChange: (script: RequestScript) => void = () => {};
 
   build() {
@@ -16,10 +19,10 @@ export struct PreRequestScriptEditor {
             .fontSize(13)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.textPrimary)
-          Text($r('app.string.script_pre_request_hint'))
+          Text(this.hint)
             .fontSize(11)
             .fontColor(ColorTokens.textTertiary)
-          Text($r('app.string.script_api_hint'))
+          Text(this.apiHint)
             .fontSize(11)
             .fontFamily('monospace')
             .fontColor(ColorTokens.textTertiary)
@@ -39,7 +42,7 @@ export struct PreRequestScriptEditor {
       JsonCodeSurface({
         value: this.script.source,
         language: 'javascript',
-        placeholder: $r('app.string.script_editor_placeholder'),
+        placeholder: this.editorPlaceholder,
         onChange: (source: string) => this.onChange({ enabled: this.script.enabled, source })
       })
         .layoutWeight(1)
