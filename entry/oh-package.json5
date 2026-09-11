@@ -5,5 +5,7 @@
   "main": "",
   "author": "Nimbo",
   "license": "Apache-2.0",
-  "dependencies": {}
+  "dependencies": {
+    "libnimbo_script.so": "file:./src/main/cpp/types/libnimbo_script"
+  }
 }

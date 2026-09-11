@@ -4,6 +4,8 @@
 **/.preview/
 /node_modules/
 /oh_modules/
+**/oh_modules/
+**/.cxx/
 /build/
 **/build/
 release/appgallery/package/

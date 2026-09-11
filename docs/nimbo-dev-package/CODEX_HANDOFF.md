@@ -357,6 +357,14 @@ Title Bar 视觉回归（2026-09-11）：右侧操作固定为“环境选择 �
 
 继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、任意 JavaScript Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的其他能力。
 
+### Milestone 12 — Sandboxed Request Scripts
+
+Milestone 12 只实现单请求级 Pre-request / Post-response JavaScript，不同时引入 Collection Runner、集合级脚本、第三方包、远程模块或完整 Postman `pm.*` 兼容层。脚本必须在独立原生运行时中执行，默认 500ms、最长 5s，默认 8MB、最大 64MB，并限制原生栈与日志总量；不得暴露文件、进程、系统、动态模块加载或额外网络 API。任何异常、超时或内存限制必须成为可见结果，不允许卡住 UI 线程或让失败脚本污染请求与环境状态。
+
+计划分三批：第一批完成可中断的原生 JavaScript 沙箱、异步桥接和边界自测，不展示尚不可用的 UI；第二批加入 Pre-request 编辑器与最小 `nimbo.request` / `nimbo.environment` API，只有脚本成功后才原子应用请求修改；第三批加入只读 `nimbo.response`、Post-response 环境写入、控制台与运行结果 UI，并明确执行顺序为变量替换 → Pre-request → HTTP → Post-response → 声明式提取 → 声明式 Tests。
+
+第一批进度（2026-09-11）：拒绝直接使用系统 JSVM 作为脚本沙箱。当前兼容 SDK 的公开 JSVM API 虽提供 VM 内存上限，但没有可用于终止死循环的公开执行中断接口。已改用固定版本 QuickJS-NG v0.16.2，以 MIT 许可证保留最小源码集；不编译 QuickJS libc/CLI，仅通过 N-API 暴露异步 `run`，并设置内存、栈、源码大小、执行时限、并发数以及日志数量/总量上限。MateBook Pro 模拟器已验证普通脚本及 console 日志正常返回、`while (true)` 在 20ms 边界被中断、持续分配在 2MB 边界被归类为 `memoryLimit`，三类任务均未阻塞 UI 线程。当前运行时尚未接入请求生命周期或产品 UI，第二批开发前仍保持功能不可见。
+
 ---
 
 ## 6. 架构约束
