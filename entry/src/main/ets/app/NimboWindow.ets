@@ -1,11 +1,15 @@
 import {
   CollectionNode,
+  ExtractionResult,
+  ExtractionRule,
+  ExtractionStatus,
   HttpMethod,
   NavigationDestination,
   RequestDraft,
   RequestTabModel,
   ResponseModel,
-  ResponseStatus
+  ResponseStatus,
+  TestResult
 } from '../models/ShellModels';
 import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import {
@@ -19,8 +23,11 @@ import {
 import { ShellState } from '../state/ShellState';
 import { createDefaultEnvironments, createDefaultPreferences, normalizeEnvironments } from '../state/AppDefaults';
 import { LocalDataStore } from '../services/LocalDataStore';
+import { JsonPathResult, JsonPathService } from '../services/JsonPathService';
+import { ResponseTestService } from '../services/ResponseTestService';
 import { CurlCodec, CurlImportResult } from '../services/CurlCodec';
 import { PostmanImportResult } from '../services/PostmanCodec';
+import { OpenApiImportResult } from '../services/OpenApiCodec';
 import { LocalFileExporter } from '../services/LocalFileExporter';
 import { MediaPreviewStore } from '../services/MediaPreviewStore';
 import { NimboExportCodec } from '../services/NimboExportCodec';
@@ -45,8 +52,7 @@ import { NimboToast } from '../ui/components/common/NimboToast';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
 import { EnvironmentPage } from '../ui/components/environment/EnvironmentPage';
 import { HistoryPage } from '../ui/components/history/HistoryPage';
-import { ImportCurlDialog } from '../ui/components/importer/ImportCurlDialog';
-import { PostmanImportDialog } from '../ui/components/importer/PostmanImportDialog';
+import { ApiFileImportDialog } from '../ui/components/importer/ApiFileImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
 import { GlobalSearchDialog, GlobalSearchItem } from '../ui/components/search/GlobalSearchDialog';
@@ -321,10 +327,9 @@ export struct NimboWindow {
     const items: GlobalSearchItem[] = [
       { id: 'command:new', title: $r('app.string.search_new_request'),
         subtitle: $r('app.string.search_command'), keywords: 'new request create 新建 请求', icon: '+' },
-      { id: 'command:curl', title: $r('app.string.import_curl'),
-        subtitle: $r('app.string.search_command'), keywords: 'import curl 导入', icon: '↗' },
-      { id: 'command:postman', title: $r('app.string.import_postman'),
-        subtitle: $r('app.string.search_command'), keywords: 'import postman collection 导入 集合', icon: '⇥' },
+      { id: 'command:import', title: $r('app.string.import_title'),
+        subtitle: $r('app.string.search_command'),
+        keywords: 'import curl postman openapi swagger collection schema 导入 集合 接口 文档', icon: '⇧' },
       { id: 'command:environments', title: $r('app.string.search_manage_environments'),
         subtitle: $r('app.string.search_command'), keywords: 'environment manage 环境 管理', icon: '◎' },
       { id: 'command:settings', title: $r('app.string.nav_settings'),
@@ -371,12 +376,8 @@ export struct NimboWindow {
       this.createTab();
       return;
     }
-    if (item.id === 'command:curl') {
-      this.showOverlay('curl');
-      return;
-    }
-    if (item.id === 'command:postman') {
-      this.showOverlay('postman');
+    if (item.id === 'command:import') {
+      this.showOverlay('import');
       return;
     }
     if (item.id === 'command:settings') {
@@ -780,7 +781,9 @@ export struct NimboWindow {
       previous.params !== next.params || previous.headers !== next.headers || previous.auth !== next.auth ||
       previous.bodyType !== next.bodyType || previous.bodyText !== next.bodyText ||
       previous.formItems !== next.formItems || previous.multipartItems !== next.multipartItems ||
-      previous.binaryFileName !== next.binaryFileName || previous.settings !== next.settings;
+      previous.binaryFileName !== next.binaryFileName || previous.extractionRules !== next.extractionRules ||
+      previous.testRules !== next.testRules ||
+      previous.settings !== next.settings;
   }
 
   private responseWithStatus(response: ResponseModel, status: ResponseStatus): ResponseModel {
@@ -799,7 +802,9 @@ export struct NimboWindow {
       duration: response.duration,
       protocol: response.protocol,
       error: response.error,
-      previewAvailable: response.previewAvailable
+      previewAvailable: response.previewAvailable,
+      extractionResults: response.extractionResults,
+      testResults: response.testResults
     };
   }
 
@@ -817,6 +822,8 @@ export struct NimboWindow {
       formItems: request.formItems,
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
+      extractionRules: request.extractionRules,
+      testRules: request.testRules,
       settings: request.settings
     };
   }
@@ -857,6 +864,91 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private extractionResult(rule: ExtractionRule, status: ExtractionStatus,
+    value: string, message: string): ExtractionResult {
+    return { ruleId: rule.id, status, value, message };
+  }
+
+  private applyResponseExtractions(request: RequestDraft, response: ResponseModel): ResponseModel {
+    const enabled = request.extractionRules.filter((rule: ExtractionRule) => rule.enabled);
+    if (enabled.length === 0) return response;
+    const results: ExtractionResult[] = [];
+    if ((response.status !== 'success' && response.status !== 'large') ||
+      response.statusCode < 200 || response.statusCode >= 400) {
+      enabled.forEach((rule: ExtractionRule) => results.push(this.extractionResult(rule, 'notRun', '',
+        'Extraction only runs for successful JSON responses')));
+      return this.responseWithExtractionResults(response, results);
+    }
+    let environments = this.environments;
+    enabled.forEach((rule: ExtractionRule) => {
+      const variableName = rule.variableName.trim();
+      if (variableName.length === 0) {
+        results.push(this.extractionResult(rule, 'conflict', '', 'Variable name is required'));
+        return;
+      }
+      const environmentIndex = environments.findIndex((environment: EnvironmentModel) =>
+        environment.id === rule.environmentId);
+      if (environmentIndex < 0) {
+        results.push(this.extractionResult(rule, 'targetMissing', '', 'Target environment no longer exists'));
+        return;
+      }
+      const evaluated: JsonPathResult = JsonPathService.evaluate(response.body, rule.jsonPath);
+      if (!evaluated.success) {
+        results.push(this.extractionResult(rule, evaluated.status, '', evaluated.message));
+        return;
+      }
+      const environment = environments[environmentIndex];
+      const variableIndex = environment.variables.findIndex((variable: KeyValueItem) =>
+        variable.key === variableName);
+      let variables = environment.variables;
+      if (variableIndex >= 0 && !rule.overwrite) {
+        results.push(this.extractionResult(rule, 'conflict', evaluated.value,
+          'Variable already exists; enable overwrite to replace it'));
+        return;
+      }
+      if (variableIndex >= 0) {
+        variables = variables.map((variable: KeyValueItem, index: number) => index === variableIndex ? {
+          id: variable.id, enabled: true, key: variableName, value: evaluated.value,
+          description: variable.description, type: 'text', secret: rule.secret
+        } : variable);
+      } else {
+        variables = [...variables, {
+          id: `extracted-${Date.now()}-${results.length}`, enabled: true, key: variableName,
+          value: evaluated.value, description: '', type: 'text', secret: rule.secret
+        }];
+      }
+      environments = environments.map((item: EnvironmentModel, index: number) => index === environmentIndex ? {
+        id: item.id, name: item.name, kind: item.kind, variables, system: item.system
+      } : item);
+      results.push(this.extractionResult(rule, 'success', evaluated.value, 'Variable saved'));
+    });
+    this.environments = environments;
+    return this.responseWithExtractionResults(response, results);
+  }
+
+  private responseWithExtractionResults(response: ResponseModel, results: ExtractionResult[]): ResponseModel {
+    return {
+      status: response.status, statusCode: response.statusCode, statusText: response.statusText,
+      headers: response.headers, cookies: response.cookies, body: response.body,
+      binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
+      contentType: response.contentType, size: response.size, duration: response.duration,
+      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      extractionResults: results, testResults: response.testResults
+    };
+  }
+
+  private applyResponseTests(request: RequestDraft, response: ResponseModel): ResponseModel {
+    const results: TestResult[] = ResponseTestService.run(request.testRules, response);
+    return {
+      status: response.status, statusCode: response.statusCode, statusText: response.statusText,
+      headers: response.headers, cookies: response.cookies, body: response.body,
+      binaryBody: response.binaryBody, mediaKind: response.mediaKind, mediaUri: response.mediaUri,
+      contentType: response.contentType, size: response.size, duration: response.duration,
+      protocol: response.protocol, error: response.error, previewAvailable: response.previewAvailable,
+      extractionResults: response.extractionResults, testResults: results
+    };
+  }
+
   private activeEnvironment(): EnvironmentModel {
     const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
     if (environment) return environment;
@@ -886,13 +978,17 @@ export struct NimboWindow {
           duration: response.duration,
           protocol: response.protocol,
           error: response.error,
-          previewAvailable: true
+          previewAvailable: true,
+          extractionResults: response.extractionResults,
+          testResults: response.testResults
         };
       } catch (_error) {
         // Fall back to the existing binary download view if preview preparation fails.
       }
     }
     if (this.requestSerials.get(id) !== serial) return;
+    response = this.applyResponseTests(request, response);
+    response = this.applyResponseExtractions(request, response);
     this.applyRealResponse(id, response);
   }
 
@@ -959,7 +1055,9 @@ export struct NimboWindow {
         duration: response.duration,
         protocol: response.protocol,
         error: response.error,
-        previewAvailable: false
+        previewAvailable: false,
+        extractionResults: response.extractionResults,
+        testResults: response.testResults
       };
       return {
         id: tab.id,
@@ -1147,6 +1245,12 @@ export struct NimboWindow {
     this.collections = nextCollections;
     this.savedRequests = nextRequests;
     this.environments = nextEnvironments;
+    this.persistLocalData();
+  }
+
+  private applyOpenApiImport(result: OpenApiImportResult): void {
+    this.collections = [...this.collections, ...result.collections];
+    this.savedRequests = [...this.savedRequests, ...result.requests];
     this.persistLocalData();
   }
 
@@ -1392,6 +1496,7 @@ export struct NimboWindow {
             tabs: $tabs,
             activeTabId: $activeTabId,
             phone: this.isPhone(),
+            environments: this.environments,
             onSelectTab: (id: string) => {
               this.activeTabId = id;
               this.persistLocalData();
@@ -1549,7 +1654,8 @@ export struct NimboWindow {
             this.persistLocalData();
           },
           onSettings: () => this.selectDestination('settings'),
-          onSearch: () => this.showOverlay('global-search')
+          onSearch: () => this.showOverlay('global-search'),
+          onImport: () => this.showOverlay('import')
         })
 
         if (this.isPhone()) {
@@ -1568,9 +1674,7 @@ export struct NimboWindow {
               compact: this.isCompact(),
               activeDestination: this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
-              onCreateRequest: () => this.createTab(),
-              onImportCurl: () => this.showOverlay('curl'),
-              onImportPostman: () => this.showOverlay('postman')
+              onCreateRequest: () => this.createTab()
             })
 
             this.mainContent()
@@ -1662,20 +1766,16 @@ export struct NimboWindow {
           onConfirm: (name: string, targetId: string) => this.saveRequestToCollection(name, targetId)
         })
       }
-      if (this.activeOverlay === 'curl') {
-        ImportCurlDialog({
+      if (this.activeOverlay === 'import') {
+        ApiFileImportDialog({
           onCancel: () => this.hideOverlay(),
-          onImport: (result: CurlImportResult) => {
+          onImportCurl: (result: CurlImportResult) => {
             this.hideOverlay();
             this.createImportedRequest(result, 'Imported cURL');
             this.showToast($r('app.string.toast_imported'));
-          }
-        })
-      }
-      if (this.activeOverlay === 'postman') {
-        PostmanImportDialog({
-          onCancel: () => this.hideOverlay(),
-          onImport: (result: PostmanImportResult) => this.applyPostmanImport(result),
+          },
+          onImportPostman: (result: PostmanImportResult) => this.applyPostmanImport(result),
+          onImportOpenApi: (result: OpenApiImportResult) => this.applyOpenApiImport(result),
           onComplete: () => { this.hideOverlay(); this.showToast($r('app.string.toast_imported')); }
         })
       }

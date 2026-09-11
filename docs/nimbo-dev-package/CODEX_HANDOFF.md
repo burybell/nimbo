@@ -333,7 +333,29 @@ URL 输入效率回归：请求 URL 输入框在内容精确为 `h` 时按 Tab �
 
 PC 发布素材回归：当前发布清单收口为 `2in1`，平板与手机响应式实现继续保留但不进入本次分发。首次安装的中文演示集合扩展为“用户服务 / 内容服务 / 媒体资源 / 响应示例 / 身份认证”，新增的请求均可打开真实示例 URL。`release/appgallery/` 提供 216×216 PNG 图标、五张真实模拟器 1920×1080 PNG 截图、中文商店文案、可导入 Postman 示例集合及 Release 构建产物。已确认 Release HAP 为 `debug: false` 且仅声明 `2in1`；本机现有 Profile 仍为设备绑定的 debug 类型，因此已签名包仅供模拟器测试，正式上架必须使用发布证书/Profile 或 AppGallery Connect 云管理签名。
 
-继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的能力。
+### Milestone 11 — API Schema & Response Workflows
+
+Milestone 11 将后续候选能力收敛为不依赖账号、云端或 Runner 的本地请求串联闭环。任意 JavaScript 执行不与声明式规则混在同一阶段，避免在缺少沙箱、超时和权限边界时引入脚本风险。
+
+分三批完成：
+
+1. OpenAPI 3.0 / 3.1 与 Swagger 2.0 导入：先支持本地 JSON 文件，按首个 Tag 生成文件夹，导入 Server、Path、Method、Query、Header、示例 Body 和 Basic / Bearer / API Key；导入前展示请求数、文件夹数和未支持项，失败不得污染现有集合
+2. Response JSONPath 与变量提取：支持预览匹配结果，将提取规则保存到请求，并在响应成功后写入明确选择的环境；缺失路径、类型不匹配和敏感值必须有可见结果，不允许静默覆盖
+3. 声明式 Tests：支持状态码、响应时间、Header 存在/相等、JSONPath 存在/相等等规则，在单次响应中展示逐项通过或失败；规则与结果分离，结果不进入长期持久化
+
+验收要求：常见 OpenAPI / Swagger JSON 能原子导入为可立即发送和保存的集合；导入引用 Schema 时能生成稳定 JSON 示例；JSONPath 提取不会跨请求或跨环境意外写值；Tests 不执行任意代码且每条规则都有确定结果；中英文、深浅主题、本地恢复和既有 Postman/cURL 导入不退化；构建无新增 warning。
+
+第一批进度（2026-09-11）：已实现 OpenAPI 3.0 / 3.1 与 Swagger 2.0 JSON 本地导入。新增独立解析服务和四步导入预览，支持首个 Server、Server Variable 默认值、Tag 文件夹、Path/Query/Header 参数、JSON 示例、表单/Multipart、Basic/Bearer/API Key，并对未赋值 Path 参数、Cookie 参数和不支持的认证给出警告。入口已加入新建 Split Button 与全局搜索，导入结果复用现有 Collection / Request 持久化路径。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。YAML、远程 URL 和外部 `$ref` 暂不在第一批支持范围。
+
+第一批 UI 收口（2026-09-11）：导入从新建 Split Button 移至 Title Bar 独立 Icon，左侧新建恢复为单一按钮，不再存在下拉菜单影响侧栏或 Workspace Tab 布局。统一导入弹窗采用 760px PC 横向布局，以 cURL / API 文件 Tab 承载两类入口并压缩不必要的纵向留白；cURL 输入区升级为支持命令、参数、Method、URL 与字符串着色的 RichEditor；API 文件可点击选择或拖入 Drop Zone，自动识别 Postman Collection/Environment、OpenAPI 3.x 与 Swagger 2.0，并进入同一预览/原子导入流程。全局搜索同步合并为单一“导入”命令。
+
+Title Bar 视觉回归（2026-09-11）：右侧操作固定为“环境选择 → 导入 → 设置 → 原生窗口控制”，避免环境切换器被两个操作按钮夹在中间。导入与设置复用同一 32px 圆形 Icon Button 的颜色、Hover、Pressed 和无障碍行为；HarmonyOS 原生窗口按钮同步调整为 18px 图标、32px Hover 背景、统一圆角与间距，继续保留系统最小化、最大化和关闭语义。
+
+第二批进度（2026-09-11）：请求配置新增“提取”页，可保存多条 JSONPath → 环境变量规则并基于当前响应只读预览。发送得到 2xx/3xx JSON 响应后才执行规则，每条规则必须明确目标环境；同名变量默认报告冲突，只有开启“允许覆盖”才会更新，敏感值可写入 Secret 变量。成功、路径未匹配、JSON/JSONPath 无效、目标环境缺失和覆盖冲突均显示逐条结果，执行结果仅保留在当前响应、不进入长期持久化。JSONPath 当前支持根 `$`、点属性、引号属性、数组索引和属性/数组通配符；过滤器、递归下降和脚本表达式暂缓。持久化 schema 升级至 v6，旧请求自动补齐空规则且不丢数据。仓库质量检查和签名 HAP 构建通过；仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。
+
+第三批进度（2026-09-11）：请求配置新增“测试”页，支持状态码等于、响应耗时小于、Header 存在/等于、JSONPath 存在/等于六类声明式规则。启用规则在每次真实 HTTP 响应返回后基于同一响应快照执行；网络错误明确显示未执行，配置无效、Header 缺失、JSON/JSONPath 无效、路径未匹配和值不相等均显示本地化失败原因、期望值和实际值。响应区新增“测试”页及通过数 Badge，规则随请求持久化，执行结果只存在于当前 ResponseModel，不写入本地数据。持久化 schema 升级至 v7，schema v1–v6 自动迁移并补齐空测试规则。MateBook Pro 模拟器已验证状态码失败→通过的即时刷新、重启后规则恢复、JSONPath 连续字段编辑和 `$.id = 101` 通过结果；验收过程中修复了 ArkUI ForEach 复用导致的旧结果卡与字段互相覆盖。仓库质量检查和签名 HAP 构建通过，仍只有 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。至此 Milestone 11 三批全部完成。
+
+继续暂缓：WebSocket、SSE、GraphQL、gRPC、Runner、任意 JavaScript Scripts、AI、Cloud、Login，以及 PRD 归入 1.1/1.2 的其他能力。
 
 ---
 

@@ -161,6 +161,46 @@
       "value": "Import Postman"
     },
     {
+      "name": "import_openapi",
+      "value": "Import OpenAPI / Swagger"
+    },
+    {
+      "name": "import_api_file",
+      "value": "Import API file"
+    },
+    {
+      "name": "import_title",
+      "value": "Import"
+    },
+    {
+      "name": "import_tab_curl",
+      "value": "cURL"
+    },
+    {
+      "name": "import_tab_api_file",
+      "value": "API file"
+    },
+    {
+      "name": "api_import_title",
+      "value": "Import API file"
+    },
+    {
+      "name": "api_import_select_title",
+      "value": "Drop or select an API file"
+    },
+    {
+      "name": "api_import_support_hint",
+      "value": "Automatically detects Postman Collection/Environment, OpenAPI 3.x, and Swagger 2.0 JSON."
+    },
+    {
+      "name": "api_import_drop_hint",
+      "value": "Drop a JSON file anywhere in this area"
+    },
+    {
+      "name": "api_import_format",
+      "value": "Detected format"
+    },
+    {
       "name": "search_global",
       "value": "Search requests, collections, or history…"
     },
@@ -537,6 +577,171 @@
       "value": "Body"
     },
     {
+      "name": "tab_extract",
+      "value": "Extract"
+    },
+    {
+      "name": "extraction_hint",
+      "value": "Extract values from a successful JSON response into an explicit environment. Existing variables are protected unless overwrite is enabled."
+    },
+    {
+      "name": "extraction_variable",
+      "value": "Variable name"
+    },
+    {
+      "name": "extraction_select_environment",
+      "value": "Select environment"
+    },
+    {
+      "name": "extraction_not_run",
+      "value": "Not run: the response was not successful"
+    },
+    {
+      "name": "extraction_add",
+      "value": "+ Add extraction rule"
+    },
+    {
+      "name": "extraction_preview",
+      "value": "Preview"
+    },
+    {
+      "name": "extraction_preview_value",
+      "value": "Preview"
+    },
+    {
+      "name": "extraction_secret",
+      "value": "Secret"
+    },
+    {
+      "name": "extraction_overwrite",
+      "value": "Allow overwrite"
+    },
+    {
+      "name": "extraction_no_response",
+      "value": "Send the request once to preview the response"
+    },
+    {
+      "name": "extraction_no_match",
+      "value": "JSONPath did not match a value"
+    },
+    {
+      "name": "extraction_invalid_json",
+      "value": "The response body is not valid JSON"
+    },
+    {
+      "name": "extraction_invalid_path",
+      "value": "Invalid JSONPath"
+    },
+    {
+      "name": "extraction_target_missing",
+      "value": "The target environment no longer exists"
+    },
+    {
+      "name": "extraction_conflict",
+      "value": "Variable exists; enable overwrite to replace it"
+    },
+    {
+      "name": "extraction_saved",
+      "value": "Saved"
+    },
+    {
+      "name": "tab_tests",
+      "value": "Tests"
+    },
+    {
+      "name": "tests_hint",
+      "value": "Run deterministic assertions after each response. Rules are saved with the request; results are not persisted."
+    },
+    {
+      "name": "tests_add",
+      "value": "+ Add test"
+    },
+    {
+      "name": "test_status_equals",
+      "value": "Status code equals"
+    },
+    {
+      "name": "test_duration_less_than",
+      "value": "Response time less than"
+    },
+    {
+      "name": "test_header_exists",
+      "value": "Header exists"
+    },
+    {
+      "name": "test_header_equals",
+      "value": "Header equals"
+    },
+    {
+      "name": "test_jsonpath_exists",
+      "value": "JSONPath exists"
+    },
+    {
+      "name": "test_jsonpath_equals",
+      "value": "JSONPath equals"
+    },
+    {
+      "name": "test_header_name",
+      "value": "Header name"
+    },
+    {
+      "name": "test_status_code",
+      "value": "Status code"
+    },
+    {
+      "name": "test_milliseconds",
+      "value": "Milliseconds"
+    },
+    {
+      "name": "test_expected_value",
+      "value": "Expected value"
+    },
+    {
+      "name": "test_passed",
+      "value": "Passed"
+    },
+    {
+      "name": "test_failed",
+      "value": "Failed"
+    },
+    {
+      "name": "test_not_run",
+      "value": "Not run"
+    },
+    {
+      "name": "test_actual",
+      "value": "Actual"
+    },
+    {
+      "name": "tests_passed_summary",
+      "value": "tests passed"
+    },
+    {
+      "name": "tests_no_results",
+      "value": "No test results"
+    },
+    {
+      "name": "tests_no_results_hint",
+      "value": "Add an enabled test and send the request."
+    },
+    { "name": "test_expected", "value": "Expected" },
+    { "name": "test_message_configuration_invalid", "value": "The test configuration is incomplete or invalid." },
+    { "name": "test_message_status_matched", "value": "Status code matched." },
+    { "name": "test_message_status_mismatch", "value": "Status code did not match." },
+    { "name": "test_message_duration_matched", "value": "Response completed within the limit." },
+    { "name": "test_message_duration_mismatch", "value": "Response exceeded the time limit." },
+    { "name": "test_message_duration_unavailable", "value": "Response duration was unavailable." },
+    { "name": "test_message_header_present", "value": "Header was present." },
+    { "name": "test_message_header_missing", "value": "Header was not present." },
+    { "name": "test_message_header_matched", "value": "Header value matched." },
+    { "name": "test_message_header_mismatch", "value": "Header value did not match." },
+    { "name": "test_message_jsonpath_matched", "value": "JSONPath matched a response value." },
+    { "name": "test_message_jsonpath_mismatch", "value": "JSONPath value did not match." },
+    { "name": "test_message_jsonpath_no_match", "value": "JSONPath did not match a value." },
+    { "name": "test_message_invalid_json", "value": "Response body is not valid JSON." },
+    { "name": "test_message_invalid_jsonpath", "value": "JSONPath is invalid." },
+    { "name": "test_message_response_unavailable", "value": "No HTTP response was available." },
+    {
       "name": "tab_cookies",
       "value": "Cookies"
     },
@@ -803,6 +1008,22 @@
     {
       "name": "postman_support_hint",
       "value": "Supports Collection v2, v2.1, and Environment JSON."
+    },
+    {
+      "name": "openapi_title",
+      "value": "Import OpenAPI / Swagger"
+    },
+    {
+      "name": "openapi_select_title",
+      "value": "Select an API schema"
+    },
+    {
+      "name": "openapi_support_hint",
+      "value": "Supports OpenAPI 3.0, 3.1, and Swagger 2.0 JSON."
+    },
+    {
+      "name": "api_specification",
+      "value": "Specification"
     },
     {
       "name": "select_file",

@@ -4,6 +4,7 @@ import { NimboLogo } from './NimboLogo';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { WindowChromeController } from '../../../services/WindowChromeController';
+import { ToolbarIconButton } from './ToolbarIconButton';
 
 @Component
 export struct GlobalToolbar {
@@ -15,31 +16,21 @@ export struct GlobalToolbar {
   onEnvironmentChange: (id: string) => void = () => {};
   onSettings: () => void = () => {};
   onSearch: () => void = () => {};
+  onImport: () => void = () => {};
 
   build() {
     Row() {
       if (this.phone) {
         NimboLogo({ compact: true })
         Blank()
-        Stack({ alignContent: Alignment.Center }) {
-          Image($r('app.media.search')).width(16).height(16).objectFit(ImageFit.Contain)
-        }
-          .width(SizeTokens.controlMedium).height(SizeTokens.controlMedium)
-          .borderRadius(SizeTokens.controlMedium / 2)
-          .stateStyles({ normal: {}, pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) } })
-          .onClick(this.onSearch)
+        ToolbarIconButton({ icon: $r('app.media.search'),
+          accessibilityLabel: $r('app.string.global_search_placeholder'), onTap: this.onSearch })
         EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
           onChange: this.onEnvironmentChange })
-        Image($r('app.media.settings'))
-          .width(18)
-          .height(18)
-          .objectFit(ImageFit.Contain)
-          .padding(3)
-          .width(SizeTokens.controlMedium)
-          .height(SizeTokens.controlMedium)
-          .borderRadius(SizeTokens.controlMedium / 2)
-          .stateStyles({ normal: { .opacity(0.9) }, pressed: { .opacity(0.65) } })
-          .onClick(this.onSettings)
+        ToolbarIconButton({ icon: $r('app.media.import_api'),
+          accessibilityLabel: $r('app.string.import_title'), onTap: this.onImport })
+        ToolbarIconButton({ icon: $r('app.media.settings'),
+          accessibilityLabel: $r('app.string.nav_settings'), onTap: this.onSettings })
       } else {
         Stack({ alignContent: Alignment.Center }) {
           Row() {
@@ -62,19 +53,10 @@ export struct GlobalToolbar {
             Row({ space: SpacingTokens.x3 }) {
               EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
                 onChange: this.onEnvironmentChange })
-              Image($r('app.media.settings'))
-                .width(18)
-                .height(18)
-                .objectFit(ImageFit.Contain)
-                .padding(3)
-                .width(SizeTokens.controlMedium)
-                .height(SizeTokens.controlMedium)
-                .borderRadius(SizeTokens.controlMedium / 2)
-                .stateStyles({
-                  normal: { .backgroundColor(ColorTokens.bgSurface).opacity(0.9) },
-                  pressed: { .backgroundColor(ColorTokens.bgSurfaceActive).opacity(0.65) }
-                })
-                .onClick(this.onSettings)
+              ToolbarIconButton({ icon: $r('app.media.import_api'),
+                accessibilityLabel: $r('app.string.import_title'), onTap: this.onImport })
+              ToolbarIconButton({ icon: $r('app.media.settings'),
+                accessibilityLabel: $r('app.string.nav_settings'), onTap: this.onSettings })
             }
             .padding({ left: SpacingTokens.x4, right: this.titleButtonInset })
           }

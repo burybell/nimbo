@@ -1,4 +1,4 @@
-import { RequestDraft, RequestTabModel, ResponseModel } from '../../../models/ShellModels';
+import { EnvironmentModel, RequestDraft, RequestTabModel, ResponseModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -17,6 +17,7 @@ export struct Workspace {
   @State mobilePage: string = 'request';
   @State contentOpacity: number = 1;
   @Prop phone: boolean = false;
+  @Prop environments: EnvironmentModel[] = [];
   onSelectTab: (id: string) => void = () => {};
   onCloseTab: (id: string) => void = () => {};
   onCreateTab: () => void = () => {};
@@ -46,6 +47,8 @@ export struct Workspace {
       formItems: request.formItems,
       multipartItems: request.multipartItems,
       binaryFileName: request.binaryFileName,
+      extractionRules: request.extractionRules,
+      testRules: request.testRules,
       settings: request.settings
     };
   }
@@ -144,6 +147,8 @@ export struct Workspace {
         if (this.mobilePage === 'request') {
           RequestPanel({
             request: this.tabs[this.activeIndex()].request,
+            response: this.tabs[this.activeIndex()].response,
+            environments: this.environments,
             phone: true,
             onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
             onSave: () => this.onSaveRequest(this.activeTabId)
@@ -167,6 +172,8 @@ export struct Workspace {
         Column() {
           RequestPanel({
             request: this.tabs[this.activeIndex()].request,
+            response: this.tabs[this.activeIndex()].response,
+            environments: this.environments,
             onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request),
             onSave: () => this.onSaveRequest(this.activeTabId)
           })

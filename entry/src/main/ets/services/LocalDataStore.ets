@@ -4,7 +4,7 @@ import {
   PersistedRequestModel,
   PersistedTabModel
 } from '../models/PersistenceModels';
-import { CollectionNode, EnvironmentModel, HistoryItemModel } from '../models/ShellModels';
+import { CollectionNode, EnvironmentModel, HistoryItemModel, RequestDraft } from '../models/ShellModels';
 
 interface LegacyPreferencesModel {
   restoreWorkspace: boolean;
@@ -32,7 +32,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 5;
+  static readonly schemaVersion: number = 7;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -49,6 +49,9 @@ export class LocalDataStore {
         state = versioned as PersistedAppState;
         state.preferences.interfaceFont = 'harmony';
         state.schemaVersion = LocalDataStore.schemaVersion;
+      } else if (versioned.schemaVersion === 5 || versioned.schemaVersion === 6) {
+        state = versioned as PersistedAppState;
+        state.schemaVersion = LocalDataStore.schemaVersion;
       } else {
         state = versioned as PersistedAppState;
       }
@@ -60,10 +63,23 @@ export class LocalDataStore {
         typeof state.activeEnvironmentId !== 'string' || !LocalDataStore.validPreferences(state.preferences)) {
         return undefined;
       }
+      LocalDataStore.normalizeRequestState(state);
       return state;
     } catch (_error) {
       return undefined;
     }
+  }
+
+  private static normalizeRequest(request: RequestDraft): void {
+    if (!Array.isArray(request.extractionRules)) request.extractionRules = [];
+    if (!Array.isArray(request.testRules)) request.testRules = [];
+  }
+
+  private static normalizeRequestState(state: PersistedAppState): void {
+    state.requests.forEach((request: PersistedRequestModel) => LocalDataStore.normalizeRequest(request.request));
+    state.tabs.forEach((tab: PersistedTabModel) => {
+      LocalDataStore.normalizeRequest(tab.request);
+    });
   }
 
   private static migrateLegacy(state: LegacyPersistedAppState): PersistedAppState {

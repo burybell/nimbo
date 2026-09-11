@@ -1,7 +1,6 @@
-import { ContextMenuItemModel, NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
+import { NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
-import { NimboContextMenu } from './NimboContextMenu';
 import { MotionTokens } from '../../tokens/MotionTokens';
 
 @Component
@@ -10,22 +9,7 @@ export struct PrimarySidebar {
   @Prop activeDestination: NavigationDestination = 'collections';
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   onCreateRequest: () => void = () => {};
-  onImportCurl: () => void = () => {};
-  onImportPostman: () => void = () => {};
-  @State importMenuOpen: boolean = false;
   @State hoveredItemId: string = '';
-  private importItems: ContextMenuItemModel[] = [
-    { id: 'curl', label: $r('app.string.import_curl'), icon: '>_', dangerous: false },
-    { id: 'postman', label: $r('app.string.import_postman'), icon: 'P', dangerous: false }
-  ];
-
-  private handleImport(action: string): void {
-    this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {
-      this.importMenuOpen = false;
-    });
-    if (action === 'curl') this.onImportCurl();
-    if (action === 'postman') this.onImportPostman();
-  }
 
   private mainItems: NavigationItemModel[] = [
     { id: 'workspace', label: $r('app.string.nav_workspace'), icon: '⌂' },
@@ -73,69 +57,27 @@ export struct PrimarySidebar {
           .borderRadius(RadiusTokens.medium)
           .onClick(this.onCreateRequest)
       } else {
-        Stack({ alignContent: Alignment.TopStart }) {
-          Row() {
-            Button() {
-              Row({ space: SpacingTokens.x2 }) {
-                Text('+')
-                  .fontSize(18)
-                  .fontColor(ColorTokens.textOnBrand)
-                Text($r('app.string.action_new'))
-                  .fontSize(14)
-                  .fontWeight(FontWeight.Medium)
-                  .fontColor(ColorTokens.textOnBrand)
-              }
-              .justifyContent(FlexAlign.Center)
-            }
-              .layoutWeight(1)
-              .height(SizeTokens.controlLarge)
-              .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
-              .backgroundColor(ColorTokens.brand500)
-              .borderRadius(0)
-              .stateStyles({
-                normal: { .backgroundColor(ColorTokens.brand500) },
-                pressed: { .backgroundColor(ColorTokens.brand600) }
-              })
-              .onClick(this.onCreateRequest)
-            Button() {
-              Image($r('app.media.chevron_down'))
-                .width(16)
-                .height(16)
-                .objectFit(ImageFit.Contain)
-            }
-              .width(38)
-              .height(SizeTokens.controlLarge)
-              .backgroundColor(ColorTokens.brand500)
-              .borderRadius(0)
-              .border({ width: { left: 1 }, color: ColorTokens.brand100 })
-              .stateStyles({
-                normal: { .backgroundColor(ColorTokens.brand500) },
-                pressed: { .backgroundColor(ColorTokens.brand600) }
-              })
-              .onClick(() => {
-                this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve }, () => {
-                  this.importMenuOpen = !this.importMenuOpen;
-                });
-              })
+        Button() {
+          Row({ space: SpacingTokens.x2 }) {
+            Text('+')
+              .fontSize(18)
+              .fontColor(ColorTokens.textOnBrand)
+            Text($r('app.string.action_new'))
+              .fontSize(14)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(ColorTokens.textOnBrand)
           }
-          .width('100%')
-          .height(SizeTokens.controlLarge)
-          .backgroundColor(ColorTokens.brand500)
-          .borderRadius(RadiusTokens.medium)
-          .clip(true)
-
-          if (this.importMenuOpen) {
-            NimboContextMenu({ items: this.importItems, accentIcons: true,
-              onSelect: (action: string) => this.handleImport(action) })
-              .position({ x: 0, y: SizeTokens.controlLarge + SpacingTokens.x2 })
-              .zIndex(10)
-          }
+          .justifyContent(FlexAlign.Center)
         }
         .width('100%')
-        .height(this.importMenuOpen ? SizeTokens.controlLarge + SpacingTokens.x2 + 76 :
-          SizeTokens.controlLarge)
-        .clip(false)
-        .zIndex(10)
+        .height(SizeTokens.controlLarge)
+        .backgroundColor(ColorTokens.brand500)
+        .borderRadius(RadiusTokens.medium)
+        .stateStyles({
+          normal: { .backgroundColor(ColorTokens.brand500) },
+          pressed: { .backgroundColor(ColorTokens.brand600) }
+        })
+        .onClick(this.onCreateRequest)
       }
 
       Column({ space: SpacingTokens.x1 }) {

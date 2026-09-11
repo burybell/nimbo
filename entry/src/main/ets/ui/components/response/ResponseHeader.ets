@@ -16,6 +16,7 @@ export struct ResponseHeader {
         activeTab: this.activeTab,
         headerCount: this.response.headers.length,
         cookieCount: this.response.cookies.length,
+        testCount: this.response.testResults.length,
         onChange: this.onTabChange
       })
       Blank()

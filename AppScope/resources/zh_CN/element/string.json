@@ -161,6 +161,46 @@
       "value": "导入 Postman"
     },
     {
+      "name": "import_openapi",
+      "value": "导入 OpenAPI / Swagger"
+    },
+    {
+      "name": "import_api_file",
+      "value": "导入 API 文件"
+    },
+    {
+      "name": "import_title",
+      "value": "导入"
+    },
+    {
+      "name": "import_tab_curl",
+      "value": "cURL"
+    },
+    {
+      "name": "import_tab_api_file",
+      "value": "API 文件"
+    },
+    {
+      "name": "api_import_title",
+      "value": "导入 API 文件"
+    },
+    {
+      "name": "api_import_select_title",
+      "value": "拖入或选择 API 文件"
+    },
+    {
+      "name": "api_import_support_hint",
+      "value": "自动识别 Postman 集合/环境、OpenAPI 3.x 与 Swagger 2.0 JSON。"
+    },
+    {
+      "name": "api_import_drop_hint",
+      "value": "将 JSON 文件拖入此区域"
+    },
+    {
+      "name": "api_import_format",
+      "value": "识别格式"
+    },
+    {
       "name": "search_global",
       "value": "搜索请求、集合或历史记录…"
     },
@@ -537,6 +577,171 @@
       "value": "正文"
     },
     {
+      "name": "tab_extract",
+      "value": "提取"
+    },
+    {
+      "name": "extraction_hint",
+      "value": "从成功的 JSON 响应中提取值并写入指定环境。默认保护已有变量，需明确允许覆盖。"
+    },
+    {
+      "name": "extraction_variable",
+      "value": "变量名"
+    },
+    {
+      "name": "extraction_select_environment",
+      "value": "选择环境"
+    },
+    {
+      "name": "extraction_not_run",
+      "value": "未执行：响应未成功"
+    },
+    {
+      "name": "extraction_add",
+      "value": "+ 添加提取规则"
+    },
+    {
+      "name": "extraction_preview",
+      "value": "预览"
+    },
+    {
+      "name": "extraction_preview_value",
+      "value": "预览值"
+    },
+    {
+      "name": "extraction_secret",
+      "value": "敏感变量"
+    },
+    {
+      "name": "extraction_overwrite",
+      "value": "允许覆盖"
+    },
+    {
+      "name": "extraction_no_response",
+      "value": "请先发送一次请求以预览响应"
+    },
+    {
+      "name": "extraction_no_match",
+      "value": "JSONPath 未匹配到值"
+    },
+    {
+      "name": "extraction_invalid_json",
+      "value": "响应正文不是有效的 JSON"
+    },
+    {
+      "name": "extraction_invalid_path",
+      "value": "JSONPath 格式无效"
+    },
+    {
+      "name": "extraction_target_missing",
+      "value": "目标环境已不存在"
+    },
+    {
+      "name": "extraction_conflict",
+      "value": "变量已存在，请开启允许覆盖"
+    },
+    {
+      "name": "extraction_saved",
+      "value": "已保存"
+    },
+    {
+      "name": "tab_tests",
+      "value": "测试"
+    },
+    {
+      "name": "tests_hint",
+      "value": "每次收到响应后执行确定性的断言。规则随请求保存，执行结果不会持久化。"
+    },
+    {
+      "name": "tests_add",
+      "value": "+ 添加测试"
+    },
+    {
+      "name": "test_status_equals",
+      "value": "状态码等于"
+    },
+    {
+      "name": "test_duration_less_than",
+      "value": "响应时间小于"
+    },
+    {
+      "name": "test_header_exists",
+      "value": "标头存在"
+    },
+    {
+      "name": "test_header_equals",
+      "value": "标头等于"
+    },
+    {
+      "name": "test_jsonpath_exists",
+      "value": "JSONPath 存在"
+    },
+    {
+      "name": "test_jsonpath_equals",
+      "value": "JSONPath 等于"
+    },
+    {
+      "name": "test_header_name",
+      "value": "标头名称"
+    },
+    {
+      "name": "test_status_code",
+      "value": "状态码"
+    },
+    {
+      "name": "test_milliseconds",
+      "value": "毫秒"
+    },
+    {
+      "name": "test_expected_value",
+      "value": "期望值"
+    },
+    {
+      "name": "test_passed",
+      "value": "通过"
+    },
+    {
+      "name": "test_failed",
+      "value": "失败"
+    },
+    {
+      "name": "test_not_run",
+      "value": "未执行"
+    },
+    {
+      "name": "test_actual",
+      "value": "实际值"
+    },
+    {
+      "name": "tests_passed_summary",
+      "value": "项测试通过"
+    },
+    {
+      "name": "tests_no_results",
+      "value": "暂无测试结果"
+    },
+    {
+      "name": "tests_no_results_hint",
+      "value": "添加并启用测试后发送请求。"
+    },
+    { "name": "test_expected", "value": "期望值" },
+    { "name": "test_message_configuration_invalid", "value": "测试配置不完整或格式无效。" },
+    { "name": "test_message_status_matched", "value": "状态码符合预期。" },
+    { "name": "test_message_status_mismatch", "value": "状态码与期望值不一致。" },
+    { "name": "test_message_duration_matched", "value": "响应在限定时间内完成。" },
+    { "name": "test_message_duration_mismatch", "value": "响应时间超过限定值。" },
+    { "name": "test_message_duration_unavailable", "value": "无法获取响应耗时。" },
+    { "name": "test_message_header_present", "value": "响应中存在该标头。" },
+    { "name": "test_message_header_missing", "value": "响应中不存在该标头。" },
+    { "name": "test_message_header_matched", "value": "标头值符合预期。" },
+    { "name": "test_message_header_mismatch", "value": "标头值与期望值不一致。" },
+    { "name": "test_message_jsonpath_matched", "value": "JSONPath 匹配到响应值。" },
+    { "name": "test_message_jsonpath_mismatch", "value": "JSONPath 的值与期望值不一致。" },
+    { "name": "test_message_jsonpath_no_match", "value": "JSONPath 未匹配到值。" },
+    { "name": "test_message_invalid_json", "value": "响应正文不是有效的 JSON。" },
+    { "name": "test_message_invalid_jsonpath", "value": "JSONPath 格式无效。" },
+    { "name": "test_message_response_unavailable", "value": "没有可供测试的 HTTP 响应。" },
+    {
       "name": "tab_cookies",
       "value": "Cookie"
     },
@@ -803,6 +1008,22 @@
     {
       "name": "postman_support_hint",
       "value": "支持 Collection v2、v2.1 和 Environment JSON。"
+    },
+    {
+      "name": "openapi_title",
+      "value": "导入 OpenAPI / Swagger"
+    },
+    {
+      "name": "openapi_select_title",
+      "value": "选择 API 规范文件"
+    },
+    {
+      "name": "openapi_support_hint",
+      "value": "支持 OpenAPI 3.0、3.1 和 Swagger 2.0 JSON。"
+    },
+    {
+      "name": "api_specification",
+      "value": "规范版本"
     },
     {
       "name": "select_file",
