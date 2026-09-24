@@ -8,20 +8,26 @@ export struct MobileNavigation {
   @Prop activeDestination: NavigationDestination = 'workspace';
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   private items: NavigationItemModel[] = [
-    { id: 'workspace', label: $r('app.string.nav_workspace'), icon: '⌂' },
-    { id: 'collections', label: $r('app.string.nav_collections'), icon: '▣' },
-    { id: 'environments', label: $r('app.string.nav_environments'), icon: '◎' },
-    { id: 'history', label: $r('app.string.nav_history'), icon: '◷' },
-    { id: 'settings', label: $r('app.string.nav_settings'), icon: '⚙' }
+    { id: 'workspace', label: $r('app.string.nav_workspace'),
+      icon: $r('app.media.nav_workspace'), activeIcon: $r('app.media.nav_workspace_active') },
+    { id: 'collections', label: $r('app.string.nav_collections'),
+      icon: $r('app.media.nav_collections'), activeIcon: $r('app.media.nav_collections_active') },
+    { id: 'environments', label: $r('app.string.nav_environments'),
+      icon: $r('app.media.nav_environments'), activeIcon: $r('app.media.nav_environments_active') },
+    { id: 'history', label: $r('app.string.nav_history'),
+      icon: $r('app.media.nav_history'), activeIcon: $r('app.media.nav_history_active') },
+    { id: 'settings', label: $r('app.string.nav_settings'),
+      icon: $r('app.media.nav_settings'), activeIcon: $r('app.media.nav_settings_active') }
   ];
 
   build() {
     Row() {
       ForEach(this.items, (item: NavigationItemModel) => {
         Column({ space: SpacingTokens.x1 }) {
-          Text(item.icon)
-            .fontSize(17)
-            .fontColor(item.id === this.activeDestination ? ColorTokens.brand500 : ColorTokens.textTertiary)
+          Image(item.id === this.activeDestination ? item.activeIcon : item.icon)
+            .width(20)
+            .height(20)
+            .objectFit(ImageFit.Contain)
           Text(item.label)
             .fontSize(10)
             .maxLines(1)

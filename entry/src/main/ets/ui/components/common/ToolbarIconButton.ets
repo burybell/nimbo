@@ -6,6 +6,7 @@ import { MotionTokens } from '../../tokens/MotionTokens';
 export struct ToolbarIconButton {
   @Prop icon: Resource;
   @Prop accessibilityLabel: Resource;
+  @Prop windowFocused: boolean = true;
   @State hovered: boolean = false;
   onTap: () => void = () => {};
 
@@ -20,7 +21,7 @@ export struct ToolbarIconButton {
     .height(SizeTokens.controlMedium)
     .backgroundColor(this.hovered ? ColorTokens.bgSurfaceHover : Color.Transparent)
     .borderRadius(SizeTokens.controlMedium / 2)
-    .opacity(this.hovered ? 1 : 0.9)
+    .opacity(this.windowFocused ? (this.hovered ? 1 : 0.9) : 0.42)
     .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
     .stateStyles({
       normal: {},

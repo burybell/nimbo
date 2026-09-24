@@ -12,20 +12,23 @@ export struct PrimarySidebar {
   @State hoveredItemId: string = '';
 
   private mainItems: NavigationItemModel[] = [
-    { id: 'workspace', label: $r('app.string.nav_workspace'), icon: '⌂' },
-    { id: 'collections', label: $r('app.string.nav_collections'), icon: '▣' },
-    { id: 'environments', label: $r('app.string.nav_environments'), icon: '◎' },
-    { id: 'history', label: $r('app.string.nav_history'), icon: '◷' }
+    { id: 'workspace', label: $r('app.string.nav_workspace'),
+      icon: $r('app.media.nav_workspace'), activeIcon: $r('app.media.nav_workspace_active') },
+    { id: 'collections', label: $r('app.string.nav_collections'),
+      icon: $r('app.media.nav_collections'), activeIcon: $r('app.media.nav_collections_active') },
+    { id: 'environments', label: $r('app.string.nav_environments'),
+      icon: $r('app.media.nav_environments'), activeIcon: $r('app.media.nav_environments_active') },
+    { id: 'history', label: $r('app.string.nav_history'),
+      icon: $r('app.media.nav_history'), activeIcon: $r('app.media.nav_history_active') }
   ];
 
   @Builder
   navItem(item: NavigationItemModel) {
     Row({ space: SpacingTokens.x3 }) {
-      Text(item.icon)
-        .fontSize(17)
-        .fontColor(item.id === this.activeDestination ? ColorTokens.brand500 : ColorTokens.textSecondary)
+      Image(item.id === this.activeDestination ? item.activeIcon : item.icon)
         .width(20)
-        .textAlign(TextAlign.Center)
+        .height(20)
+        .objectFit(ImageFit.Contain)
       if (!this.compact) {
         Text(item.label)
           .fontSize(13)

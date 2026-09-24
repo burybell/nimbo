@@ -4,7 +4,7 @@ All notable changes to Nimbo will be documented in this file.
 
 The project follows [Semantic Versioning](https://semver.org/) for published releases.
 
-## [Unreleased]
+## [1.0] - 2026-09-12
 
 ### Added
 
@@ -84,6 +84,10 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Refreshed environment value editors immediately when Secret changes and aligned masked-value padding with the normal value column
 - Kept the active script-completion candidate visible by automatically scrolling the compact suggestion list during keyboard navigation
 - Replaced the sidebar New button's font plus with a fixed SVG so the icon remains centered and unclipped in non-maximized windows
+- Replaced font-dependent sidebar and mobile navigation glyphs with a consistent rounded-stroke SVG family and stronger active states
+- Redesigned the application mark as a dimensional pearl-ribbon N using the UI's restrained periwinkle and success-mint palette, including the 216 px AppGallery asset
+- Synchronized custom title-bar action opacity with native window active and inactive states
+- Rebuilt the five AppGallery screenshots as 1920 × 1080 posters using maximized, aspect-ratio-preserved UI captures and HarmonyOS Sans SC typography
 
 ## [0.1.0-alpha] - 2026-09-10
 

@@ -17,7 +17,8 @@ export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' 
 export interface NavigationItemModel {
   id: NavigationDestination;
   label: ResourceStr;
-  icon: string;
+  icon: ResourceStr;
+  activeIcon: ResourceStr;
 }
 
 export interface CollectionNode {

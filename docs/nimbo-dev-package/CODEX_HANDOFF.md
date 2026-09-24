@@ -409,6 +409,14 @@ Milestone 13 不扩展协议、账号、云端或 Runner 范围，只针对 Mile
 
 紧凑侧栏新建按钮回归（2026-09-12）：非最大化窗口继续按响应式设计只显示新建图标，但不再使用受字体字形与缩放影响的 `+` 字符；紧凑按钮与完整“新建”按钮统一复用固定 viewBox、圆角端点的 SVG 加号，避免横线右端被裁切或视觉偏心。MateBook Pro 模拟器重新安装签名 HAP 后，在非最大化窗口验证加号完整且水平、垂直居中；仓库质量检查和签名构建通过，仍只保留 Milestone 5 已知的两条 Redirect Interceptor 兼容提示。
 
+品牌与导航图标回归（2026-09-12）：桌面侧栏和移动端底栏不再依赖系统字体中的主页、方框、圆环、时钟和齿轮字符，统一改用 20 × 20 viewBox、圆角端点和约 2px 描边的 SVG 图标；工作区、集合、环境、历史和设置均提供独立选中态，选中态使用品牌色并略微加粗。App Icon 参考灵题已确认的立体品牌语言，从通用云朵改为珍珠质感的立体流动 `N`，两端节点表达 Request / Response；最终配色受现有 Design Token 约束，背景以 `#5B68F6` / `#4D59E5` 柔和蓝紫为主，白色丝带呼应 Workspace，节点使用接近 Success / GET 的克制薄荷绿，禁止高饱和紫红、电光蓝和大面积霓虹光晕。系统负责最终圆角蒙版。AppScope 与 Entry Ability 使用符合平台规范的 1024px 前景、背景分层资源，前景保留真实 Alpha，背景完全不透明；标题栏和 AppGallery 1024px / 216px 上传图由同一组分层母版合成，确保软件包图标与商店图标一致。MateBook Pro 模拟器在非最大化窗口重新安装验收，导航图标线宽、视觉中心和选中态一致，新 App Icon 在 28px 标题栏与系统 Dock 均可辨识且与新建、发送、选中态处于同一色相体系。
+
+标题栏焦点状态回归（2026-09-12）：EntryAbility 监听原生 `windowEvent`，将 WINDOW_ACTIVE / WINDOW_SHOWN 与 WINDOW_INACTIVE / WINDOW_HIDDEN 映射到共享窗口焦点状态，并在销毁时解除监听。导入、设置以及窄窗口搜索按钮通过同一 ToolbarIconButton 在失焦时同步降低不透明度，聚焦后恢复 Hover / Pressed 反馈，从而与系统最小化、最大化、关闭按钮保持一致。MateBook Pro 模拟器分别截取聚焦与点击窗口外桌面后的状态，确认自定义操作和原生窗口按钮同步变淡、恢复；签名构建通过且无新增 warning。
+
+AppGallery 海报素材回归（2026-09-12）：卸载旧版并重新安装当前签名 HAP 后，在 MateBook Pro 模拟器最大化窗口采集请求与响应、JSON 正文编辑、环境变量、历史记录和设置五个真实页面。原始 3120 × 2080 图像只裁掉系统 Dock 和底部区域，使用精确 16:9 的 3120 × 1755 应用画面，并等比缩放为 1504 × 846 嵌入 1920 × 1080 海报，禁止非等比拉伸。海报采用无文字的柔和品牌背景，标题与说明由脚本使用 HarmonyOS Sans SC 确定性排版，避免生成式文字错误。五张 PNG 均小于 1 MB；原始截图、背景和可重复生成脚本保留在 `release/appgallery/posters/` 与 `scripts/generate-appgallery-posters.sh`。
+
+1.0 发布包（2026-09-12）：正式版本名称更新为 `1.0`，内部 `versionCode` 从 Alpha 的 `1000000` 递增为 `1000001`。使用共享发布证书与 Nimbo 独立发布 Profile 清理构建后生成 `release/appgallery/package/Nimbo-1.0-PC-release-signed.app`；包内元数据确认 `com.nimbo.app`、`2in1`、compatible API 20、target API 24 和 Release 类型。应用图标升级为 1024px 前景、背景分层资源后重新构建，`hap-sign-tool verify-app` 的摘要验证成功，提取 Profile 与 `/Users/lake/app/profile/Nimbo-发布ProfileRelease.p7b` 完全一致；最终包约 3.6 MB，SHA-256 为 `70458cca01b0c717e6f101e91539c8a0d06e52dca9d6bd4163e50826d60c9e2f`。
+
 继续暂缓：Milestone 12 末尾列出的所有能力，以及未在本里程碑明确列出的新协议与在线能力。
 
 ---

@@ -9,6 +9,7 @@ import { ToolbarIconButton } from './ToolbarIconButton';
 @Component
 export struct GlobalToolbar {
   @StorageProp('nimbo.titleButtonInset') titleButtonInset: number = 132;
+  @StorageProp('nimbo.windowFocused') windowFocused: boolean = true;
   @Prop compact: boolean = false;
   @Prop phone: boolean = false;
   @Prop selectedEnvironmentId: string = 'development';
@@ -24,13 +25,16 @@ export struct GlobalToolbar {
         NimboLogo({ compact: true })
         Blank()
         ToolbarIconButton({ icon: $r('app.media.search'),
-          accessibilityLabel: $r('app.string.global_search_placeholder'), onTap: this.onSearch })
+          accessibilityLabel: $r('app.string.global_search_placeholder'), windowFocused: this.windowFocused,
+          onTap: this.onSearch })
         EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
           onChange: this.onEnvironmentChange })
         ToolbarIconButton({ icon: $r('app.media.import_api'),
-          accessibilityLabel: $r('app.string.import_title'), onTap: this.onImport })
+          accessibilityLabel: $r('app.string.import_title'), windowFocused: this.windowFocused,
+          onTap: this.onImport })
         ToolbarIconButton({ icon: $r('app.media.settings'),
-          accessibilityLabel: $r('app.string.nav_settings'), onTap: this.onSettings })
+          accessibilityLabel: $r('app.string.nav_settings'), windowFocused: this.windowFocused,
+          onTap: this.onSettings })
       } else {
         Stack({ alignContent: Alignment.Center }) {
           Row() {
@@ -54,9 +58,11 @@ export struct GlobalToolbar {
               EnvironmentSwitcher({ selectedId: this.selectedEnvironmentId, environments: this.environments,
                 onChange: this.onEnvironmentChange })
               ToolbarIconButton({ icon: $r('app.media.import_api'),
-                accessibilityLabel: $r('app.string.import_title'), onTap: this.onImport })
+                accessibilityLabel: $r('app.string.import_title'), windowFocused: this.windowFocused,
+                onTap: this.onImport })
               ToolbarIconButton({ icon: $r('app.media.settings'),
-                accessibilityLabel: $r('app.string.nav_settings'), onTap: this.onSettings })
+                accessibilityLabel: $r('app.string.nav_settings'), windowFocused: this.windowFocused,
+                onTap: this.onSettings })
             }
             .padding({ left: SpacingTokens.x4, right: this.titleButtonInset })
           }

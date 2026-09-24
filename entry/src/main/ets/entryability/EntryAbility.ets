@@ -12,6 +12,13 @@ export default class EntryAbility extends UIAbility {
   private titleButtonRectChange = (rect: window.TitleButtonRect): void => {
     this.publishTitleButtonInset(rect);
   };
+  private windowEventChange = (event: window.WindowEventType): void => {
+    if (event === window.WindowEventType.WINDOW_ACTIVE || event === window.WindowEventType.WINDOW_SHOWN) {
+      AppStorage.setOrCreate('nimbo.windowFocused', true);
+    } else if (event === window.WindowEventType.WINDOW_INACTIVE || event === window.WindowEventType.WINDOW_HIDDEN) {
+      AppStorage.setOrCreate('nimbo.windowFocused', false);
+    }
+  };
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     hilog.info(DOMAIN, 'Nimbo', 'EntryAbility created');
@@ -19,6 +26,7 @@ export default class EntryAbility extends UIAbility {
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
     AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
+    AppStorage.setOrCreate('nimbo.windowFocused', true);
     this.loadMainPage(windowStage);
   }
 
@@ -26,6 +34,7 @@ export default class EntryAbility extends UIAbility {
     if (this.mainWindow) {
       try {
         this.mainWindow.off('windowTitleButtonRectChange', this.titleButtonRectChange);
+        this.mainWindow.off('windowEvent', this.windowEventChange);
       } catch (error) {
         hilog.warn(DOMAIN, 'Nimbo', 'Unable to detach title button observer: %{public}s', JSON.stringify(error));
       }
@@ -72,6 +81,7 @@ export default class EntryAbility extends UIAbility {
         spacingBetweenButtons: 8, closeButtonRightMargin: 12, buttonBackgroundCornerRadius: 16 });
       this.publishTitleButtonInset(mainWindow.getTitleButtonRect());
       mainWindow.on('windowTitleButtonRectChange', this.titleButtonRectChange);
+      mainWindow.on('windowEvent', this.windowEventChange);
     } catch (error) {
       hilog.warn(DOMAIN, 'Nimbo', 'Immersive title bar is unavailable: %{public}s', JSON.stringify(error));
     }
