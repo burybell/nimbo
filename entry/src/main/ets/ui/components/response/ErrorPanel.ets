@@ -8,6 +8,7 @@ export struct ErrorPanel {
   @State showDetails: boolean = false;
   onRetry: () => void = () => {};
   onCopyDiagnostic: () => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private title(): ResourceStr {
     if (this.error.type === 'invalidUrl') return $r('app.string.error_invalid_url');
@@ -182,6 +183,13 @@ export struct ErrorPanel {
           .border({ width: 1, color: ColorTokens.borderDefault })
           .borderRadius(RadiusTokens.small)
           .onClick(() => { this.showDetails = !this.showDetails; })
+        if (this.error.type === 'variable') {
+          Button($r('app.string.variable_configure'))
+            .fontSize(11).height(SizeTokens.controlMedium)
+            .fontColor(ColorTokens.brand600).backgroundColor(ColorTokens.bgSurface)
+            .border({ width: 1, color: ColorTokens.borderDefault })
+            .borderRadius(RadiusTokens.small).onClick(this.onConfigureVariables)
+        }
       }
       .width('100%')
     }

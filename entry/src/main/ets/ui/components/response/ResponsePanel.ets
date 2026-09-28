@@ -27,6 +27,7 @@ export struct ResponsePanel {
   onCopyBody: () => void = () => {};
   onDownloadBody: () => void = () => {};
   onCopyDiagnostic: () => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private matchCount(): number {
     if (this.searchQuery.length === 0) return 0;
@@ -324,7 +325,8 @@ export struct ResponsePanel {
           if (this.response.status === 'error' || this.response.status === 'cancelled') {
             Scroll() {
               ErrorPanel({ error: this.response.error, onRetry: this.onRetry,
-                onCopyDiagnostic: this.onCopyDiagnostic })
+                onCopyDiagnostic: this.onCopyDiagnostic,
+                onConfigureVariables: this.onConfigureVariables })
             }
             .width('100%')
             .layoutWeight(1)

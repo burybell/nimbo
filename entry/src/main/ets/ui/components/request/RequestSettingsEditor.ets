@@ -1,11 +1,16 @@
-import { RequestSettings } from '../../../models/ShellModels';
+import { EffectiveVariableModel, RequestSettings, VariableSourceKind } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { EffectiveVariablesView } from './EffectiveVariablesView';
 
 @Component
 export struct RequestSettingsEditor {
   @Prop settings: RequestSettings;
+  @Prop variables: EffectiveVariableModel[] = [];
+  @Prop missingVariables: string[] = [];
   onChange: (settings: RequestSettings) => void = () => {};
+  onEditVariableSource: (kind: VariableSourceKind, id: string) => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private emit(timeoutMs: number, followRedirects: boolean,
     sslVerification: boolean, useCookieJar: boolean): void {
@@ -89,6 +94,10 @@ export struct RequestSettingsEditor {
         this.switchRow($r('app.string.cookie_jar_title'), $r('app.string.cookie_jar_description'),
           this.settings.useCookieJar, (value: boolean) => this.emit(this.settings.timeoutMs,
             this.settings.followRedirects, this.settings.sslVerification, value))
+
+        EffectiveVariablesView({ variables: this.variables, missingVariables: this.missingVariables,
+          onEditSource: this.onEditVariableSource, onConfigureMissing: this.onConfigureVariables })
+          .margin({ top: SpacingTokens.x4 })
       }
       .width('100%')
       .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4, bottom: SpacingTokens.x4 })

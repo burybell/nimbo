@@ -187,6 +187,15 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
     type: 'collection',
     name: 'Nimbo 示例接口',
     expanded: true,
+    variables: [
+      { id: 'demo-http-base-url', enabled: true, key: 'DEMO_HTTP_BASE_URL',
+        value: 'https://jsonplaceholder.typicode.com', description: 'HTTP 示例基础地址',
+        type: 'text', secret: false },
+      { id: 'demo-websocket-url', enabled: true, key: 'DEMO_WEBSOCKET_URL',
+        value: 'wss://echo.websocket.org', description: 'WebSocket 回声地址', type: 'text', secret: false },
+      { id: 'demo-sse-url', enabled: true, key: 'DEMO_SSE_URL',
+        value: 'https://echo.websocket.org/.sse', description: 'SSE 事件流地址', type: 'text', secret: false }
+    ],
     children: [
       {
         id: 'users-folder',

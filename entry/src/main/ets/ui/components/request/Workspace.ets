@@ -1,5 +1,6 @@
-import { AuthConfig, EnvironmentModel, HttpMethod, KeyValueItem, RequestDraft, RequestTabModel, ResponseErrorModel,
-  ResponseModel, SseSessionModel, WebSocketSessionModel } from '../../../models/ShellModels';
+import { AuthConfig, EffectiveVariableModel, EnvironmentModel, HttpMethod, KeyValueItem, RequestDraft,
+  RequestTabModel, ResponseErrorModel, ResponseModel, SseSessionModel, VariableSourceKind,
+  WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -23,6 +24,8 @@ export struct Workspace {
   @Prop environments: EnvironmentModel[] = [];
   @Prop selectedEnvironmentId: string = '';
   @Prop resolvedVariables: KeyValueItem[] = [];
+  @Prop variableResolutions: EffectiveVariableModel[] = [];
+  @Prop missingVariables: string[] = [];
   @Prop webSocketSession: WebSocketSessionModel = {
     requestId: '', status: 'disconnected', composer: '', messages: [], errorCode: '', errorMessage: ''
   };
@@ -43,6 +46,8 @@ export struct Workspace {
   onDownloadResponseBody: (response: ResponseModel) => void = () => {};
   onCopyGeneratedCode: (value: string) => void = () => {};
   onCopyErrorDiagnostic: (error: ResponseErrorModel) => void = () => {};
+  onEditVariableSource: (kind: VariableSourceKind, id: string) => void = () => {};
+  onConfigureVariables: (id: string) => void = () => {};
   onWebSocketUrlChange: (id: string, value: string) => void = () => {};
   onWebSocketConnect: (id: string) => void = () => {};
   onWebSocketDisconnect: (id: string) => void = () => {};
@@ -202,6 +207,10 @@ export struct Workspace {
           session: this.sseSession,
           request: this.tabs[this.activeIndex()].request,
           variables: this.activeVariables(),
+          variableResolutions: this.variableResolutions,
+          missingVariables: this.missingVariables,
+          onEditVariableSource: this.onEditVariableSource,
+          onConfigureVariables: () => this.onConfigureVariables(this.activeTabId),
           onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
           onMethodChange: (method: HttpMethod) => {
             const request = this.webSocketRequest(this.tabs[this.activeIndex()].request,
@@ -229,6 +238,10 @@ export struct Workspace {
           session: this.webSocketSession,
           request: this.tabs[this.activeIndex()].request,
           variables: this.activeVariables(),
+          variableResolutions: this.variableResolutions,
+          missingVariables: this.missingVariables,
+          onEditVariableSource: this.onEditVariableSource,
+          onConfigureVariables: () => this.onConfigureVariables(this.activeTabId),
           onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
           onHeadersChange: (headers: KeyValueItem[]) => this.onUpdateRequest(this.activeTabId,
             this.webSocketRequest(this.tabs[this.activeIndex()].request,
@@ -254,6 +267,10 @@ export struct Workspace {
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
             resolvedVariables: this.resolvedVariables,
+            variableResolutions: this.variableResolutions,
+            missingVariables: this.missingVariables,
+            onEditVariableSource: this.onEditVariableSource,
+            onConfigureVariables: () => this.onConfigureVariables(this.activeTabId),
             onSaveRequest: () => this.onSaveRequest(this.activeTabId),
             onCopyGeneratedCode: this.onCopyGeneratedCode,
             phone: true,
@@ -270,7 +287,8 @@ export struct Workspace {
             onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
             onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
             onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response),
-            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error)
+            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error),
+            onConfigureVariables: () => this.onConfigureVariables(this.activeTabId)
           })
           .layoutWeight(1)
           .opacity(this.contentOpacity)
@@ -283,6 +301,10 @@ export struct Workspace {
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
             resolvedVariables: this.resolvedVariables,
+            variableResolutions: this.variableResolutions,
+            missingVariables: this.missingVariables,
+            onEditVariableSource: this.onEditVariableSource,
+            onConfigureVariables: () => this.onConfigureVariables(this.activeTabId),
             onSaveRequest: () => this.onSaveRequest(this.activeTabId),
             onCopyGeneratedCode: this.onCopyGeneratedCode,
             onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)
@@ -307,7 +329,8 @@ export struct Workspace {
             onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
             onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
             onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response),
-            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error)
+            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error),
+            onConfigureVariables: () => this.onConfigureVariables(this.activeTabId)
           })
             .layoutWeight(1)
         }

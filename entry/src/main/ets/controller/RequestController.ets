@@ -451,10 +451,11 @@ export class RequestController {
       const response = createEmptyResponse();
       response.status = 'error';
       response.error = {
-        type: 'variable', title: 'Unresolved environment variables',
+        type: 'variable', title: 'Unresolved variables',
         message: unresolved.join(', '), code: 'UNRESOLVED_VARIABLE',
         details: unresolved.join(', '), stage: 'validation', method: request.method,
-        host: this.safeHost(request.url), durationMs: 0, timeoutMs: request.settings.timeoutMs,
+        host: this.safeHost(this.resolveVariables(request.url, environment)),
+        durationMs: 0, timeoutMs: request.settings.timeoutMs,
         sslVerification: request.settings.sslVerification, followRedirects: request.settings.followRedirects,
         unresolvedVariables: unresolved
       };

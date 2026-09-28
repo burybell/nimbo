@@ -33,7 +33,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 12;
+  static readonly schemaVersion: number = 13;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -55,7 +55,7 @@ export class LocalDataStore {
         versioned.schemaVersion === 7 || versioned.schemaVersion === 8 || versioned.schemaVersion === 9) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
-      } else if (versioned.schemaVersion === 10 || versioned.schemaVersion === 11) {
+      } else if (versioned.schemaVersion === 10 || versioned.schemaVersion === 11 || versioned.schemaVersion === 12) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else {
@@ -110,7 +110,16 @@ export class LocalDataStore {
   }
 
   private static normalizeExampleRequest(id: string, request: RequestDraft): void {
-    if (id === 'openai-list-models-request' && request.url === 'https://api.openai.com/v1/models') {
+    if (id === 'get-users-request' && request.url === 'https://jsonplaceholder.typicode.com/users') {
+      request.url = '{{DEMO_HTTP_BASE_URL}}/users';
+    } else if ((id === 'create-user-request' || id === 'get-posts-request' || id === 'create-post-request') &&
+      request.url === 'https://jsonplaceholder.typicode.com/posts') {
+      request.url = '{{DEMO_HTTP_BASE_URL}}/posts';
+    } else if (id === 'websocket-echo-request' && request.url === 'wss://echo.websocket.org') {
+      request.url = '{{DEMO_WEBSOCKET_URL}}';
+    } else if (id === 'sse-events-request' && request.url === 'https://echo.websocket.org/.sse') {
+      request.url = '{{DEMO_SSE_URL}}';
+    } else if (id === 'openai-list-models-request' && request.url === 'https://api.openai.com/v1/models') {
       request.url = '{{OPENAI_BASE_URL}}/v1/models';
     } else if (id === 'openai-create-response-request') {
       if (request.url === 'https://api.openai.com/v1/responses') {

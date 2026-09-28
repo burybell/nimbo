@@ -4,6 +4,19 @@ All notable changes to Nimbo will be documented in this file.
 
 The project follows [Semantic Versioning](https://semver.org/) for published releases.
 
+## [Unreleased]
+
+### Added
+
+- Collection and nested-folder variables with deterministic inheritance across HTTP, WebSocket, SSE, scripts, and Collection Runner
+- Effective-variable inspection with masked secrets, source labels, override chains, proactive missing-value detection, and direct source editing
+- Collection-level Postman variable import and recursive secret redaction in Nimbo exports
+
+### Changed
+
+- Migrated local data to schema v13 and updated the built-in HTTP, WebSocket, SSE, OpenAI, and DeepSeek examples to use scoped variables
+- Updated unresolved-variable diagnostics to account for environment, collection, folder, and Runner scopes
+
 ## [1.0] - 2026-09-12
 
 ### Added

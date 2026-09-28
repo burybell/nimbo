@@ -2,6 +2,7 @@ import {
   AuthConfig,
   BodyType,
   EnvironmentModel,
+  EffectiveVariableModel,
   ExtractionRule,
   HttpMethod,
   KeyValueItem,
@@ -11,7 +12,8 @@ import {
   RequestScript,
   RequestSettings,
   ResponseModel,
-  TestRule
+  TestRule,
+  VariableSourceKind
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SpacingTokens } from '../../tokens/LayoutTokens';
@@ -34,10 +36,14 @@ export struct RequestPanel {
   @Prop environments: EnvironmentModel[] = [];
   @Prop selectedEnvironmentId: string = '';
   @Prop resolvedVariables: KeyValueItem[] = [];
+  @Prop variableResolutions: EffectiveVariableModel[] = [];
+  @Prop missingVariables: string[] = [];
   onSaveRequest: () => void = () => {};
   onCopyGeneratedCode: (value: string) => void = () => {};
   @Prop response: ResponseModel;
   onChange: (request: RequestDraft) => void = () => {};
+  onEditVariableSource: (kind: VariableSourceKind, id: string) => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private emit(method: HttpMethod, url: string, lifecycle: RequestLifecycle,
     activeConfigTab: RequestConfigTab, params: KeyValueItem[], headers: KeyValueItem[],
@@ -275,6 +281,10 @@ export struct RequestPanel {
       } else {
         RequestSettingsEditor({
           settings: this.request.settings,
+          variables: this.variableResolutions,
+          missingVariables: this.missingVariables,
+          onEditVariableSource: this.onEditVariableSource,
+          onConfigureVariables: this.onConfigureVariables,
           onChange: (settings: RequestSettings) => this.emit(this.request.method, this.request.url,
             this.request.lifecycle, this.request.activeConfigTab, this.request.params, this.request.headers,
             this.request.auth, this.request.bodyType, this.request.bodyText, this.request.formItems,

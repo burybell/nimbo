@@ -73,6 +73,22 @@ export interface KeyValueItem {
   secret: boolean;
 }
 
+export type VariableSourceKind = 'environment' | 'collection' | 'folder' | 'runner';
+
+export interface VariableSourceModel {
+  kind: VariableSourceKind;
+  id: string;
+  name: string;
+}
+
+export interface EffectiveVariableModel {
+  key: string;
+  value: string;
+  secret: boolean;
+  source: VariableSourceModel;
+  overriddenSources: VariableSourceModel[];
+}
+
 export interface AuthConfig {
   type: AuthType;
   bearerToken: string;

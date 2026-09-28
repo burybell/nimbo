@@ -1,6 +1,7 @@
 import {
   BodyType,
   CollectionNode,
+  EffectiveVariableModel,
   ExtractionResult,
   ExtractionRule,
   ExtractionStatus,
@@ -17,6 +18,8 @@ import {
   SseEventModel,
   SseSessionModel,
   TestResult,
+  VariableSourceKind,
+  VariableSourceModel,
   WebSocketConnectionRecord,
   WebSocketMessageModel,
   WebSocketSessionModel
@@ -546,26 +549,55 @@ export struct NimboWindow {
     return undefined;
   }
 
-  private mergeVariableLayer(base: KeyValueItem[], layer: KeyValueItem[]): KeyValueItem[] {
-    let merged = base.map((item: KeyValueItem): KeyValueItem => item);
-    layer.forEach((item: KeyValueItem) => {
-      if (!item.enabled || item.key.trim().length === 0) return;
-      const index = merged.findIndex((candidate: KeyValueItem) => candidate.key === item.key);
-      if (index >= 0) {
-        merged = merged.map((candidate: KeyValueItem, itemIndex: number) => itemIndex === index ? item : candidate);
-      } else {
-        merged = [...merged, item];
-      }
+  private variableResolutions(requestId: string, environment: EnvironmentModel,
+    runtimeValues: Record<string, string> | undefined = undefined): EffectiveVariableModel[] {
+    let resolved: EffectiveVariableModel[] = [];
+    const applyLayer = (variables: KeyValueItem[], source: VariableSourceModel): void => {
+      variables.forEach((item: KeyValueItem) => {
+        const key = item.key.trim();
+        if (!item.enabled || key.length === 0) return;
+        const index = resolved.findIndex((candidate: EffectiveVariableModel) => candidate.key === key);
+        const previous = index >= 0 ? resolved[index] : undefined;
+        const next: EffectiveVariableModel = {
+          key, value: item.value, secret: item.secret, source,
+          overriddenSources: previous ? [previous.source, ...previous.overriddenSources] : []
+        };
+        if (index >= 0) {
+          resolved = resolved.map((candidate: EffectiveVariableModel, itemIndex: number) =>
+            itemIndex === index ? next : candidate);
+        } else {
+          resolved = [...resolved, next];
+        }
+      });
+    };
+    applyLayer(environment.variables, {
+      kind: 'environment', id: environment.id, name: environment.name
     });
-    return merged;
-  }
-
-  private scopedEnvironment(requestId: string, environment: EnvironmentModel): EnvironmentModel {
-    let variables = environment.variables.map((item: KeyValueItem): KeyValueItem => item);
     const path = this.collectionNodePath(this.collections, requestId) ?? [];
     path.forEach((node: CollectionNode) => {
-      if (node.type !== 'request') variables = this.mergeVariableLayer(variables, node.variables ?? []);
+      if (node.type === 'request') return;
+      applyLayer(node.variables ?? [], {
+        kind: node.type === 'collection' ? 'collection' : 'folder', id: node.id, name: node.name
+      });
     });
+    if (runtimeValues !== undefined) {
+      const variables: KeyValueItem[] = Object.keys(runtimeValues).map(
+        (key: string, index: number): KeyValueItem => ({
+          id: `runner-data-${index}`, enabled: true, key, value: runtimeValues[key], description: '',
+          type: 'text', secret: false
+        }));
+      applyLayer(variables, { kind: 'runner', id: 'runner-data', name: 'Runner data' });
+    }
+    return resolved;
+  }
+
+  private scopedEnvironment(requestId: string, environment: EnvironmentModel,
+    runtimeValues: Record<string, string> | undefined = undefined): EnvironmentModel {
+    const variables = this.variableResolutions(requestId, environment, runtimeValues).map(
+      (item: EffectiveVariableModel, index: number): KeyValueItem => ({
+        id: `effective-${index}`, enabled: true, key: item.key, value: item.value,
+        description: item.source.name, type: 'text', secret: item.secret
+      }));
     return {
       id: environment.id, name: environment.name, kind: environment.kind,
       variables, system: environment.system
@@ -574,6 +606,102 @@ export struct NimboWindow {
 
   private activeScopedVariables(): KeyValueItem[] {
     return this.scopedEnvironment(this.activeTabId, this.activeEnvironment()).variables;
+  }
+
+  private activeVariableResolutions(): EffectiveVariableModel[] {
+    return this.variableResolutions(this.activeTabId, this.activeEnvironment());
+  }
+
+  private appendVariableNames(value: string, names: string[]): void {
+    const pattern = /\{\{\s*([^{}]+?)\s*\}\}/g;
+    let match = pattern.exec(value);
+    while (match !== null) {
+      const name = match[1].trim();
+      if (name.length > 0 && !names.includes(name)) names.push(name);
+      match = pattern.exec(value);
+    }
+  }
+
+  private requestVariableNames(request: RequestDraft): string[] {
+    const names: string[] = [];
+    this.appendVariableNames(request.url, names);
+    request.params.forEach((item: KeyValueItem) => {
+      if (item.enabled) {
+        this.appendVariableNames(item.key, names);
+        this.appendVariableNames(item.value, names);
+      }
+    });
+    request.headers.forEach((item: KeyValueItem) => {
+      if (item.enabled) {
+        this.appendVariableNames(item.key, names);
+        this.appendVariableNames(item.value, names);
+      }
+    });
+    if (request.auth.type === 'bearer') this.appendVariableNames(request.auth.bearerToken, names);
+    if (request.auth.type === 'basic') {
+      this.appendVariableNames(request.auth.username, names);
+      this.appendVariableNames(request.auth.password, names);
+    }
+    if (request.auth.type === 'apiKey') {
+      this.appendVariableNames(request.auth.apiKey, names);
+      this.appendVariableNames(request.auth.apiValue, names);
+    }
+    if (request.bodyType === 'json' || request.bodyType === 'text') {
+      this.appendVariableNames(request.bodyText, names);
+    } else if (request.bodyType === 'form') {
+      request.formItems.forEach((item: KeyValueItem) => {
+        if (item.enabled) {
+          this.appendVariableNames(item.key, names);
+          this.appendVariableNames(item.value, names);
+        }
+      });
+    } else if (request.bodyType === 'multipart') {
+      request.multipartItems.forEach((item: KeyValueItem) => {
+        if (!item.enabled) return;
+        this.appendVariableNames(item.key, names);
+        if (item.type !== 'file') this.appendVariableNames(item.value, names);
+      });
+    }
+    return names;
+  }
+
+  private activeMissingVariables(): string[] {
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === this.activeTabId);
+    if (!tab) return [];
+    const names = this.requestVariableNames(tab.request);
+    if (tab.request.protocol === 'websocket') {
+      const session = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === tab.id);
+      if (session) this.appendVariableNames(session.composer, names);
+    }
+    const available = new Set<string>();
+    this.activeVariableResolutions().forEach((item: EffectiveVariableModel) => {
+      if (item.value.length > 0) available.add(item.key);
+    });
+    return names.filter((name: string) => !available.has(name));
+  }
+
+  private editVariableSource(kind: VariableSourceKind, id: string): void {
+    if (kind === 'environment') {
+      if (id.length > 0) this.selectedEnvironmentId = id;
+      this.selectDestination('environments');
+      this.persistLocalData();
+      return;
+    }
+    if (kind === 'collection' || kind === 'folder') {
+      const node = this.findCollectionNode(this.collections, id);
+      if (node) this.beginEditCollectionVariables(node);
+    }
+  }
+
+  private configureMissingVariables(requestId: string): void {
+    const path = this.collectionNodePath(this.collections, requestId) ?? [];
+    for (let index = path.length - 1; index >= 0; index -= 1) {
+      if (path[index].type !== 'request') {
+        this.beginEditCollectionVariables(path[index]);
+        return;
+      }
+    }
+    this.selectDestination('environments');
   }
 
   private updateCollectionNode(nodes: CollectionNode[], id: string,
@@ -1322,44 +1450,13 @@ export struct NimboWindow {
     return { id: '', name: 'No Environment', kind: 'development', variables: [] };
   }
 
-  private environmentWithRuntimeValues(environment: EnvironmentModel,
-    values: Record<string, string> | undefined): EnvironmentModel {
-    if (values === undefined || Object.keys(values).length === 0) return environment;
-    let variables = environment.variables;
-    Object.keys(values).forEach((key: string, index: number) => {
-      const existing = variables.findIndex((item: KeyValueItem) => item.key === key);
-      const runtime: KeyValueItem = {
-        id: `runner-data-${index}`,
-        enabled: true,
-        key,
-        value: values[key],
-        description: '',
-        type: 'text',
-        secret: false
-      };
-      if (existing >= 0) {
-        variables = variables.map((item: KeyValueItem, itemIndex: number) => itemIndex === existing ? runtime : item);
-      } else {
-        variables = [...variables, runtime];
-      }
-    });
-    return {
-      id: environment.id.length > 0 ? environment.id : 'runner-data',
-      name: environment.name,
-      kind: environment.kind,
-      variables,
-      system: environment.system
-    };
-  }
-
   private async executeRequestPipeline(executionId: string, request: RequestDraft, environmentId: string,
     isActive: () => boolean,
     runtimeValues: Record<string, string> | undefined = undefined,
     scopeRequestId: string = executionId): Promise<RequestPipelineResult | undefined> {
     let executedRequest = request;
     let environment = this.environmentForId(environmentId);
-    let effectiveEnvironment = this.environmentWithRuntimeValues(
-      this.scopedEnvironment(scopeRequestId, environment), runtimeValues);
+    let effectiveEnvironment = this.scopedEnvironment(scopeRequestId, environment, runtimeValues);
     const scriptResults: ScriptExecutionResult[] = [];
     if (request.preRequestScript.enabled && request.preRequestScript.source.trim().length > 0) {
       const execution: PreRequestExecution = await ScriptRuntimeService.runPreRequest(
@@ -1374,8 +1471,7 @@ export struct NimboWindow {
       }
       executedRequest = this.requestWithScriptChanges(request, execution.request);
       environment = this.applyScriptEnvironmentWrites(environment, execution.environmentWrites);
-      effectiveEnvironment = this.environmentWithRuntimeValues(
-        this.scopedEnvironment(scopeRequestId, environment), runtimeValues);
+      effectiveEnvironment = this.scopedEnvironment(scopeRequestId, environment, runtimeValues);
       if (Object.keys(execution.environmentWrites).length > 0) this.persistLocalData();
     }
     let response = await this.requestController.send(executionId, executedRequest, effectiveEnvironment);
@@ -1780,7 +1876,7 @@ export struct NimboWindow {
     const config = WebSocketRequestBuilder.build(tab.request, environment);
     if (config.unresolvedVariables.length > 0) {
       this.webSocketEvent(id, { kind: 'error', code: 'UNRESOLVED_VARIABLE',
-        text: `${this.preferences.language === 'zh' ? '缺少环境变量' : 'Missing environment variables'}: ` +
+        text: `${this.preferences.language === 'zh' ? '缺少变量' : 'Missing variables'}: ` +
           config.unresolvedVariables.map((name: string) => `{{${name}}}`).join(', ') });
       return;
     }
@@ -1825,8 +1921,8 @@ export struct NimboWindow {
     const unresolved = WebSocketRequestBuilder.unresolved(current.composer, environment);
     if (unresolved.length > 0) {
       this.webSocketOperationError(id, 'UNRESOLVED_VARIABLE',
-        `${this.preferences.language === 'zh' ? '消息中缺少环境变量' :
-          'Missing environment variables in message'}: ` + unresolved.map((name: string) => `{{${name}}}`).join(', '));
+        `${this.preferences.language === 'zh' ? '消息中缺少变量' :
+          'Missing variables in message'}: ` + unresolved.map((name: string) => `{{${name}}}`).join(', '));
       return;
     }
     const source = current.composer;
@@ -1951,7 +2047,7 @@ export struct NimboWindow {
     if (config.unresolvedVariables.length > 0) {
       this.replaceSseSession({
         requestId: id, status: 'error', events: current.events, errorCode: 'UNRESOLVED_VARIABLE',
-        errorMessage: `${this.preferences.language === 'zh' ? '缺少环境变量' : 'Missing environment variables'}: ` +
+        errorMessage: `${this.preferences.language === 'zh' ? '缺少变量' : 'Missing variables'}: ` +
           config.unresolvedVariables.map((name: string) => `{{${name}}}`).join(', '),
         statusCode: 0, contentType: ''
       });
@@ -2520,6 +2616,8 @@ export struct NimboWindow {
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
             resolvedVariables: this.activeScopedVariables(),
+            variableResolutions: this.activeVariableResolutions(),
+            missingVariables: this.activeMissingVariables(),
             webSocketSession: this.currentWebSocketSession(),
             sseSession: this.currentSseSession(),
             onSelectTab: (id: string) => {
@@ -2534,6 +2632,8 @@ export struct NimboWindow {
             onSaveRequest: (id: string) => this.beginSaveRequest(id),
             onCopyGeneratedCode: (value: string) => this.copyGeneratedCode(value),
             onCopyErrorDiagnostic: (error: ResponseErrorModel) => this.copyErrorDiagnostic(error),
+            onEditVariableSource: (kind: VariableSourceKind, id: string) => this.editVariableSource(kind, id),
+            onConfigureVariables: (id: string) => this.configureMissingVariables(id),
             onWebSocketUrlChange: (id: string, value: string) => this.webSocketUrlChange(id, value),
             onWebSocketConnect: (id: string) => this.connectWebSocket(id),
             onWebSocketDisconnect: (id: string) => this.disconnectWebSocket(id),
@@ -2886,21 +2986,21 @@ export struct NimboWindow {
     } else if (saved) {
       response = createEmptyResponse();
     } else if (node.id === 'get-users-request') {
-      request.url = 'https://jsonplaceholder.typicode.com/users';
+      request.url = '{{DEMO_HTTP_BASE_URL}}/users';
       response = createSuccessResponse();
     } else if (node.id === 'create-user-request') {
-      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.url = '{{DEMO_HTTP_BASE_URL}}/posts';
       request.activeConfigTab = 'body';
       request.bodyType = 'json';
       request.bodyText = '{\n  "title": "Nimbo",\n  "body": "HarmonyOS request",\n  "userId": 1\n}';
     } else if (node.id === 'get-posts-request') {
-      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.url = '{{DEMO_HTTP_BASE_URL}}/posts';
       request.params = [
         { id: 'param-post-limit', enabled: true, key: '_limit', value: '10', description: '返回数量',
           type: 'text', secret: false }
       ];
     } else if (node.id === 'create-post-request') {
-      request.url = 'https://jsonplaceholder.typicode.com/posts';
+      request.url = '{{DEMO_HTTP_BASE_URL}}/posts';
       request.activeConfigTab = 'body';
       request.bodyType = 'json';
       request.bodyText = '{\n  "title": "Nimbo 示例文章",\n  "body": "来自鸿蒙电脑的 API 请求",\n  "userId": 1\n}';
@@ -2919,10 +3019,10 @@ export struct NimboWindow {
       response = createBinaryResponse();
     } else if (node.id === 'websocket-echo-request') {
       request.protocol = 'websocket';
-      request.url = 'wss://echo.websocket.org';
+      request.url = '{{DEMO_WEBSOCKET_URL}}';
     } else if (node.id === 'sse-events-request') {
       request.protocol = 'sse';
-      request.url = 'https://echo.websocket.org/.sse';
+      request.url = '{{DEMO_SSE_URL}}';
     } else if (node.id === 'openai-list-models-request') {
       request.url = '{{OPENAI_BASE_URL}}/v1/models';
       request.auth.type = 'bearer';

@@ -1,19 +1,22 @@
-import { AuthConfig, HttpMethod, KeyValueItem, RequestDraft, SseEventModel,
-  SseSessionModel } from '../../../models/ShellModels';
+import { AuthConfig, EffectiveVariableModel, HttpMethod, KeyValueItem, RequestDraft, SseEventModel,
+  SseSessionModel, VariableSourceKind } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { AuthEditor } from './AuthEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 import { MethodSelector } from './MethodSelector';
 import { UrlInput } from './UrlInput';
+import { EffectiveVariablesView } from './EffectiveVariablesView';
 
-type SsePanelTab = 'events' | 'headers' | 'auth';
+type SsePanelTab = 'events' | 'headers' | 'auth' | 'variables';
 
 @Component
 export struct SsePanel {
   @Prop session: SseSessionModel;
   @Prop request: RequestDraft;
   @Prop variables: KeyValueItem[] = [];
+  @Prop variableResolutions: EffectiveVariableModel[] = [];
+  @Prop missingVariables: string[] = [];
   @State activeTab: SsePanelTab = 'events';
   @State searchQuery: string = '';
   onUrlChange: (value: string) => void = () => {};
@@ -25,6 +28,8 @@ export struct SsePanel {
   onClear: () => void = () => {};
   onCopy: () => void = () => {};
   onExport: () => void = () => {};
+  onEditVariableSource: (kind: VariableSourceKind, id: string) => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private active(): boolean {
     return this.session.status === 'connecting' || this.session.status === 'connected' ||
@@ -154,6 +159,7 @@ export struct SsePanel {
         this.tab($r('app.string.websocket_tab_headers'), 'headers',
           this.request.headers.filter((item: KeyValueItem) => item.enabled).length)
         this.tab($r('app.string.websocket_tab_auth'), 'auth')
+        this.tab($r('app.string.collection_variables'), 'variables', this.variableResolutions.length)
         Blank()
         Row({ space: SpacingTokens.x2 }) {
           Text('●').fontSize(9).fontColor(this.statusColor())
@@ -191,8 +197,15 @@ export struct SsePanel {
         .width('100%').height(38).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
         .backgroundColor(ColorTokens.bgWorkspace).border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
         if (this.session.errorMessage.length > 0) {
-          Text(this.session.errorMessage).width('100%').padding(SpacingTokens.x3).fontSize(11)
-            .fontColor(ColorTokens.statusServerError).backgroundColor(ColorTokens.statusDangerBackground)
+          Row({ space: SpacingTokens.x2 }) {
+            Text(this.session.errorMessage).layoutWeight(1).fontSize(11).fontColor(ColorTokens.statusServerError)
+            if (this.session.errorCode === 'UNRESOLVED_VARIABLE') {
+              Button($r('app.string.variable_configure')).height(SizeTokens.controlSmall).fontSize(10)
+                .fontColor(ColorTokens.brand600).backgroundColor(ColorTokens.bgSurface)
+                .border({ width: 1, color: ColorTokens.borderDefault }).borderRadius(RadiusTokens.small)
+                .onClick(this.onConfigureVariables)
+            }
+          }.width('100%').padding(SpacingTokens.x3).backgroundColor(ColorTokens.statusDangerBackground)
         }
         this.eventsTimeline()
       } else if (this.activeTab === 'headers') {
@@ -201,9 +214,15 @@ export struct SsePanel {
             showDescription: true, onChange: this.onHeadersChange })
             .padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
         }.layoutWeight(1).width('100%').scrollBar(BarState.Auto).align(Alignment.TopStart)
-      } else {
+      } else if (this.activeTab === 'auth') {
         AuthEditor({ config: this.request.auth, variables: this.variables, onChange: this.onAuthChange })
           .layoutWeight(1)
+      } else {
+        Scroll() {
+          EffectiveVariablesView({ variables: this.variableResolutions, missingVariables: this.missingVariables,
+            onEditSource: this.onEditVariableSource, onConfigureMissing: this.onConfigureVariables })
+        }.layoutWeight(1).width('100%').padding(SpacingTokens.x4)
+          .scrollBar(BarState.Auto).align(Alignment.TopStart)
       }
     }.width('100%').height('100%').backgroundColor(ColorTokens.bgWorkspace)
   }

@@ -1,10 +1,12 @@
 import {
   AuthConfig,
+  EffectiveVariableModel,
   KeyValueItem,
   RequestDraft,
   WebSocketConnectionRecord,
   WebSocketMessageModel,
-  WebSocketSessionModel
+  WebSocketSessionModel,
+  VariableSourceKind
 } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
@@ -12,14 +14,17 @@ import { AuthEditor } from './AuthEditor';
 import { KeyValueEditor } from './KeyValueEditor';
 import { UrlInput } from './UrlInput';
 import { WebSocketSchemeSelector } from './WebSocketSchemeSelector';
+import { EffectiveVariablesView } from './EffectiveVariablesView';
 
-type WebSocketPanelTab = 'messages' | 'headers' | 'auth' | 'history';
+type WebSocketPanelTab = 'messages' | 'headers' | 'auth' | 'variables' | 'history';
 
 @Component
 export struct WebSocketPanel {
   @Prop session: WebSocketSessionModel;
   @Prop request: RequestDraft;
   @Prop variables: KeyValueItem[] = [];
+  @Prop variableResolutions: EffectiveVariableModel[] = [];
+  @Prop missingVariables: string[] = [];
   @State activeTab: WebSocketPanelTab = 'messages';
   @State searchQuery: string = '';
   onUrlChange: (value: string) => void = () => {};
@@ -32,6 +37,8 @@ export struct WebSocketPanel {
   onClear: () => void = () => {};
   onCopy: () => void = () => {};
   onExport: () => void = () => {};
+  onEditVariableSource: (kind: VariableSourceKind, id: string) => void = () => {};
+  onConfigureVariables: () => void = () => {};
 
   private connected(): boolean {
     return this.session.status === 'connected';
@@ -183,6 +190,7 @@ export struct WebSocketPanel {
         this.tab($r('app.string.websocket_tab_headers'), 'headers',
           this.request.headers.filter((item: KeyValueItem) => item.enabled).length)
         this.tab($r('app.string.websocket_tab_auth'), 'auth')
+        this.tab($r('app.string.collection_variables'), 'variables', this.variableResolutions.length)
         this.tab($r('app.string.websocket_tab_history'), 'history', (this.session.connectionHistory ?? []).length)
         Blank()
         Row({ space: SpacingTokens.x2 }) {
@@ -195,6 +203,16 @@ export struct WebSocketPanel {
       }
       .width('100%').height(41).backgroundColor(ColorTokens.bgSurface)
       .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+
+      if (this.session.errorCode === 'UNRESOLVED_VARIABLE') {
+        Row({ space: SpacingTokens.x2 }) {
+          Text(this.session.errorMessage).layoutWeight(1).fontSize(11).fontColor(ColorTokens.statusServerError)
+          Button($r('app.string.variable_configure')).height(SizeTokens.controlSmall).fontSize(10)
+            .fontColor(ColorTokens.brand600).backgroundColor(ColorTokens.bgSurface)
+            .border({ width: 1, color: ColorTokens.borderDefault }).borderRadius(RadiusTokens.small)
+            .onClick(this.onConfigureVariables)
+        }.width('100%').padding(SpacingTokens.x3).backgroundColor(ColorTokens.statusDangerBackground)
+      }
 
       if (this.activeTab === 'messages') {
         Row({ space: SpacingTokens.x2 }) {
@@ -236,6 +254,12 @@ export struct WebSocketPanel {
       } else if (this.activeTab === 'auth') {
         AuthEditor({ config: this.request.auth, variables: this.variables, onChange: this.onAuthChange })
           .layoutWeight(1)
+      } else if (this.activeTab === 'variables') {
+        Scroll() {
+          EffectiveVariablesView({ variables: this.variableResolutions, missingVariables: this.missingVariables,
+            onEditSource: this.onEditVariableSource, onConfigureMissing: this.onConfigureVariables })
+        }.layoutWeight(1).width('100%').padding(SpacingTokens.x4)
+          .scrollBar(BarState.Auto).align(Alignment.TopStart)
       } else {
         if ((this.session.connectionHistory ?? []).length === 0) {
           Text($r('app.string.websocket_history_empty')).layoutWeight(1).width('100%').fontSize(12)
