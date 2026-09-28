@@ -17,6 +17,7 @@ export struct CollectionSidebar {
   onRenameFolder: (node: CollectionNode) => void = () => {};
   onRenameRequest: (node: CollectionNode) => void = () => {};
   onDuplicateRequest: (node: CollectionNode) => void = () => {};
+  onRunNode: (node: CollectionNode) => void = () => {};
   onDeleteNode: (node: CollectionNode) => void = () => {};
   onDismiss: () => void = () => {};
 
@@ -86,6 +87,7 @@ export struct CollectionSidebar {
             onRenameFolder: this.onRenameFolder,
             onRenameRequest: this.onRenameRequest,
             onDuplicateRequest: this.onDuplicateRequest,
+            onRunNode: this.onRunNode,
             onDeleteNode: this.onDeleteNode
           })
         }

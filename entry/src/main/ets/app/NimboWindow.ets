@@ -8,6 +8,7 @@ import {
   NavigationDestination,
   RequestDraft,
   RequestTabModel,
+  RunnerItemModel,
   ScriptExecutionResult,
   ResponseModel,
   ResponseStatus,
@@ -43,6 +44,7 @@ import { LocalFileExporter } from '../services/LocalFileExporter';
 import { MediaPreviewStore } from '../services/MediaPreviewStore';
 import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
+import { RunnerDataSet, RunnerDataService } from '../services/RunnerDataService';
 import {
   createBinaryResponse,
   createCancelledResponse,
@@ -55,6 +57,7 @@ import {
 import { DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { CollectionNameDialog } from '../ui/components/collection/CollectionNameDialog';
+import { CollectionRunnerDialog } from '../ui/components/collection/CollectionRunnerDialog';
 import { CollectionTarget, SaveRequestDialog } from '../ui/components/collection/SaveRequestDialog';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
 import { MobileNavigation } from '../ui/components/common/MobileNavigation';
@@ -73,6 +76,48 @@ import { MotionTokens } from '../ui/tokens/MotionTokens';
 import { i18n } from '@kit.LocalizationKit';
 import { common, ConfigurationConstant, Want } from '@kit.AbilityKit';
 import { pasteboard } from '@kit.BasicServicesKit';
+
+interface RequestPipelineResult {
+  response: ResponseModel;
+  executedRequest: RequestDraft;
+}
+
+interface CollectionRequestSeed {
+  request: RequestDraft;
+  response: ResponseModel;
+}
+
+interface RunnerReportSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  cancelled: number;
+}
+
+interface RunnerReportItem {
+  name: string;
+  method: HttpMethod;
+  iteration: number;
+  status: string;
+  statusCode: number;
+  duration: string;
+  passedTests: number;
+  failedTests: number;
+  message: string;
+  details: string[];
+}
+
+interface RunnerReportDocument {
+  format: string;
+  generatedAt: string;
+  startedAt: string;
+  scope: string;
+  environment: string;
+  dataFile: string;
+  dataRows: number;
+  summary: RunnerReportSummary;
+  items: RunnerReportItem[];
+}
 
 @Component
 export struct NimboWindow {
@@ -103,11 +148,26 @@ export struct NimboWindow {
   @State renamingRequestId: string = '';
   @State deletingCollectionNodeId: string = '';
   @State deletingEnvironmentId: string = '';
+  @State runnerTargetId: string = '';
+  @State runnerTargetName: string = '';
+  @State runnerEnvironmentName: string = '';
+  @State runnerItems: RunnerItemModel[] = [];
+  @State runnerRunning: boolean = false;
+  @State runnerDataFileName: string = '';
+  @State runnerDataRowCount: number = 0;
+  @State runnerDataColumns: string = '';
+  @State runnerDataError: string = '';
   private nextTabNumber: number = 1;
   private nextCollectionNodeNumber: number = 1;
   private requestController: RequestController = new RequestController();
   private requestPersistenceTimer: number = -1;
   private requestSerials: Map<string, number> = new Map<string, number>();
+  private runnerSerial: number = 0;
+  private runnerExecutionId: string = '';
+  private runnerStartedAt: string = '';
+  private runnerDataSet: RunnerDataSet | undefined = undefined;
+  private runnerRunDataFileName: string = '';
+  private runnerRunDataRowCount: number = 0;
   private stateReady: boolean = false;
 
   aboutToAppear(): void {
@@ -977,9 +1037,7 @@ export struct NimboWindow {
   }
 
   private activeEnvironment(): EnvironmentModel {
-    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
-    if (environment) return environment;
-    return { id: '', name: 'No Environment', kind: 'development', variables: [] };
+    return this.environmentForId(this.selectedEnvironmentId);
   }
 
   private scriptRequestSnapshot(request: RequestDraft): ScriptRequestSnapshot {
@@ -1124,32 +1182,71 @@ export struct NimboWindow {
     return this.responseWithScriptResults(response, [this.scriptExecution(result)]);
   }
 
-  private async sendRealRequest(id: string, request: RequestDraft, serial: number): Promise<void> {
+  private environmentForId(id: string): EnvironmentModel {
+    const environment = this.environments.find((item: EnvironmentModel) => item.id === id);
+    if (environment) return environment;
+    return { id: '', name: 'No Environment', kind: 'development', variables: [] };
+  }
+
+  private environmentWithRuntimeValues(environment: EnvironmentModel,
+    values: Record<string, string> | undefined): EnvironmentModel {
+    if (values === undefined || Object.keys(values).length === 0) return environment;
+    let variables = environment.variables;
+    Object.keys(values).forEach((key: string, index: number) => {
+      const existing = variables.findIndex((item: KeyValueItem) => item.key === key);
+      const runtime: KeyValueItem = {
+        id: `runner-data-${index}`,
+        enabled: true,
+        key,
+        value: values[key],
+        description: '',
+        type: 'text',
+        secret: false
+      };
+      if (existing >= 0) {
+        variables = variables.map((item: KeyValueItem, itemIndex: number) => itemIndex === existing ? runtime : item);
+      } else {
+        variables = [...variables, runtime];
+      }
+    });
+    return {
+      id: environment.id.length > 0 ? environment.id : 'runner-data',
+      name: environment.name,
+      kind: environment.kind,
+      variables,
+      system: environment.system
+    };
+  }
+
+  private async executeRequestPipeline(executionId: string, request: RequestDraft, environmentId: string,
+    isActive: () => boolean,
+    runtimeValues: Record<string, string> | undefined = undefined): Promise<RequestPipelineResult | undefined> {
     let executedRequest = request;
-    let environment = this.activeEnvironment();
+    let environment = this.environmentForId(environmentId);
+    let effectiveEnvironment = this.environmentWithRuntimeValues(environment, runtimeValues);
     const scriptResults: ScriptExecutionResult[] = [];
     if (request.preRequestScript.enabled && request.preRequestScript.source.trim().length > 0) {
       const execution: PreRequestExecution = await ScriptRuntimeService.runPreRequest(
         request.preRequestScript.source, this.scriptRequestSnapshot(request),
-        this.scriptEnvironmentSnapshot(environment));
-      if (this.requestSerials.get(id) !== serial) return;
+        this.scriptEnvironmentSnapshot(effectiveEnvironment));
+      if (!isActive()) return undefined;
       scriptResults.push(this.scriptExecution(execution.result));
       if (execution.result.status !== 'success') {
         let failure = this.scriptFailureResponse(execution.result);
         failure = this.applyResponseTests(request, failure);
-        this.applyRealResponse(id, failure, request);
-        return;
+        return { response: failure, executedRequest: request };
       }
       executedRequest = this.requestWithScriptChanges(request, execution.request);
       environment = this.applyScriptEnvironmentWrites(environment, execution.environmentWrites);
+      effectiveEnvironment = this.environmentWithRuntimeValues(environment, runtimeValues);
       if (Object.keys(execution.environmentWrites).length > 0) this.persistLocalData();
     }
-    let response = await this.requestController.send(id, executedRequest, environment);
-    if (this.requestSerials.get(id) !== serial) return;
+    let response = await this.requestController.send(executionId, executedRequest, effectiveEnvironment);
+    if (!isActive()) return undefined;
     if (response.status === 'binary' && response.mediaKind !== 'none' && response.binaryBody.byteLength > 0) {
       try {
         const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-        const mediaUri = await MediaPreviewStore.create(context.cacheDir, id,
+        const mediaUri = await MediaPreviewStore.create(context.cacheDir, executionId,
           response.contentType, response.binaryBody);
         response = {
           status: 'success',
@@ -1176,13 +1273,13 @@ export struct NimboWindow {
         // Fall back to the existing binary download view if preview preparation fails.
       }
     }
-    if (this.requestSerials.get(id) !== serial) return;
+    if (!isActive()) return undefined;
     if (request.postResponseScript.enabled && request.postResponseScript.source.trim().length > 0 &&
       response.status !== 'error' && response.status !== 'cancelled') {
       const execution: PostResponseExecution = await ScriptRuntimeService.runPostResponse(
         request.postResponseScript.source, this.scriptResponseSnapshot(response),
-        this.scriptEnvironmentSnapshot(environment));
-      if (this.requestSerials.get(id) !== serial) return;
+        this.scriptEnvironmentSnapshot(effectiveEnvironment));
+      if (!isActive()) return undefined;
       scriptResults.push(this.scriptExecution(execution.result, 'postResponse'));
       if (execution.result.status === 'success') {
         environment = this.applyScriptEnvironmentWrites(environment, execution.environmentWrites);
@@ -1192,7 +1289,13 @@ export struct NimboWindow {
     response = this.responseWithScriptResults(response, scriptResults);
     response = this.applyResponseExtractions(request, response);
     response = this.applyResponseTests(executedRequest, response);
-    this.applyRealResponse(id, response, executedRequest);
+    return { response, executedRequest };
+  }
+
+  private async sendRealRequest(id: string, request: RequestDraft, serial: number): Promise<void> {
+    const result = await this.executeRequestPipeline(id, request, this.selectedEnvironmentId,
+      (): boolean => this.requestSerials.get(id) === serial);
+    if (result) this.applyRealResponse(id, result.response, result.executedRequest);
   }
 
   private updateRequest(id: string, request: RequestDraft): void {
@@ -1675,6 +1778,7 @@ export struct NimboWindow {
               onRenameFolder: (node: CollectionNode) => this.beginRenameFolder(node),
               onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node),
               onDuplicateRequest: (node: CollectionNode) => this.duplicateCollectionRequest(node),
+              onRunNode: (node: CollectionNode) => this.beginRunCollectionNode(node),
               onDeleteNode: (node: CollectionNode) => this.beginDeleteCollectionNode(node)
             })
             Row() {
@@ -1754,6 +1858,7 @@ export struct NimboWindow {
               onRenameFolder: (node: CollectionNode) => this.beginRenameFolder(node),
               onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node),
               onDuplicateRequest: (node: CollectionNode) => this.duplicateCollectionRequest(node),
+              onRunNode: (node: CollectionNode) => this.beginRunCollectionNode(node),
               onDeleteNode: (node: CollectionNode) => this.beginDeleteCollectionNode(node),
               onDismiss: () => this.animateState(() => { this.collectionDrawerOpen = false; }, MotionTokens.slow)
             })
@@ -1802,13 +1907,237 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
-  private openCollectionRequest(node: CollectionNode): void {
-    const existing = this.tabs.find((tab: RequestTabModel) => tab.id === node.id);
-    if (existing) {
-      this.activeTabId = existing.id;
-      this.persistLocalData();
+  private collectRunnerNodes(node: CollectionNode, requests: CollectionNode[]): void {
+    if (node.type === 'request') {
+      requests.push(node);
       return;
     }
+    node.children.forEach((child: CollectionNode) => this.collectRunnerNodes(child, requests));
+  }
+
+  private runnerQueue(nodes: CollectionNode[], iterations: number): RunnerItemModel[] {
+    const items: RunnerItemModel[] = [];
+    for (let iteration = 1; iteration <= iterations; iteration += 1) {
+      nodes.forEach((node: CollectionNode, index: number) => {
+        const seed = this.requestSeedForNode(node);
+        items.push({
+          id: `${node.id}-${iteration}-${index}`,
+          requestId: node.id,
+          name: node.name,
+          method: seed.request.method,
+          iteration,
+          status: 'queued',
+          statusCode: 0,
+          duration: '',
+          passedTests: 0,
+          failedTests: 0,
+          message: '',
+          details: []
+        });
+      });
+    }
+    return items;
+  }
+
+  private beginRunCollectionNode(node: CollectionNode): void {
+    const requests: CollectionNode[] = [];
+    this.collectRunnerNodes(node, requests);
+    this.runnerTargetId = node.id;
+    this.runnerTargetName = node.name;
+    this.runnerEnvironmentName = this.activeEnvironment().name;
+    this.runnerItems = this.runnerQueue(requests, 1);
+    this.runnerRunning = false;
+    this.runnerDataSet = undefined;
+    this.runnerDataFileName = '';
+    this.runnerDataRowCount = 0;
+    this.runnerDataColumns = '';
+    this.runnerDataError = '';
+    this.showOverlay('collection-runner');
+  }
+
+  private async selectRunnerData(): Promise<void> {
+    try {
+      const selected = await RunnerDataService.select();
+      if (selected === undefined) return;
+      this.runnerDataSet = selected;
+      this.runnerDataFileName = selected.fileName;
+      this.runnerDataRowCount = selected.rows.length;
+      this.runnerDataColumns = selected.columns.join(', ');
+      this.runnerDataError = '';
+    } catch (error) {
+      this.runnerDataSet = undefined;
+      this.runnerDataFileName = '';
+      this.runnerDataRowCount = 0;
+      this.runnerDataColumns = '';
+      this.runnerDataError = `${error}`.replace('Error: ', '');
+    }
+  }
+
+  private clearRunnerData(): void {
+    if (this.runnerRunning) return;
+    this.runnerDataSet = undefined;
+    this.runnerDataFileName = '';
+    this.runnerDataRowCount = 0;
+    this.runnerDataColumns = '';
+    this.runnerDataError = '';
+  }
+
+  private updateRunnerItem(id: string, change: (item: RunnerItemModel) => RunnerItemModel): void {
+    this.runnerItems = this.runnerItems.map((item: RunnerItemModel) => item.id === id ? change(item) : item);
+  }
+
+  private runnerResult(item: RunnerItemModel, request: RequestDraft, response: ResponseModel): RunnerItemModel {
+    const passedTests = response.testResults.filter((result: TestResult) => result.status === 'passed').length;
+    const failedTests = response.testResults.filter((result: TestResult) => result.status === 'failed').length;
+    const details: string[] = [];
+    response.scriptResults.forEach((result: ScriptExecutionResult) => {
+      if (result.status !== 'success') details.push(`${result.phase}: ${result.status}`);
+    });
+    response.extractionResults.forEach((result: ExtractionResult) => {
+      if (result.status !== 'success' && result.status !== 'notRun') {
+        details.push(`extraction ${result.ruleId}: ${result.status}`);
+      }
+    });
+    response.testResults.forEach((result: TestResult) => {
+      if (result.status !== 'failed') return;
+      const rule = request.testRules.find(candidate => candidate.id === result.ruleId);
+      details.push(`test ${rule?.kind ?? result.ruleId}: ${result.message}`);
+    });
+    if (response.status === 'error') {
+      details.unshift(`${response.error.type}${response.error.code.length > 0 ? ` (${response.error.code})` : ''}`);
+    }
+    const failedResponse = response.status === 'error' || response.status === 'cancelled' ||
+      response.statusCode === 0 || response.statusCode >= 400;
+    const failed = failedResponse || failedTests > 0 || details.length > 0;
+    let message = response.statusCode > 0 ? `${response.statusCode} ${response.statusText}` : response.error.type;
+    if (failedTests > 0) {
+      message = this.preferences.language === 'zh' ? `${failedTests} 项断言失败` : `${failedTests} tests failed`;
+    } else if (details.length > 0) {
+      message = details[0];
+    }
+    return {
+      id: item.id, requestId: item.requestId, name: item.name, method: item.method,
+      iteration: item.iteration, status: failed ? 'failed' : 'passed', statusCode: response.statusCode,
+      duration: response.duration, passedTests, failedTests, message, details
+    };
+  }
+
+  private async waitForRunner(delayMs: number, serial: number): Promise<void> {
+    if (delayMs <= 0) return;
+    let remaining = delayMs;
+    while (remaining > 0 && this.runnerSerial === serial) {
+      const slice = Math.min(remaining, 100);
+      await new Promise<void>((resolve: () => void) => setTimeout(resolve, slice));
+      remaining -= slice;
+    }
+  }
+
+  private async startRunner(iterations: number, delayMs: number): Promise<void> {
+    const target = this.findCollectionNode(this.collections, this.runnerTargetId);
+    if (!target || this.runnerRunning || this.runnerDataError.length > 0) return;
+    const nodes: CollectionNode[] = [];
+    this.collectRunnerNodes(target, nodes);
+    if (nodes.length === 0) return;
+    const runIterations = this.runnerDataSet === undefined ? iterations : this.runnerDataSet.rows.length;
+    const queue = this.runnerQueue(nodes, runIterations);
+    const serial = this.runnerSerial + 1;
+    const environmentId = this.selectedEnvironmentId;
+    this.runnerSerial = serial;
+    this.runnerStartedAt = new Date().toISOString();
+    this.runnerRunDataFileName = this.runnerDataFileName;
+    this.runnerRunDataRowCount = this.runnerDataRowCount;
+    this.runnerEnvironmentName = this.environmentForId(environmentId).name;
+    this.runnerItems = queue;
+    this.runnerRunning = true;
+    for (let index = 0; index < queue.length; index += 1) {
+      if (this.runnerSerial !== serial) break;
+      const item = queue[index];
+      const node = nodes[index % nodes.length];
+      const seed = this.requestSeedForNode(node);
+      const runtimeValues = this.runnerDataSet === undefined ? undefined :
+        this.runnerDataSet.rows[item.iteration - 1].values;
+      this.updateRunnerItem(item.id, (current: RunnerItemModel): RunnerItemModel => ({
+        id: current.id, requestId: current.requestId, name: current.name, method: current.method,
+        iteration: current.iteration, status: 'running', statusCode: 0, duration: '',
+        passedTests: 0, failedTests: 0, message: '', details: []
+      }));
+      const executionId = `runner-${serial}-${index}-${item.requestId}`;
+      this.runnerExecutionId = executionId;
+      const result = await this.executeRequestPipeline(executionId, seed.request, environmentId,
+        (): boolean => this.runnerSerial === serial, runtimeValues);
+      if (this.runnerSerial !== serial) break;
+      if (result) {
+        this.updateRunnerItem(item.id, (current: RunnerItemModel): RunnerItemModel =>
+          this.runnerResult(current, result.executedRequest, result.response));
+      }
+      if (index < queue.length - 1) await this.waitForRunner(delayMs, serial);
+    }
+    if (this.runnerSerial === serial) {
+      this.runnerExecutionId = '';
+      this.runnerRunning = false;
+      this.persistLocalData();
+    }
+  }
+
+  private stopRunner(): void {
+    if (!this.runnerRunning) return;
+    this.runnerSerial += 1;
+    if (this.runnerExecutionId.length > 0) this.requestController.cancel(this.runnerExecutionId);
+    this.runnerExecutionId = '';
+    this.runnerRunning = false;
+    this.runnerItems = this.runnerItems.map((item: RunnerItemModel): RunnerItemModel => {
+      if (item.status !== 'queued' && item.status !== 'running') return item;
+      return {
+        id: item.id, requestId: item.requestId, name: item.name, method: item.method,
+        iteration: item.iteration, status: 'cancelled', statusCode: item.statusCode,
+        duration: item.duration, passedTests: item.passedTests, failedTests: item.failedTests,
+        message: '', details: item.details
+      };
+    });
+  }
+
+  private async exportRunnerReport(): Promise<void> {
+    const passed = this.runnerItems.filter((item: RunnerItemModel) => item.status === 'passed').length;
+    const failed = this.runnerItems.filter((item: RunnerItemModel) => item.status === 'failed').length;
+    const cancelled = this.runnerItems.filter((item: RunnerItemModel) => item.status === 'cancelled').length;
+    const items: RunnerReportItem[] = this.runnerItems.map((item: RunnerItemModel): RunnerReportItem => ({
+      name: item.name,
+      method: item.method,
+      iteration: item.iteration,
+      status: item.status,
+      statusCode: item.statusCode,
+      duration: item.duration,
+      passedTests: item.passedTests,
+      failedTests: item.failedTests,
+      message: item.message,
+      details: item.details
+    }));
+    const report: RunnerReportDocument = {
+      format: 'nimbo.runner.v1',
+      generatedAt: new Date().toISOString(),
+      startedAt: this.runnerStartedAt,
+      scope: this.runnerTargetName,
+      environment: this.runnerEnvironmentName,
+      dataFile: this.runnerRunDataFileName,
+      dataRows: this.runnerRunDataRowCount,
+      summary: { total: items.length, passed, failed, cancelled },
+      items
+    };
+    try {
+      const date = new Date().toISOString().substring(0, 10);
+      const saved = await LocalFileExporter.saveText(`nimbo-run-${date}.json`, JSON.stringify(report, null, 2));
+      if (saved) this.showToast($r('app.string.toast_exported'));
+    } catch (_error) {
+      this.showToast($r('app.string.toast_export_failed'));
+    }
+  }
+
+  private closeRunner(): void {
+    if (this.runnerRunning) this.stopRunner();
+    this.hideOverlay();
+  }
+
+  private requestSeedForNode(node: CollectionNode): CollectionRequestSeed {
     let method: HttpMethod = 'GET';
     if (node.method === 'POST') method = 'POST';
     if (node.method === 'PUT') method = 'PUT';
@@ -1816,10 +2145,14 @@ export struct NimboWindow {
     if (node.method === 'DELETE') method = 'DELETE';
     if (node.method === 'HEAD') method = 'HEAD';
     if (node.method === 'OPTIONS') method = 'OPTIONS';
+    const opened = this.tabs.find((tab: RequestTabModel) => tab.id === node.id);
     const saved = this.savedRequests.find((item: PersistedRequestModel) => item.id === node.id);
-    const request = saved ? this.idleRequest(saved.request) : this.createRequest(method);
+    const request = opened ? this.idleRequest(opened.request) :
+      (saved ? this.idleRequest(saved.request) : this.createRequest(method));
     let response = createEmptyResponse();
-    if (saved) {
+    if (opened) {
+      response = opened.response;
+    } else if (saved) {
       response = createEmptyResponse();
     } else if (node.id === 'get-users-request') {
       request.url = 'https://jsonplaceholder.typicode.com/users';
@@ -1854,15 +2187,26 @@ export struct NimboWindow {
       request.url = 'https://api.example.com/download';
       response = createBinaryResponse();
     }
+    return { request, response };
+  }
+
+  private openCollectionRequest(node: CollectionNode): void {
+    const existing = this.tabs.find((tab: RequestTabModel) => tab.id === node.id);
+    if (existing) {
+      this.activeTabId = existing.id;
+      this.persistLocalData();
+      return;
+    }
+    const seed = this.requestSeedForNode(node);
     const tab: RequestTabModel = {
       id: node.id,
       name: node.name,
-      method: request.method,
+      method: seed.request.method,
       dirty: false,
       pinned: false,
       loading: false,
-      request,
-      response
+      request: seed.request,
+      response: seed.response
     };
     this.tabs = [...this.tabs, tab];
     this.activeTabId = tab.id;
@@ -1990,6 +2334,24 @@ export struct NimboWindow {
           dangerous: true,
           onCancel: () => { this.deletingCollectionNodeId = ''; this.hideOverlay(); },
           onConfirm: () => this.deleteCollectionNode()
+        })
+      }
+      if (this.activeOverlay === 'collection-runner') {
+        CollectionRunnerDialog({
+          targetName: this.runnerTargetName,
+          environmentName: this.runnerEnvironmentName,
+          dataFileName: this.runnerDataFileName,
+          dataRowCount: this.runnerDataRowCount,
+          dataColumns: this.runnerDataColumns,
+          dataError: this.runnerDataError,
+          items: $runnerItems,
+          running: this.runnerRunning,
+          onStart: (iterations: number, delayMs: number) => this.startRunner(iterations, delayMs),
+          onStop: () => this.stopRunner(),
+          onExport: () => this.exportRunnerReport(),
+          onSelectData: () => this.selectRunnerData(),
+          onClearData: () => this.clearRunnerData(),
+          onClose: () => this.closeRunner()
         })
       }
       if (this.activeOverlay === 'save-request') {

@@ -30,6 +30,24 @@ export interface CollectionNode {
   children: CollectionNode[];
 }
 
+export type RunnerItemStatus = 'queued' | 'running' | 'passed' | 'failed' | 'cancelled';
+export type RunnerFilter = 'all' | 'passed' | 'failed' | 'cancelled';
+
+export interface RunnerItemModel {
+  id: string;
+  requestId: string;
+  name: string;
+  method: HttpMethod;
+  iteration: number;
+  status: RunnerItemStatus;
+  statusCode: number;
+  duration: string;
+  passedTests: number;
+  failedTests: number;
+  message: string;
+  details: string[];
+}
+
 export interface RequestTabModel {
   id: string;
   name: string;
