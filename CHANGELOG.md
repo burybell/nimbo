@@ -6,6 +6,8 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 
 ## [Unreleased]
 
+## [1.1] - 2026-09-29
+
 ### Added
 
 - Collection and nested-folder variables with deterministic inheritance across HTTP, WebSocket, SSE, scripts, and Collection Runner

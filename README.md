@@ -21,6 +21,10 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 - Response JSONPath preview and explicit environment-variable extraction with overwrite protection
 - Declarative response tests for status, timing, headers, and JSONPath with per-rule results
 - Sandboxed Pre-request and Post-response JavaScript with guarded request/response APIs, atomic environment writes, and visible console and execution results
+- Sequential Collection Runner execution with iterations, CSV/JSON data, live results, stop controls, and redacted reports
+- WebSocket and SSE request workflows with authentication, scoped variables, searchable event timelines, and JSON highlighting
+- Collection and folder variables with deterministic inheritance, source diagnostics, and masked secrets
+- An offline in-app help center covering everyday workflows, variables, scripts, Runner usage, and real-time connections
 - Local Nimbo backup export with secrets redacted by default
 - Light, dark, and system themes
 - English and Simplified Chinese interfaces
@@ -33,7 +37,7 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 
 ## Project status
 
-Nimbo 1.0's core workflow is implemented and can run on a HarmonyOS PC target:
+Nimbo 1.1's core workflow is implemented and can run on a HarmonyOS PC target:
 
 ```text
 Create or import a request

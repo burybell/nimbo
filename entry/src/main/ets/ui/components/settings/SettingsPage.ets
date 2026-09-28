@@ -177,7 +177,7 @@ export struct SettingsPage {
       SettingRow({ title: $r('app.string.help_center_title'),
         description: $r('app.string.help_center_entry_description'),
         controlLabel: $r('app.string.action_open'), onPress: this.onHelp })
-      SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: '0.1.0' })
+      SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: '1.1' })
       SettingRow({ title: $r('app.string.application_identity'),
         description: 'Bundle com.nimbo.app · App ID 6917615930484878194', controlLabel: $r('app.string.local_build') })
     }
