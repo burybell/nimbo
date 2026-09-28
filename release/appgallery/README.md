@@ -20,7 +20,7 @@ Nimbo 是一款面向开发者的桌面 API 开发工具。它以清晰、紧凑
 
 你可以配置 HTTP、WebSocket 和 SSE 请求，编辑 URL、参数、标头、认证信息及多种请求体。响应区支持 JSON 高亮、正文检索、复制和下载，也可直接预览图片与视频。集合、文件夹和环境变量能够按作用域组织，变量来源与覆盖关系可随时查看。
 
-Nimbo 支持 cURL、Postman、OpenAPI 和 Swagger 文件导入，并提供请求前后脚本、JSONPath 变量提取、响应断言和 Collection Runner。WebSocket 消息与 SSE 事件支持检索、复制、导出和 JSON 格式化显示。
+Nimbo 支持 cURL、API 集合与 OpenAPI 定义文件导入，并提供请求前后脚本、JSONPath 变量提取、响应断言和 Collection Runner。WebSocket 消息与 SSE 事件支持检索、复制、导出和 JSON 格式化显示。
 
 请求、集合、环境、历史和偏好设置默认保存在本机，无需注册账号。内置中英文界面、浅色与深色主题以及离线帮助中心，适合个人开发、接口联调和本地工作流管理。
 
@@ -35,7 +35,7 @@ Nimbo 支持 cURL、Postman、OpenAPI 和 Swagger 文件导入，并提供请求
 - 多层集合、文件夹、请求和作用域变量管理
 - 请求前后脚本、JSONPath 提取与响应断言
 - Collection Runner 顺序执行、迭代数据和脱敏报告
-- cURL、Postman、OpenAPI 与 Swagger 导入
+- cURL、API 集合与 OpenAPI 定义文件导入
 - 请求历史、全局搜索和离线帮助中心
 - 中英文界面、浅色/深色主题和界面字体切换
 - 本地优先，无需登录
