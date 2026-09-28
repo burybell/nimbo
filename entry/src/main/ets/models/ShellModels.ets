@@ -1,4 +1,4 @@
-export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
+export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings' | 'help';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 export type RequestProtocol = 'http' | 'websocket' | 'sse';

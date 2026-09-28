@@ -25,6 +25,12 @@ Nimbo is a fast, native, local-first API client built for HarmonyOS. It gives de
 - Light, dark, and system themes
 - English and Simplified Chinese interfaces
 
+## Documentation
+
+- [User guide](docs/guides/user-guide.en.md) · [中文用户指南](docs/guides/user-guide.zh-CN.md)
+- [Variables guide](docs/guides/variables.en.md) · [变量使用指南](docs/guides/variables.zh-CN.md)
+- [Scripts guide](docs/guides/scripts.en.md) · [脚本使用指南](docs/guides/scripts.zh-CN.md)
+
 ## Project status
 
 Nimbo 1.0's core workflow is implemented and can run on a HarmonyOS PC target:
@@ -41,7 +47,7 @@ Save it into a collection
 Reuse it with environments and history
 ```
 
-WebSocket, SSE, GraphQL, gRPC, collection runners, collection-level scripts, AI features, cloud sync, and accounts are not implemented yet. The interface intentionally does not expose unavailable features.
+Binary WebSocket messages, automatic reconnect, Socket.IO, GraphQL subscriptions, gRPC, concurrent Runner execution, collection-level scripts, AI features, cloud sync, and accounts remain intentionally deferred. The interface does not expose unavailable features.
 
 ## Request scripts
 

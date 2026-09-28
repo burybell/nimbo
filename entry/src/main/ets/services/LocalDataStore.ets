@@ -33,7 +33,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 13;
+  static readonly schemaVersion: number = 14;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -55,7 +55,8 @@ export class LocalDataStore {
         versioned.schemaVersion === 7 || versioned.schemaVersion === 8 || versioned.schemaVersion === 9) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
-      } else if (versioned.schemaVersion === 10 || versioned.schemaVersion === 11 || versioned.schemaVersion === 12) {
+      } else if (versioned.schemaVersion === 10 || versioned.schemaVersion === 11 ||
+        versioned.schemaVersion === 12 || versioned.schemaVersion === 13) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else {

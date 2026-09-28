@@ -12,12 +12,28 @@ export struct GlobalToolbar {
   @StorageProp('nimbo.windowFocused') windowFocused: boolean = true;
   @Prop compact: boolean = false;
   @Prop phone: boolean = false;
+  @Prop availableWidth: number = 1440;
   @Prop selectedEnvironmentId: string = 'development';
   @Prop environments: EnvironmentModel[] = [];
   onEnvironmentChange: (id: string) => void = () => {};
   onSettings: () => void = () => {};
   onSearch: () => void = () => {};
   onImport: () => void = () => {};
+
+  private searchWidth(): number {
+    return this.compact ? 220 : 300;
+  }
+
+  private searchOffset(): number {
+    const width = this.searchWidth();
+    const centeredLeft = (this.availableWidth - width) / 2;
+    const logoRight = (this.compact ? SizeTokens.primarySidebarCompactWidth :
+      SizeTokens.primarySidebarWidth) + SpacingTokens.x3;
+    const rightControlsWidth = 244 + this.titleButtonInset;
+    const latestSafeLeft = this.availableWidth - rightControlsWidth - width - SpacingTokens.x3;
+    const safeLeft = Math.max(logoRight, Math.min(centeredLeft, latestSafeLeft));
+    return safeLeft - centeredLeft;
+  }
 
   build() {
     Row() {
@@ -77,10 +93,11 @@ export struct GlobalToolbar {
               .padding({ left: SpacingTokens.x2, right: SpacingTokens.x2, top: 3, bottom: 3 })
               .backgroundColor(ColorTokens.bgSurface).borderRadius(RadiusTokens.small)
           }
-          .width(this.compact ? 220 : 300).height(SizeTokens.controlMedium)
+          .width(this.searchWidth()).height(SizeTokens.controlMedium)
           .padding({ left: SpacingTokens.x3, right: SpacingTokens.x2 })
           .backgroundColor(ColorTokens.bgWorkspace)
           .border({ width: 1, color: ColorTokens.borderSubtle }).borderRadius(RadiusTokens.medium)
+          .translate({ x: this.searchOffset() })
           .stateStyles({ normal: {}, pressed: { .backgroundColor(ColorTokens.bgSurfaceActive) } })
           .onClick(this.onSearch)
         }

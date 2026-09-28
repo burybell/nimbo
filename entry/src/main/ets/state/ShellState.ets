@@ -18,30 +18,26 @@ export class ShellState {
         merged.push(ShellState.cloneCollection(example));
         return;
       }
-      const existing = merged[index];
-      const variables = (existing.variables ?? []).map(item => item);
-      (example.variables ?? []).forEach((variable) => {
-        if (!variables.some(item => item.key === variable.key)) variables.push(variable);
-      });
-      if (example.id !== 'demo-api') {
-        merged[index] = {
-          id: existing.id, type: existing.type, name: existing.name, method: existing.method,
-          expanded: existing.expanded, variables, children: existing.children
-        };
-        return;
-      }
-      const children = existing.children.map((node: CollectionNode) => ShellState.cloneCollection(node));
-      example.children.forEach((child: CollectionNode) => {
-        if (!children.some((node: CollectionNode) => node.id === child.id)) {
-          children.push(ShellState.cloneCollection(child));
-        }
-      });
-      merged[index] = {
-        id: existing.id, type: existing.type, name: existing.name, method: existing.method,
-        expanded: existing.expanded, variables, children
-      };
+      merged[index] = ShellState.mergeExampleNode(merged[index], example);
     });
     return merged;
+  }
+
+  private static mergeExampleNode(existing: CollectionNode, example: CollectionNode): CollectionNode {
+    const variables = (existing.variables ?? []).map(item => item);
+    (example.variables ?? []).forEach((variable) => {
+      if (!variables.some(item => item.key === variable.key)) variables.push(variable);
+    });
+    const children = existing.children.map((node: CollectionNode) => ShellState.cloneCollection(node));
+    example.children.forEach((child: CollectionNode) => {
+      const index = children.findIndex((node: CollectionNode) => node.id === child.id);
+      if (index < 0) children.push(ShellState.cloneCollection(child));
+      else children[index] = ShellState.mergeExampleNode(children[index], child);
+    });
+    return {
+      id: existing.id, type: existing.type, name: existing.name, method: existing.method,
+      expanded: existing.expanded, variables, children
+    };
   }
 
   private static cloneCollection(node: CollectionNode): CollectionNode {

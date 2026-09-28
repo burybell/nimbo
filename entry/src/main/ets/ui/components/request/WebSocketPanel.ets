@@ -15,6 +15,7 @@ import { KeyValueEditor } from './KeyValueEditor';
 import { UrlInput } from './UrlInput';
 import { WebSocketSchemeSelector } from './WebSocketSchemeSelector';
 import { EffectiveVariablesView } from './EffectiveVariablesView';
+import { RealtimePayloadView } from './RealtimePayloadView';
 
 type WebSocketPanelTab = 'messages' | 'headers' | 'auth' | 'variables' | 'history';
 
@@ -101,6 +102,15 @@ export struct WebSocketPanel {
     return $r('app.string.websocket_history_failed');
   }
 
+  private composerKey(event: KeyEvent): boolean {
+    if (event.type !== KeyType.Down || (event.keyCode !== 2054 && event.keyCode !== 2119 &&
+      event.keyText.toLowerCase() !== 'enter')) return false;
+    const shift = event.getModifierKeyState !== undefined && event.getModifierKeyState(['shift']);
+    if (shift) return false;
+    if (this.connected() && this.session.composer.length > 0) this.onSend();
+    return true;
+  }
+
   @Builder
   private tab(label: ResourceStr, value: WebSocketPanelTab, badge: number = 0) {
     Row({ space: 5 }) {
@@ -145,8 +155,7 @@ export struct WebSocketPanel {
                     (message.direction === 'received' ? ColorTokens.statusSuccess : ColorTokens.textSecondary))
                 Text(message.timestamp).fontSize(10).fontColor(ColorTokens.textTertiary)
               }.width('100%')
-              Text(message.text).width('100%').fontSize(12).fontFamily('monospace')
-                .fontColor(ColorTokens.textPrimary).copyOption(CopyOptions.LocalDevice)
+              RealtimePayloadView({ value: message.text }).width('100%')
             }
             .width('100%').padding(SpacingTokens.x3).alignItems(HorizontalAlign.Start)
             .backgroundColor(message.direction === 'system' ? ColorTokens.bgWorkspace : ColorTokens.bgSurface)
@@ -232,18 +241,31 @@ export struct WebSocketPanel {
         .width('100%').height(38).padding({ left: SpacingTokens.x4, right: SpacingTokens.x4 })
         .backgroundColor(ColorTokens.bgWorkspace).border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
         this.messageTimeline()
-        Row({ space: SpacingTokens.x2 }) {
-          TextArea({ text: this.session.composer, placeholder: $r('app.string.websocket_message_placeholder') })
-            .layoutWeight(1).height(76).fontSize(12).fontFamily('monospace')
-            .fontColor(ColorTokens.textPrimary).placeholderColor(ColorTokens.textTertiary)
-            .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderDefault })
-            .borderRadius(RadiusTokens.medium).enabled(this.connected()).onChange(this.onComposerChange)
-          Button($r('app.string.websocket_send')).width(82).height(SizeTokens.controlLarge).fontSize(12)
-            .fontColor(ColorTokens.textOnBrand).backgroundColor(ColorTokens.brand500)
-            .borderRadius(RadiusTokens.medium)
-            .enabled(this.connected() && this.session.composer.length > 0).onClick(this.onSend)
+        Row() {
+          Stack({ alignContent: Alignment.BottomEnd }) {
+            TextArea({ text: this.session.composer, placeholder: $r('app.string.websocket_message_placeholder') })
+              .width('100%').height(76).fontSize(12).fontFamily('monospace')
+              .padding({ left: SpacingTokens.x3, right: 48, top: SpacingTokens.x2, bottom: SpacingTokens.x2 })
+              .fontColor(ColorTokens.textPrimary).placeholderColor(ColorTokens.textTertiary)
+              .backgroundColor(Color.Transparent).enabled(this.connected()).onChange(this.onComposerChange)
+              .onKeyEvent((event: KeyEvent) => this.composerKey(event))
+            Button({ type: ButtonType.Normal }) {
+              Image($r('app.media.send_message')).width(16).height(16)
+                .fillColor(this.connected() && this.session.composer.length > 0 ?
+                  ColorTokens.textOnBrand : ColorTokens.textTertiary)
+            }
+            .width(32).height(32).padding(0).margin({ right: SpacingTokens.x2, bottom: SpacingTokens.x2 })
+            .backgroundColor(this.connected() && this.session.composer.length > 0 ?
+              ColorTokens.brand500 : ColorTokens.bgSurfaceHover)
+            .borderRadius(RadiusTokens.small)
+            .enabled(this.connected() && this.session.composer.length > 0)
+            .accessibilityText($r('app.string.websocket_send')).onClick(this.onSend)
+          }
+          .width('100%').height(76)
+          .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderDefault })
+          .borderRadius(RadiusTokens.medium).clip(true)
         }
-        .width('100%').padding(SpacingTokens.x4).alignItems(VerticalAlign.Bottom)
+        .width('100%').padding(SpacingTokens.x4)
         .backgroundColor(ColorTokens.bgWorkspace).border({ width: { top: 1 }, color: ColorTokens.borderSubtle })
       } else if (this.activeTab === 'headers') {
         Scroll() {

@@ -44,7 +44,8 @@ export class SseController {
     return http.RequestMethod.GET;
   }
 
-  async connect(id: string, url: string, method: HttpMethod, headers: Record<string, string>, timeout: number,
+  async connect(id: string, url: string, method: HttpMethod, headers: Record<string, string>, body: string,
+    timeout: number,
     onEvent: (event: SseControllerEvent) => void): Promise<void> {
     this.stop(id);
     const request = http.createHttp();
@@ -93,6 +94,7 @@ export class SseController {
       readTimeout: timeout,
       usingCache: false
     };
+    if (body.length > 0) options.extraData = body;
     if (method === 'PATCH') options.method = method as http.RequestMethod;
     try {
       statusCode = await request.requestInStream(url, options);

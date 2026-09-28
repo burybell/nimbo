@@ -16,6 +16,7 @@ export struct SettingsPage {
   onExport: () => void = () => {};
   onExportSecrets: () => void = () => {};
   onReset: () => void = () => {};
+  onHelp: () => void = () => {};
 
   private emit(restoreWorkspace: boolean, language: 'en' | 'zh', followRedirects: boolean,
     sslVerification: boolean, defaultTimeoutMs: number, saveHistory: boolean,
@@ -173,6 +174,9 @@ export struct SettingsPage {
       SettingRow({ title: $r('app.string.export_secrets_title'), description: $r('app.string.export_secrets_description'),
         controlLabel: $r('app.string.export_action'), onPress: this.onExportSecrets })
     } else {
+      SettingRow({ title: $r('app.string.help_center_title'),
+        description: $r('app.string.help_center_entry_description'),
+        controlLabel: $r('app.string.action_open'), onPress: this.onHelp })
       SettingRow({ title: 'Nimbo', description: $r('app.string.about_description'), controlLabel: '0.1.0' })
       SettingRow({ title: $r('app.string.application_identity'),
         description: 'Bundle com.nimbo.app · App ID 6917615930484878194', controlLabel: $r('app.string.local_build') })

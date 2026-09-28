@@ -80,6 +80,7 @@ import { NimboToast } from '../ui/components/common/NimboToast';
 import { PrimarySidebar } from '../ui/components/common/PrimarySidebar';
 import { EnvironmentPage } from '../ui/components/environment/EnvironmentPage';
 import { HistoryPage } from '../ui/components/history/HistoryPage';
+import { HelpPage } from '../ui/components/help/HelpPage';
 import { ApiFileImportDialog } from '../ui/components/importer/ApiFileImportDialog';
 import { Workspace } from '../ui/components/request/Workspace';
 import { SettingsPage } from '../ui/components/settings/SettingsPage';
@@ -438,7 +439,9 @@ export struct NimboWindow {
       { id: 'command:environments', title: $r('app.string.search_manage_environments'),
         subtitle: $r('app.string.search_command'), keywords: 'environment manage 环境 管理', icon: '◎' },
       { id: 'command:settings', title: $r('app.string.nav_settings'),
-        subtitle: $r('app.string.search_command'), keywords: 'settings preferences 设置 偏好', icon: '⚙' }
+        subtitle: $r('app.string.search_command'), keywords: 'settings preferences 设置 偏好', icon: '⚙' },
+      { id: 'command:help', title: $r('app.string.nav_help'),
+        subtitle: $r('app.string.search_command'), keywords: 'help guide docs documentation 帮助 指南 文档', icon: '?' }
     ];
     this.appendCollectionSearchItems(this.collections, items);
     this.savedRequests.forEach((request: PersistedRequestModel) => {
@@ -488,6 +491,10 @@ export struct NimboWindow {
     }
     if (item.id === 'command:settings') {
       this.selectDestination('settings');
+      return;
+    }
+    if (item.id === 'command:help') {
+      this.selectDestination('help');
       return;
     }
     if (item.id === 'command:environments') {
@@ -2040,8 +2047,15 @@ export struct NimboWindow {
     const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
     if (!tab) return;
     this.beginRealtimeHistory(id, 'sse', tab.request.method, tab.request.url);
-    const config = WebSocketRequestBuilder.build(tab.request,
-      this.scopedEnvironment(id, this.activeEnvironment()));
+    const environment = this.scopedEnvironment(id, this.activeEnvironment());
+    const config = WebSocketRequestBuilder.build(tab.request, environment);
+    const body = tab.request.bodyType === 'json' || tab.request.bodyType === 'text' ?
+      WebSocketRequestBuilder.resolve(tab.request.bodyText, environment) : '';
+    if (body.length > 0) {
+      WebSocketRequestBuilder.unresolved(tab.request.bodyText, environment).forEach((name: string) => {
+        if (!config.unresolvedVariables.includes(name)) config.unresolvedVariables.push(name);
+      });
+    }
     const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id) ??
       this.emptySseSession(id);
     if (config.unresolvedVariables.length > 0) {
@@ -2069,7 +2083,7 @@ export struct NimboWindow {
       requestId: id, status: 'connecting', events: current.events, errorCode: '', errorMessage: '',
       statusCode: 0, contentType: ''
     });
-    await this.sseController.connect(id, config.url, tab.request.method, config.headers,
+    await this.sseController.connect(id, config.url, tab.request.method, config.headers, body,
       Math.max(300000, tab.request.settings.timeoutMs),
       (event: SseControllerEvent) => this.handleSseEvent(id, event));
   }
@@ -2552,11 +2566,17 @@ export struct NimboWindow {
         onChange: (preferences: AppPreferencesModel) => this.updatePreferences(preferences),
         onExport: () => this.exportNimbo(false),
         onExportSecrets: () => this.showOverlay('export-secrets'),
-        onReset: () => this.showOverlay('reset-app')
+        onReset: () => this.showOverlay('reset-app'),
+        onHelp: () => this.selectDestination('help')
       })
       .layoutWeight(1)
       .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
         .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
+    } else if (this.activeDestination === 'help') {
+      HelpPage({ phone: this.isPhone() })
+        .layoutWeight(1)
+        .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ x: 8 }))
+          .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
     } else {
       Stack({ alignContent: Alignment.TopStart }) {
         Row() {
@@ -3039,6 +3059,20 @@ export struct NimboWindow {
         description: 'JSON 请求正文', type: 'text', secret: false
       }];
       request.settings.timeoutMs = 120000;
+    } else if (node.id === 'openai-stream-response-request') {
+      request.protocol = 'sse';
+      request.method = 'POST';
+      request.url = '{{OPENAI_BASE_URL}}/v1/responses';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{OPENAI_API_KEY}}';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "model": "{{OPENAI_MODEL}}",\n' +
+        '  "input": "用一句话介绍 Nimbo API 调试工具",\n  "stream": true\n}';
+      request.headers = [{
+        id: 'openai-stream-content-type', enabled: true, key: 'Content-Type', value: 'application/json',
+        description: 'JSON 请求正文', type: 'text', secret: false
+      }];
+      request.settings.timeoutMs = 300000;
     } else if (node.id === 'deepseek-list-models-request') {
       request.url = '{{DEEPSEEK_BASE_URL}}/models';
       request.auth.type = 'bearer';
@@ -3058,6 +3092,22 @@ export struct NimboWindow {
         description: 'JSON 请求正文', type: 'text', secret: false
       }];
       request.settings.timeoutMs = 120000;
+    } else if (node.id === 'deepseek-stream-chat-request') {
+      request.protocol = 'sse';
+      request.method = 'POST';
+      request.url = '{{DEEPSEEK_BASE_URL}}/chat/completions';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{DEEPSEEK_API_KEY}}';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "model": "{{DEEPSEEK_MODEL}}",\n  "messages": [\n    {\n' +
+        '      "role": "system",\n      "content": "你是一名简洁、专业的开发助手。"\n    },\n' +
+        '    {\n      "role": "user",\n      "content": "用一句话介绍 Nimbo API 调试工具"\n    }\n' +
+        '  ],\n  "stream": true,\n  "stream_options": { "include_usage": true }\n}';
+      request.headers = [{
+        id: 'deepseek-stream-content-type', enabled: true, key: 'Content-Type', value: 'application/json',
+        description: 'JSON 请求正文', type: 'text', secret: false
+      }];
+      request.settings.timeoutMs = 300000;
     }
     return { request, response };
   }
@@ -3099,6 +3149,7 @@ export struct NimboWindow {
         GlobalToolbar({
           compact: this.isCompact(),
           phone: this.isPhone(),
+          availableWidth: this.windowWidth,
           selectedEnvironmentId: this.selectedEnvironmentId,
           environments: this.environments,
           onEnvironmentChange: (id: string) => {
@@ -3114,7 +3165,7 @@ export struct NimboWindow {
           Column() {
             this.mainContent()
             MobileNavigation({
-              activeDestination: this.activeDestination,
+              activeDestination: this.activeDestination === 'help' ? 'settings' : this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination)
             })
           }

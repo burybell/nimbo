@@ -1,4 +1,4 @@
-import { AuthConfig, EffectiveVariableModel, HttpMethod, KeyValueItem, RequestDraft, SseEventModel,
+import { AuthConfig, BodyType, EffectiveVariableModel, HttpMethod, KeyValueItem, RequestDraft, SseEventModel,
   SseSessionModel, VariableSourceKind } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
@@ -7,8 +7,10 @@ import { KeyValueEditor } from './KeyValueEditor';
 import { MethodSelector } from './MethodSelector';
 import { UrlInput } from './UrlInput';
 import { EffectiveVariablesView } from './EffectiveVariablesView';
+import { SseBodyEditor } from './SseBodyEditor';
+import { RealtimePayloadView } from './RealtimePayloadView';
 
-type SsePanelTab = 'events' | 'headers' | 'auth' | 'variables';
+type SsePanelTab = 'events' | 'headers' | 'auth' | 'body' | 'variables';
 
 @Component
 export struct SsePanel {
@@ -23,6 +25,8 @@ export struct SsePanel {
   onMethodChange: (value: HttpMethod) => void = () => {};
   onHeadersChange: (value: KeyValueItem[]) => void = () => {};
   onAuthChange: (value: AuthConfig) => void = () => {};
+  onBodyTypeChange: (value: BodyType) => void = () => {};
+  onBodyTextChange: (value: string) => void = () => {};
   onConnect: () => void = () => {};
   onStop: () => void = () => {};
   onClear: () => void = () => {};
@@ -115,8 +119,7 @@ export struct SsePanel {
                 Blank()
                 Text(item.timestamp).fontSize(10).fontColor(ColorTokens.textTertiary)
               }.width('100%')
-              Text(item.data).width('100%').fontSize(12).fontFamily('monospace')
-                .fontColor(ColorTokens.textPrimary).copyOption(CopyOptions.LocalDevice)
+              RealtimePayloadView({ value: item.data }).width('100%')
             }
             .width('100%').padding(SpacingTokens.x3).alignItems(HorizontalAlign.Start)
             .backgroundColor(ColorTokens.bgSurface).border({ width: 1, color: ColorTokens.borderSubtle })
@@ -159,6 +162,7 @@ export struct SsePanel {
         this.tab($r('app.string.websocket_tab_headers'), 'headers',
           this.request.headers.filter((item: KeyValueItem) => item.enabled).length)
         this.tab($r('app.string.websocket_tab_auth'), 'auth')
+        this.tab($r('app.string.tab_body'), 'body')
         this.tab($r('app.string.collection_variables'), 'variables', this.variableResolutions.length)
         Blank()
         Row({ space: SpacingTokens.x2 }) {
@@ -217,6 +221,10 @@ export struct SsePanel {
       } else if (this.activeTab === 'auth') {
         AuthEditor({ config: this.request.auth, variables: this.variables, onChange: this.onAuthChange })
           .layoutWeight(1)
+      } else if (this.activeTab === 'body') {
+        SseBodyEditor({ bodyType: this.request.bodyType, bodyText: this.request.bodyText,
+          variables: this.variables, onTypeChange: this.onBodyTypeChange,
+          onTextChange: this.onBodyTextChange }).layoutWeight(1)
       } else {
         Scroll() {
           EffectiveVariablesView({ variables: this.variableResolutions, missingVariables: this.missingVariables,

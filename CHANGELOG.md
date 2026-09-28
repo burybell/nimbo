@@ -11,11 +11,19 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Collection and nested-folder variables with deterministic inheritance across HTTP, WebSocket, SSE, scripts, and Collection Runner
 - Effective-variable inspection with masked secrets, source labels, override chains, proactive missing-value detection, and direct source editing
 - Collection-level Postman variable import and recursive secret redaction in Nimbo exports
+- Offline in-app help center with eleven task-oriented guides covering collections, imports, requests, variables, scripts, automation, Runner, real-time connections, shortcuts, and troubleshooting
+- Complete English and Simplified Chinese user manuals plus focused variable guides linked from the repository README files
+- Detailed English and Simplified Chinese script references covering syntax, guarded APIs, completion, examples, execution order, limits, and troubleshooting
+- Runnable OpenAI Responses and DeepSeek Chat Completions SSE examples with editable JSON request bodies
+- Automatic pretty-printing and syntax highlighting for JSON WebSocket messages and SSE event data, with plain-text fallback
 
 ### Changed
 
-- Migrated local data to schema v13 and updated the built-in HTTP, WebSocket, SSE, OpenAI, and DeepSeek examples to use scoped variables
+- Migrated local data to schema v14, updated built-in examples to use scoped variables, and non-destructively added AI streaming requests to existing example collections
 - Updated unresolved-variable diagnostics to account for environment, collection, folder, and Runner scopes
+- Added JSON and text request bodies to SSE so POST-based streaming APIs can be configured and variable-resolved
+- Stabilized title-bar action placement across full-screen restore and kept search before environment/import/settings at narrow desktop widths
+- Replaced the detached WebSocket Send button with an integrated icon action; Enter/Ctrl+Enter sends and Shift+Enter inserts a line break
 
 ## [1.0] - 2026-09-12
 

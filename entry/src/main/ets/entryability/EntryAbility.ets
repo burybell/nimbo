@@ -113,14 +113,16 @@ export default class EntryAbility extends UIAbility {
     }
   }
 
-  private publishTitleButtonInset(rect: window.TitleButtonRect,
+  private publishTitleButtonInset(_rect: window.TitleButtonRect,
     status?: window.WindowStatusType): void {
     const currentStatus = status ?? this.currentWindowStatus;
     if (currentStatus === window.WindowStatusType.MAXIMIZE || currentStatus === window.WindowStatusType.FULL_SCREEN) {
       AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BAR_EDGE_INSET);
       return;
     }
-    const inset = Math.max(TITLE_BUTTON_FALLBACK_INSET, rect.right + rect.width + 12);
-    AppStorage.setOrCreate('nimbo.titleButtonInset', inset);
+    // The native rectangle is reported in window coordinates and can briefly use a different
+    // density while leaving full screen. The decor style above has a fixed 124 vp footprint,
+    // so keep one stable safe area instead of allowing that transient value to move toolbar actions.
+    AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
   }
 }

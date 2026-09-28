@@ -30,6 +30,11 @@ export struct PrimarySidebar {
       icon: $r('app.media.nav_history'), activeIcon: $r('app.media.nav_history_active') }
   ];
 
+  private helpItem: NavigationItemModel = {
+    id: 'help', label: $r('app.string.nav_help'),
+    icon: $r('app.media.nav_help'), activeIcon: $r('app.media.nav_help_active')
+  };
+
   private createItems(): ContextMenuItemModel[] {
     return [
       { id: 'http', label: $r('app.string.new_http_request'), icon: 'HTTP', dangerous: false },
@@ -74,6 +79,7 @@ export struct PrimarySidebar {
     .backgroundColor(item.id === this.activeDestination ? ColorTokens.bgSurfaceActive :
       (item.id === this.hoveredItemId ? ColorTokens.bgSurfaceHover : ColorTokens.bgSidebar))
     .borderRadius(RadiusTokens.medium)
+    .accessibilityText(item.label as Resource)
     .animation({ duration: MotionTokens.fast, curve: MotionTokens.standardCurve })
     .onHover((hovered: boolean) => { this.hoveredItemId = hovered ? item.id : ''; })
     .onClick(() => this.onDestinationChange(item.id))
@@ -145,6 +151,8 @@ export struct PrimarySidebar {
       .margin({ top: SpacingTokens.x5 })
 
       Blank()
+
+      this.navItem(this.helpItem)
     }
     .width(this.compact ? SizeTokens.primarySidebarCompactWidth : SizeTokens.primarySidebarWidth)
     .height('100%')

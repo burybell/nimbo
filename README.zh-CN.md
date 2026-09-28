@@ -25,6 +25,12 @@ Nimbo 是一款为 HarmonyOS 打造的快速、原生、本地优先 API 调试�
 - Light、Dark 和跟随系统主题
 - 简体中文和英文界面
 
+## 使用文档
+
+- [用户指南](docs/guides/user-guide.zh-CN.md) · [English user guide](docs/guides/user-guide.en.md)
+- [变量使用指南](docs/guides/variables.zh-CN.md) · [Variables guide](docs/guides/variables.en.md)
+- [脚本使用指南](docs/guides/scripts.zh-CN.md) · [Scripts guide](docs/guides/scripts.en.md)
+
 ## 项目状态
 
 Nimbo 1.0 的核心工作流已经实现，可在 HarmonyOS PC 目标上运行：
@@ -41,7 +47,7 @@ Nimbo 1.0 的核心工作流已经实现，可在 HarmonyOS PC 目标上运行�
 通过环境与历史记录重复调试
 ```
 
-WebSocket、SSE、GraphQL、gRPC、Collection Runner、集合级脚本、AI、云同步和账号系统目前尚未实现。界面不会提前展示不可用的功能入口。
+二进制 WebSocket 消息、自动重连、Socket.IO、GraphQL Subscription、gRPC、并发 Runner、集合级脚本、AI、云同步和账号系统仍明确暂缓。界面不会提前展示不可用的功能入口。
 
 ## 请求脚本
 

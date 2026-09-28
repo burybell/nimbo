@@ -26,13 +26,7 @@ export class WindowChromeController {
       if (status === window.WindowStatusType.MAXIMIZE || status === window.WindowStatusType.FULL_SCREEN) {
         AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
         mainWindow.recover().then(() => {
-          try {
-            const rect = mainWindow.getTitleButtonRect();
-            AppStorage.setOrCreate('nimbo.titleButtonInset',
-              Math.max(TITLE_BUTTON_FALLBACK_INSET, rect.right + rect.width + TITLE_BAR_EDGE_INSET));
-          } catch (_error) {
-            // Keep the safe fallback until the title button rectangle callback arrives.
-          }
+          AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
         }).catch(() => {});
       } else {
         AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BAR_EDGE_INSET);

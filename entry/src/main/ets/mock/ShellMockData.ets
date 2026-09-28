@@ -370,6 +370,14 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
         method: 'POST',
         expanded: false,
         children: []
+      },
+      {
+        id: 'openai-stream-response-request',
+        type: 'request',
+        name: '流式文本响应',
+        method: 'SSE',
+        expanded: false,
+        children: []
       }
     ]
   },
@@ -398,6 +406,14 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
         type: 'request',
         name: '创建对话补全',
         method: 'POST',
+        expanded: false,
+        children: []
+      },
+      {
+        id: 'deepseek-stream-chat-request',
+        type: 'request',
+        name: '流式对话补全',
+        method: 'SSE',
         expanded: false,
         children: []
       }

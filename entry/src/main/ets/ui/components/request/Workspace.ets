@@ -1,4 +1,4 @@
-import { AuthConfig, EffectiveVariableModel, EnvironmentModel, HttpMethod, KeyValueItem, RequestDraft,
+import { AuthConfig, BodyType, EffectiveVariableModel, EnvironmentModel, HttpMethod, KeyValueItem, RequestDraft,
   RequestTabModel, ResponseErrorModel, ResponseModel, SseSessionModel, VariableSourceKind,
   WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
@@ -225,6 +225,20 @@ export struct Workspace {
           onAuthChange: (auth: AuthConfig) => this.onUpdateRequest(this.activeTabId,
             this.webSocketRequest(this.tabs[this.activeIndex()].request,
               this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers, auth)),
+          onBodyTypeChange: (bodyType: BodyType) => {
+            const request = this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers,
+              this.tabs[this.activeIndex()].request.auth);
+            request.bodyType = bodyType;
+            this.onUpdateRequest(this.activeTabId, request);
+          },
+          onBodyTextChange: (bodyText: string) => {
+            const request = this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers,
+              this.tabs[this.activeIndex()].request.auth);
+            request.bodyText = bodyText;
+            this.onUpdateRequest(this.activeTabId, request);
+          },
           onConnect: () => this.onSseConnect(this.activeTabId),
           onStop: () => this.onSseStop(this.activeTabId),
           onClear: () => this.onSseClear(this.activeTabId),
