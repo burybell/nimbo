@@ -73,6 +73,18 @@
       "value": "Rename Folder"
     },
     {
+      "name": "collection_variables",
+      "value": "Variables"
+    },
+    {
+      "name": "collection_variables_hint",
+      "value": "Variables apply to every request below this node. A nearer folder overrides its parent and the active environment."
+    },
+    {
+      "name": "toast_collection_variables_saved",
+      "value": "Variables saved"
+    },
+    {
       "name": "action_rename",
       "value": "Rename"
     },
@@ -1270,8 +1282,8 @@
     { "name": "runner_data_rows", "value": "rows" },
     { "name": "runner_data_hint", "value": "Each row is one iteration. Data variables override the selected environment for this run only." },
     { "name": "runner_data_variables", "value": "Variables:" },
-    { "name": "new_http_request", "value": "HTTP request" },
-    { "name": "new_websocket_request", "value": "WebSocket request" },
+    { "name": "new_http_request", "value": "New HTTP request" },
+    { "name": "new_websocket_request", "value": "New WS request" },
     { "name": "websocket_connect", "value": "Connect" },
     { "name": "websocket_connecting", "value": "Connecting…" },
     { "name": "websocket_disconnect", "value": "Disconnect" },
@@ -1301,7 +1313,7 @@
     { "name": "websocket_history_connected", "value": "Connected" },
     { "name": "websocket_history_closed", "value": "Closed" },
     { "name": "websocket_history_failed", "value": "Failed" },
-    { "name": "new_sse_request", "value": "SSE request" },
+    { "name": "new_sse_request", "value": "New SSE request" },
     { "name": "sse_connect", "value": "Connect" },
     { "name": "sse_stop", "value": "Stop" },
     { "name": "sse_stopping", "value": "Stopping…" },

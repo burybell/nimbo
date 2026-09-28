@@ -1,4 +1,4 @@
-import { AuthConfig, EnvironmentModel, KeyValueItem, RequestDraft, RequestTabModel, ResponseErrorModel,
+import { AuthConfig, EnvironmentModel, HttpMethod, KeyValueItem, RequestDraft, RequestTabModel, ResponseErrorModel,
   ResponseModel, SseSessionModel, WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
@@ -22,6 +22,7 @@ export struct Workspace {
   @Prop phone: boolean = false;
   @Prop environments: EnvironmentModel[] = [];
   @Prop selectedEnvironmentId: string = '';
+  @Prop resolvedVariables: KeyValueItem[] = [];
   @Prop webSocketSession: WebSocketSessionModel = {
     requestId: '', status: 'disconnected', composer: '', messages: [], errorCode: '', errorMessage: ''
   };
@@ -96,8 +97,7 @@ export struct Workspace {
   }
 
   private activeVariables(): KeyValueItem[] {
-    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
-    return environment ? environment.variables : [];
+    return this.resolvedVariables;
   }
 
   private selectTab(id: string): void {
@@ -203,6 +203,13 @@ export struct Workspace {
           request: this.tabs[this.activeIndex()].request,
           variables: this.activeVariables(),
           onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
+          onMethodChange: (method: HttpMethod) => {
+            const request = this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers,
+              this.tabs[this.activeIndex()].request.auth);
+            request.method = method;
+            this.onUpdateRequest(this.activeTabId, request);
+          },
           onHeadersChange: (headers: KeyValueItem[]) => this.onUpdateRequest(this.activeTabId,
             this.webSocketRequest(this.tabs[this.activeIndex()].request,
               this.tabs[this.activeIndex()].request.url, headers, this.tabs[this.activeIndex()].request.auth)),
@@ -246,6 +253,7 @@ export struct Workspace {
             response: this.tabs[this.activeIndex()].response,
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
+            resolvedVariables: this.resolvedVariables,
             onSaveRequest: () => this.onSaveRequest(this.activeTabId),
             onCopyGeneratedCode: this.onCopyGeneratedCode,
             phone: true,
@@ -274,6 +282,7 @@ export struct Workspace {
             response: this.tabs[this.activeIndex()].response,
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
+            resolvedVariables: this.resolvedVariables,
             onSaveRequest: () => this.onSaveRequest(this.activeTabId),
             onCopyGeneratedCode: this.onCopyGeneratedCode,
             onChange: (request: RequestDraft) => this.onUpdateRequest(this.activeTabId, request)

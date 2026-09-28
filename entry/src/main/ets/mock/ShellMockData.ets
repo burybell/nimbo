@@ -307,6 +307,90 @@ export const DEMO_COLLECTIONS: CollectionNode[] = [
             children: []
           }
         ]
+      },
+      {
+        id: 'realtime-folder',
+        type: 'folder',
+        name: '实时连接',
+        expanded: true,
+        children: [
+          {
+            id: 'websocket-echo-request',
+            type: 'request',
+            name: 'WebSocket 回声测试',
+            method: 'WS',
+            expanded: false,
+            children: []
+          },
+          {
+            id: 'sse-events-request',
+            type: 'request',
+            name: 'SSE 事件流测试',
+            method: 'SSE',
+            expanded: false,
+            children: []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'openai-api',
+    type: 'collection',
+    name: 'OpenAI API 示例',
+    expanded: false,
+    variables: [
+      { id: 'openai-base-url', enabled: true, key: 'OPENAI_BASE_URL', value: 'https://api.openai.com',
+        description: 'OpenAI API 基础地址', type: 'text', secret: false },
+      { id: 'openai-model', enabled: true, key: 'OPENAI_MODEL', value: 'gpt-5',
+        description: '默认模型', type: 'text', secret: false }
+    ],
+    children: [
+      {
+        id: 'openai-list-models-request',
+        type: 'request',
+        name: '获取模型列表',
+        method: 'GET',
+        expanded: false,
+        children: []
+      },
+      {
+        id: 'openai-create-response-request',
+        type: 'request',
+        name: '创建文本响应',
+        method: 'POST',
+        expanded: false,
+        children: []
+      }
+    ]
+  },
+  {
+    id: 'deepseek-api',
+    type: 'collection',
+    name: 'DeepSeek API 示例',
+    expanded: false,
+    variables: [
+      { id: 'deepseek-base-url', enabled: true, key: 'DEEPSEEK_BASE_URL', value: 'https://api.deepseek.com',
+        description: 'DeepSeek API 基础地址', type: 'text', secret: false },
+      { id: 'deepseek-model', enabled: true, key: 'DEEPSEEK_MODEL', value: 'deepseek-flash',
+        description: '默认模型', type: 'text', secret: false }
+    ],
+    children: [
+      {
+        id: 'deepseek-list-models-request',
+        type: 'request',
+        name: '获取模型列表',
+        method: 'GET',
+        expanded: false,
+        children: []
+      },
+      {
+        id: 'deepseek-chat-request',
+        type: 'request',
+        name: '创建对话补全',
+        method: 'POST',
+        expanded: false,
+        children: []
       }
     ]
   }

@@ -13,7 +13,10 @@ export struct CollectionSidebar {
   onToggleNode: (id: string) => void = () => {};
   onCreateCollection: () => void = () => {};
   onCreateRequest: (parentId: string) => void = () => {};
+  onCreateWebSocket: (parentId: string) => void = () => {};
+  onCreateSse: (parentId: string) => void = () => {};
   onCreateFolder: (parentId: string) => void = () => {};
+  onEditVariables: (node: CollectionNode) => void = () => {};
   onRenameFolder: (node: CollectionNode) => void = () => {};
   onRenameRequest: (node: CollectionNode) => void = () => {};
   onDuplicateRequest: (node: CollectionNode) => void = () => {};
@@ -83,7 +86,10 @@ export struct CollectionSidebar {
             onOpenRequest: this.onOpenRequest,
             onToggleNode: this.onToggleNode,
             onCreateRequest: this.onCreateRequest,
+            onCreateWebSocket: this.onCreateWebSocket,
+            onCreateSse: this.onCreateSse,
             onCreateFolder: this.onCreateFolder,
+            onEditVariables: this.onEditVariables,
             onRenameFolder: this.onRenameFolder,
             onRenameRequest: this.onRenameRequest,
             onDuplicateRequest: this.onDuplicateRequest,

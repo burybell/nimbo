@@ -1,5 +1,5 @@
 import { PersistedAppState } from '../models/PersistenceModels';
-import { KeyValueItem, RequestDraft } from '../models/ShellModels';
+import { CollectionNode, KeyValueItem, RequestDraft } from '../models/ShellModels';
 
 interface NimboExportDocument {
   format: string;
@@ -22,6 +22,13 @@ export class NimboExportCodec {
   private static redactItems(items: KeyValueItem[]): void {
     items.forEach((item: KeyValueItem) => {
       if (item.secret || NimboExportCodec.sensitiveKey(item.key)) item.value = NimboExportCodec.redacted;
+    });
+  }
+
+  private static redactCollectionVariables(nodes: CollectionNode[]): void {
+    nodes.forEach((node: CollectionNode) => {
+      NimboExportCodec.redactItems(node.variables ?? []);
+      NimboExportCodec.redactCollectionVariables(node.children);
     });
   }
 
@@ -57,6 +64,7 @@ export class NimboExportCodec {
       data.requests.forEach((item) => NimboExportCodec.redactRequest(item.request));
       data.tabs.forEach((item) => NimboExportCodec.redactRequest(item.request));
       data.environments.forEach((environment) => NimboExportCodec.redactItems(environment.variables));
+      NimboExportCodec.redactCollectionVariables(data.collections);
       data.history.forEach((item) => { item.url = NimboExportCodec.redactUrl(item.url); });
     }
     const document: NimboExportDocument = {

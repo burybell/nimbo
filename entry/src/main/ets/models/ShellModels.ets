@@ -30,6 +30,7 @@ export interface CollectionNode {
   name: string;
   method?: string;
   expanded: boolean;
+  variables?: KeyValueItem[];
   children: CollectionNode[];
 }
 
@@ -291,6 +292,7 @@ export interface HistoryItemModel {
   url: string;
   status: number;
   duration: string;
+  protocol?: RequestProtocol;
 }
 
 export interface SettingsSectionModel {

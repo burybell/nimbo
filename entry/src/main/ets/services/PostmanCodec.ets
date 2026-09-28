@@ -18,6 +18,7 @@ interface PostmanRequest { method?: string; url?: string | PostmanUrl; header?: 
 interface PostmanItem { name?: string; item?: PostmanItem[]; request?: PostmanRequest; auth?: PostmanAuth; event?: Object[]; }
 interface PostmanInfo { name?: string; schema?: string; }
 interface PostmanDocument { info?: PostmanInfo; item?: PostmanItem[]; name?: string; values?: PostmanValue[];
+  variable?: PostmanValue[];
   auth?: PostmanAuth; event?: Object[]; }
 interface ParsedUrl { url: string; params: KeyValueItem[]; }
 interface PostmanItemCount { folders: number; }
@@ -154,6 +155,7 @@ export class PostmanCodec {
       if (item.item) {
         count.folders += 1;
         const folder: CollectionNode = { id: PostmanCodec.id('folder'), type: 'folder', name, expanded: true,
+          variables: [],
           children: PostmanCodec.parseItems(item.item, item.auth ?? inheritedAuth, warnings, requests, count) };
         return folder;
       }
@@ -162,7 +164,7 @@ export class PostmanCodec {
       const id = PostmanCodec.id('request');
       requests.push({ id, name, method: request.method, request });
       const requestNode: CollectionNode = { id, type: 'request', name, method: request.method,
-        expanded: false, children: [] };
+        expanded: false, variables: [], children: [] };
       return requestNode;
     });
   }
@@ -196,7 +198,10 @@ export class PostmanCodec {
     const name = document.info.name ?? 'Imported Collection';
     const children = PostmanCodec.parseItems(document.item, document.auth, warnings, requests, count);
     const collection: CollectionNode = { id: PostmanCodec.id('collection'), type: 'collection', name,
-      expanded: true, children };
+      expanded: true,
+      variables: (document.variable ?? []).map((item: PostmanValue, index: number) =>
+        PostmanCodec.keyValue('collection-variable', index, item)),
+      children };
     return { name, collections: [collection], requests, environments: [], requestCount: requests.length,
       folderCount: count.folders, warnings };
   }

@@ -447,7 +447,7 @@ Milestone 14 在已有单请求执行链之上增加本地集合运行器，目�
 
 ### Milestone 15 — WebSocket & SSE
 
-Milestone 15 在现有本地请求工作区内增加实时协议调试能力，仍坚持无需账号、无需云端和本地优先。WebSocket 与 SSE 必须复用现有 Tab、环境和错误反馈语言，但连接会话、消息内容与流式事件默认只保留在内存中，不自动进入普通 HTTP 历史，也不得让 Collection Runner 把长连接当作普通请求执行。
+Milestone 15 在现有本地请求工作区内增加实时协议调试能力，仍坚持无需账号、无需云端和本地优先。WebSocket 与 SSE 必须复用现有 Tab、环境和错误反馈语言；连接元数据进入统一历史，消息内容与流式事件默认只保留在内存中，也不得让 Collection Runner 把长连接当作普通请求执行。
 
 分三批完成：
 
@@ -460,6 +460,12 @@ Milestone 15 在现有本地请求工作区内增加实时协议调试能力，�
 第二批进度（2026-09-28）：WebSocket 工作区增加消息、标头、认证和连接记录四个页签；连接地址、自定义 Headers、Bearer / Basic / API Key 认证及文本消息均支持当前环境变量，建立连接前会阻止缺失变量并给出明确提示。连接参数会解析为原生 WebSocket 握手 URL 与 Header，API Key 可按配置进入 Header 或 Query。消息时间线支持即时检索、整批复制和显式导出文本文件；每次连接尝试会在当前 Tab 的内存会话中记录连接中、已连接、已关闭或失败状态及错误码。实时消息和连接记录仍不持久化，关闭 Tab 或重启应用即清除；请求地址、Headers 与认证配置仍随请求本地保存。仓库质量检查和 HAP 构建通过，无新增 ArkTS warning。
 
 第三批进度（2026-09-28）：SSE 已作为独立请求协议接入新建菜单、请求 Tab、集合保存和恢复流程；工作区支持 `http://` / `https://` 地址、连接、主动停止、流状态、HTTP 状态码、Content-Type 与网络错误码。原生 HTTP 流通过 `requestInStream` 按块接收并使用增量 UTF-8 解码，SSE 解析器支持 CRLF、跨块事件、注释、默认 `message`、自定义 `event`、多行 `data`、`id` 与 `retry`。事件时间线支持搜索、单条选择复制、整批复制、清空和显式导出；地址、Headers、Bearer / Basic / API Key 认证支持当前环境变量及缺失变量校验。事件只保留在 Tab 内存会话中，不进入普通 HTTP 历史；Collection Runner 会跳过 SSE，并且集合中的 WS / SSE 请求不再显示运行菜单。仓库质量检查和 HAP 构建通过，实体 HarmonyOS PC 使用局域网 SSE Server 验证有限流“连接 → 分块接收三类事件 → 正常结束”，以及持续流“连续接收 → 主动停止 → 服务端连接重置”的完整链路，无新增 ArkTS warning。Milestone 15 三批完成。
+
+体验完善批次（2026-09-28）：WS / SSE 请求工具栏已与普通 HTTP 请求统一字体、尺寸、垂直对齐和分段边框；WS 左侧可切换 `WS` / `WSS` 并同步改写 URL，SSE 左侧可选择 HTTP Method，原生流式请求会按所选 Method 发出。消息与事件页签沿用普通请求配置页签的字号和高度，搜索框正文及 placeholder 与右侧清空操作统一字号并修复文字裁切。集合文件夹菜单可直接新建 HTTP、WS 或 SSE 请求，新建菜单统一使用紧凑的“WS 请求”文案，文件夹菜单的三类新建动作使用同尺寸的网络、双向通信和事件流 SVG 图标。全局历史开始记录 WS 连接和 SSE 流请求，使用协议标签区分，并可从历史恢复对应请求类型；实时消息和事件正文仍只保留在当前内存会话中。窄窗口菜单的 `HTTP` / `WS` / `SSE` 标识获得固定宽度，不再发生字母换行；三类请求共用的 URL 富文本输入区根据实体机截图重新校准了文本基线和 placeholder 字体，以保持视觉垂直居中。
+
+示例目录完善（2026-09-28）：新建菜单统一采用“新建 HTTP 请求 / 新建 WS 请求 / 新建 SSE 请求”的动作式文案。`Nimbo 示例接口` 新增“实时连接”目录，内置 WebSocket.org 官方公开回声服务 `wss://echo.websocket.org` 和 SSE 测试流 `https://echo.websocket.org/.sse`，无需密钥即可验证实时协议。另新增 `OpenAI API 示例` 与 `DeepSeek API 示例` 两个顶层集合，分别提供模型列表和文本生成请求；认证值使用 `{{OPENAI_API_KEY}}` / `{{DEEPSEEK_API_KEY}}` 环境变量占位符，不保存真实密钥。持久化 schema 升级到 v11，对已有 v10 数据执行一次非破坏性示例目录合并，保留用户原有集合与同 ID 项目。
+
+集合作用域变量（2026-09-28）：顶层集合和任意层级文件夹的行级菜单新增“变量”编辑器，复用环境变量表格的启用、Secret、说明、批量编辑和本地持久化能力。有效变量按 `Runner 数据行 > 最近文件夹 > 上级文件夹 > 集合 > 当前环境` 合并；禁用的作用域变量不会遮蔽下层可用值。合并结果统一供 HTTP、WS、SSE、请求 URL / Params / Headers / Auth / Body 补全、前置与后置脚本、以及 Collection Runner 使用；脚本 `environment.set` 和响应提取仍只写入明确的环境，不会隐式改写集合或文件夹。无密钥导出会递归脱敏集合变量。Postman Collection 根级 `variable` 会直接导入为集合变量。OpenAI / DeepSeek 示例集合开始用集合变量保存 Base URL 与默认模型，API Key 继续只通过环境变量占位符提供。持久化 schema 升级到 v12，对已有数据补齐变量数组并非破坏性合并新增示例默认值。
 
 继续暂缓：二进制 WebSocket 发送、自动重连、Socket.IO、GraphQL Subscription、gRPC、并发 Runner、集合级脚本、第三方脚本包、远程模块、完整 Postman `pm.*` 兼容层，以及 AI、Cloud、Login 等既定后续范围。
 

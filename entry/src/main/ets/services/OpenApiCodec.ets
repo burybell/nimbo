@@ -377,14 +377,16 @@ export class OpenApiCodec {
         const request = OpenApiCodec.parseRequest(document, pathName, pathItem, operation, method, name, warnings);
         const id = OpenApiCodec.id('request');
         requests.push({ id, name, method, request });
-        const node: CollectionNode = { id, type: 'request', name, method, expanded: false, children: [] };
+        const node: CollectionNode = { id, type: 'request', name, method, expanded: false,
+          variables: [], children: [] };
         const tag = operation.tags?.[0] ?? '';
         if (tag.length === 0) {
           rootChildren.push(node);
         } else {
           let folder = rootChildren.find((candidate: CollectionNode) => candidate.type === 'folder' && candidate.name === tag);
           if (!folder) {
-            folder = { id: OpenApiCodec.id('folder'), type: 'folder', name: tag, expanded: true, children: [] };
+            folder = { id: OpenApiCodec.id('folder'), type: 'folder', name: tag, expanded: true,
+              variables: [], children: [] };
             rootChildren.push(folder);
           }
           folder.children.push(node);
@@ -394,7 +396,7 @@ export class OpenApiCodec {
     if (requests.length === 0) throw new Error('The API document does not contain supported HTTP operations.');
     const name = document.info?.title ?? (document.openapi ? 'Imported OpenAPI' : 'Imported Swagger');
     const collection: CollectionNode = { id: OpenApiCodec.id('collection'), type: 'collection', name,
-      expanded: true, children: rootChildren };
+      expanded: true, variables: [], children: rootChildren };
     return { name, collections: [collection], requests, requestCount: requests.length,
       folderCount: rootChildren.filter((node: CollectionNode) => node.type === 'folder').length,
       warnings, specification: document.openapi ? `OpenAPI ${document.openapi}` : `Swagger ${document.swagger}` };

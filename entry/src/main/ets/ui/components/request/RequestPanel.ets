@@ -33,6 +33,7 @@ export struct RequestPanel {
   @Prop phone: boolean = false;
   @Prop environments: EnvironmentModel[] = [];
   @Prop selectedEnvironmentId: string = '';
+  @Prop resolvedVariables: KeyValueItem[] = [];
   onSaveRequest: () => void = () => {};
   onCopyGeneratedCode: (value: string) => void = () => {};
   @Prop response: ResponseModel;
@@ -88,8 +89,7 @@ export struct RequestPanel {
   }
 
   private activeVariables(): KeyValueItem[] {
-    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
-    return environment ? environment.variables : [];
+    return this.resolvedVariables;
   }
 
   build() {

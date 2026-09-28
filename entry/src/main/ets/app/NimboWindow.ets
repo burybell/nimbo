@@ -7,6 +7,7 @@ import {
   HttpMethod,
   NavigationDestination,
   RequestDraft,
+  RequestProtocol,
   RequestTabModel,
   RunnerItemModel,
   ScriptExecutionResult,
@@ -67,6 +68,7 @@ import { DEMO_HISTORY } from '../mock/SupportingMockData';
 import { CollectionSidebar } from '../ui/components/collection/CollectionSidebar';
 import { CollectionNameDialog } from '../ui/components/collection/CollectionNameDialog';
 import { CollectionRunnerDialog } from '../ui/components/collection/CollectionRunnerDialog';
+import { CollectionVariablesDialog } from '../ui/components/collection/CollectionVariablesDialog';
 import { CollectionTarget, SaveRequestDialog } from '../ui/components/collection/SaveRequestDialog';
 import { GlobalToolbar } from '../ui/components/common/GlobalToolbar';
 import { MobileNavigation } from '../ui/components/common/MobileNavigation';
@@ -157,6 +159,9 @@ export struct NimboWindow {
   @State renamingRequestId: string = '';
   @State deletingCollectionNodeId: string = '';
   @State deletingEnvironmentId: string = '';
+  @State editingCollectionVariablesId: string = '';
+  @State editingCollectionVariablesName: string = '';
+  @State editingCollectionVariables: KeyValueItem[] = [];
   @State runnerTargetId: string = '';
   @State runnerTargetName: string = '';
   @State runnerEnvironmentName: string = '';
@@ -177,6 +182,7 @@ export struct NimboWindow {
   private sseEventSerial: number = 0;
   private requestPersistenceTimer: number = -1;
   private requestSerials: Map<string, number> = new Map<string, number>();
+  private realtimeHistoryIds: Map<string, string> = new Map<string, string>();
   private runnerSerial: number = 0;
   private runnerExecutionId: string = '';
   private runnerStartedAt: string = '';
@@ -241,7 +247,8 @@ export struct NimboWindow {
       method: item.method,
       url: item.url,
       status: item.status,
-      duration: item.duration
+      duration: item.duration,
+      protocol: item.protocol ?? 'http'
     };
   }
 
@@ -461,6 +468,7 @@ export struct NimboWindow {
       name: node.name,
       method: node.method,
       expanded: node.id === id || this.containsCollectionNode(node.children, id) ? true : node.expanded,
+      variables: node.variables ?? [],
       children: this.revealCollectionNode(node.children, id)
     }));
   }
@@ -504,7 +512,7 @@ export struct NimboWindow {
         const saved = this.savedRequests.find((candidate: PersistedRequestModel) => candidate.id === id);
         if (saved) {
           this.openCollectionRequest({ id: saved.id, type: 'request', name: saved.name,
-            method: saved.method, expanded: false, children: [] });
+            method: saved.method, expanded: false, variables: [], children: [] });
         }
       }
       this.selectDestination('workspace');
@@ -527,6 +535,47 @@ export struct NimboWindow {
     return undefined;
   }
 
+  private collectionNodePath(nodes: CollectionNode[], id: string,
+    ancestors: CollectionNode[] = []): CollectionNode[] | undefined {
+    for (let index = 0; index < nodes.length; index += 1) {
+      const path = [...ancestors, nodes[index]];
+      if (nodes[index].id === id) return path;
+      const nested = this.collectionNodePath(nodes[index].children, id, path);
+      if (nested) return nested;
+    }
+    return undefined;
+  }
+
+  private mergeVariableLayer(base: KeyValueItem[], layer: KeyValueItem[]): KeyValueItem[] {
+    let merged = base.map((item: KeyValueItem): KeyValueItem => item);
+    layer.forEach((item: KeyValueItem) => {
+      if (!item.enabled || item.key.trim().length === 0) return;
+      const index = merged.findIndex((candidate: KeyValueItem) => candidate.key === item.key);
+      if (index >= 0) {
+        merged = merged.map((candidate: KeyValueItem, itemIndex: number) => itemIndex === index ? item : candidate);
+      } else {
+        merged = [...merged, item];
+      }
+    });
+    return merged;
+  }
+
+  private scopedEnvironment(requestId: string, environment: EnvironmentModel): EnvironmentModel {
+    let variables = environment.variables.map((item: KeyValueItem): KeyValueItem => item);
+    const path = this.collectionNodePath(this.collections, requestId) ?? [];
+    path.forEach((node: CollectionNode) => {
+      if (node.type !== 'request') variables = this.mergeVariableLayer(variables, node.variables ?? []);
+    });
+    return {
+      id: environment.id, name: environment.name, kind: environment.kind,
+      variables, system: environment.system
+    };
+  }
+
+  private activeScopedVariables(): KeyValueItem[] {
+    return this.scopedEnvironment(this.activeTabId, this.activeEnvironment()).variables;
+  }
+
   private updateCollectionNode(nodes: CollectionNode[], id: string,
     change: (node: CollectionNode) => CollectionNode): CollectionNode[] {
     let changed = false;
@@ -539,7 +588,7 @@ export struct NimboWindow {
       if (children === node.children) return node;
       changed = true;
       return { id: node.id, type: node.type, name: node.name, method: node.method,
-        expanded: node.expanded, children };
+        expanded: node.expanded, variables: node.variables ?? [], children };
     });
     return changed ? updated : nodes;
   }
@@ -548,7 +597,7 @@ export struct NimboWindow {
     this.animateState(() => {
       this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
         id: node.id, type: node.type, name: node.name, method: node.method,
-        expanded: !node.expanded, children: node.children
+        expanded: !node.expanded, variables: node.variables ?? [], children: node.children
       }));
     });
     this.persistLocalData();
@@ -575,7 +624,7 @@ export struct NimboWindow {
   private createCollection(name: string): void {
     const collection: CollectionNode = {
       id: this.newCollectionNodeId('collection'), type: 'collection', name,
-      expanded: true, children: []
+      expanded: true, variables: [], children: []
     };
     this.collections = [...this.collections, collection];
     this.persistLocalData();
@@ -590,11 +639,11 @@ export struct NimboWindow {
   private createFolder(name: string): void {
     const parentId = this.collectionParentId;
     const folder: CollectionNode = {
-      id: this.newCollectionNodeId('folder'), type: 'folder', name, expanded: true, children: []
+      id: this.newCollectionNodeId('folder'), type: 'folder', name, expanded: true, variables: [], children: []
     };
     this.collections = this.updateCollectionNode(this.collections, parentId, (node: CollectionNode) => ({
       id: node.id, type: node.type, name: node.name, method: node.method,
-      expanded: true, children: [...node.children, folder]
+      expanded: true, variables: node.variables ?? [], children: [...node.children, folder]
     }));
     this.collectionParentId = '';
     this.hideOverlay();
@@ -602,22 +651,37 @@ export struct NimboWindow {
     this.showToast($r('app.string.toast_folder_created'));
   }
 
-  private createRequestInCollection(parentId: string): void {
+  private createRequestInCollection(parentId: string, protocol: RequestProtocol = 'http'): void {
     const number = this.nextTabNumber;
     const id = `untitled-${number}`;
-    const name = this.preferences.language === 'zh' ? `未命名请求 ${number}` : `Untitled Request ${number}`;
+    let name = this.preferences.language === 'zh' ? `未命名请求 ${number}` : `Untitled Request ${number}`;
+    if (protocol === 'websocket') {
+      name = this.preferences.language === 'zh' ? `未命名 WebSocket ${number}` : `Untitled WebSocket ${number}`;
+    } else if (protocol === 'sse') {
+      name = this.preferences.language === 'zh' ? `未命名 SSE ${number}` : `Untitled SSE ${number}`;
+    }
     const request = this.createRequest();
+    request.protocol = protocol;
+    if (protocol === 'websocket') request.url = 'wss://';
+    if (protocol === 'sse') request.url = 'https://';
     const requestNode: CollectionNode = {
-      id, type: 'request', name, method: 'GET', expanded: false, children: []
+      id, type: 'request', name,
+      method: protocol === 'websocket' ? 'WS' : (protocol === 'sse' ? 'SSE' : 'GET'),
+      expanded: false, variables: [], children: []
     };
     this.collections = this.updateCollectionNode(this.collections, parentId, (node: CollectionNode) => ({
       id: node.id, type: node.type, name: node.name, method: node.method,
-      expanded: true, children: [...node.children, requestNode]
+      expanded: true, variables: node.variables ?? [], children: [...node.children, requestNode]
     }));
     this.tabs = [...this.tabs, {
       id, name, method: 'GET', dirty: false, pinned: false, loading: false,
       request, response: createEmptyResponse()
     }];
+    if (protocol === 'websocket') {
+      this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(id)];
+    } else if (protocol === 'sse') {
+      this.sseSessions = [...this.sseSessions, this.emptySseSession(id)];
+    }
     this.nextTabNumber += 1;
     this.activeTabId = id;
     this.rememberRequest(id, name, request);
@@ -630,12 +694,34 @@ export struct NimboWindow {
     this.showOverlay('rename-folder');
   }
 
+  private beginEditCollectionVariables(node: CollectionNode): void {
+    this.editingCollectionVariablesId = node.id;
+    this.editingCollectionVariablesName = node.name;
+    this.editingCollectionVariables = node.variables ?? [];
+    this.showOverlay('collection-variables');
+  }
+
+  private saveCollectionVariables(variables: KeyValueItem[]): void {
+    const id = this.editingCollectionVariablesId;
+    if (id.length === 0) return;
+    this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
+      id: node.id, type: node.type, name: node.name, method: node.method,
+      expanded: node.expanded, variables, children: node.children
+    }));
+    this.editingCollectionVariablesId = '';
+    this.editingCollectionVariablesName = '';
+    this.editingCollectionVariables = [];
+    this.hideOverlay();
+    this.persistLocalData();
+    this.showToast($r('app.string.toast_collection_variables_saved'));
+  }
+
   private renameFolder(name: string): void {
     const id = this.renamingFolderId;
     if (id.length === 0) return;
     this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
       id: node.id, type: node.type, name, method: node.method,
-      expanded: node.expanded, children: node.children
+      expanded: node.expanded, variables: node.variables ?? [], children: node.children
     }));
     this.renamingFolderId = '';
     this.hideOverlay();
@@ -661,7 +747,7 @@ export struct NimboWindow {
     if (id.length === 0 || name.length === 0) return;
     this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
       id: node.id, type: node.type, name, method: node.method,
-      expanded: node.expanded, children: node.children
+      expanded: node.expanded, variables: node.variables ?? [], children: node.children
     }));
     this.savedRequests = this.savedRequests.map((item: PersistedRequestModel) => item.id === id ? {
       id: item.id, name, method: item.method, request: item.request
@@ -689,7 +775,7 @@ export struct NimboWindow {
       if (children !== node.children) {
         updated[updated.length - 1] = {
           id: node.id, type: node.type, name: node.name, method: node.method,
-          expanded: node.expanded, children
+          expanded: node.expanded, variables: node.variables ?? [], children
         };
         changed = true;
       }
@@ -718,7 +804,7 @@ export struct NimboWindow {
     const duplicated: CollectionNode = {
       id, type: 'request', name,
       method: request.protocol === 'websocket' ? 'WS' : (request.protocol === 'sse' ? 'SSE' : request.method),
-      expanded: false, children: []
+      expanded: false, variables: [], children: []
     };
     this.collections = this.insertAfterCollectionNode(this.collections, node.id, duplicated);
     this.tabs = [...this.tabs, {
@@ -756,7 +842,7 @@ export struct NimboWindow {
       const children = this.removeCollectionNode(node.children, id);
       if (children !== node.children) {
         kept.push({ id: node.id, type: node.type, name: node.name, method: node.method,
-          expanded: node.expanded, children });
+          expanded: node.expanded, variables: node.variables ?? [], children });
         changed = true;
       } else {
         kept.push(node);
@@ -853,11 +939,11 @@ export struct NimboWindow {
       id, type: 'request', name,
       method: tab.request.protocol === 'websocket' ? 'WS' :
         (tab.request.protocol === 'sse' ? 'SSE' : tab.request.method),
-      expanded: false, children: []
+      expanded: false, variables: [], children: []
     };
     this.collections = this.updateCollectionNode(this.collections, targetId, (node: CollectionNode) => ({
       id: node.id, type: node.type, name: node.name, method: node.method,
-      expanded: true, children: [...node.children, requestNode]
+      expanded: true, variables: node.variables ?? [], children: [...node.children, requestNode]
     }));
     this.tabs = this.tabs.map((item: RequestTabModel) => item.id === id ? {
       id: item.id, name, method: item.request.method, dirty: false,
@@ -1139,6 +1225,7 @@ export struct NimboWindow {
       };
     });
     return {
+      protocol: request.protocol,
       method: this.collectionNodeMethod(snapshot.method),
       url: snapshot.url,
       lifecycle: request.lifecycle,
@@ -1267,10 +1354,12 @@ export struct NimboWindow {
 
   private async executeRequestPipeline(executionId: string, request: RequestDraft, environmentId: string,
     isActive: () => boolean,
-    runtimeValues: Record<string, string> | undefined = undefined): Promise<RequestPipelineResult | undefined> {
+    runtimeValues: Record<string, string> | undefined = undefined,
+    scopeRequestId: string = executionId): Promise<RequestPipelineResult | undefined> {
     let executedRequest = request;
     let environment = this.environmentForId(environmentId);
-    let effectiveEnvironment = this.environmentWithRuntimeValues(environment, runtimeValues);
+    let effectiveEnvironment = this.environmentWithRuntimeValues(
+      this.scopedEnvironment(scopeRequestId, environment), runtimeValues);
     const scriptResults: ScriptExecutionResult[] = [];
     if (request.preRequestScript.enabled && request.preRequestScript.source.trim().length > 0) {
       const execution: PreRequestExecution = await ScriptRuntimeService.runPreRequest(
@@ -1285,7 +1374,8 @@ export struct NimboWindow {
       }
       executedRequest = this.requestWithScriptChanges(request, execution.request);
       environment = this.applyScriptEnvironmentWrites(environment, execution.environmentWrites);
-      effectiveEnvironment = this.environmentWithRuntimeValues(environment, runtimeValues);
+      effectiveEnvironment = this.environmentWithRuntimeValues(
+        this.scopedEnvironment(scopeRequestId, environment), runtimeValues);
       if (Object.keys(execution.environmentWrites).length > 0) this.persistLocalData();
     }
     let response = await this.requestController.send(executionId, executedRequest, effectiveEnvironment);
@@ -1341,7 +1431,7 @@ export struct NimboWindow {
 
   private async sendRealRequest(id: string, request: RequestDraft, serial: number): Promise<void> {
     const result = await this.executeRequestPipeline(id, request, this.selectedEnvironmentId,
-      (): boolean => this.requestSerials.get(id) === serial);
+      (): boolean => this.requestSerials.get(id) === serial, undefined, id);
     if (result) this.applyRealResponse(id, result.response, result.executedRequest);
   }
 
@@ -1378,8 +1468,10 @@ export struct NimboWindow {
     if (current) this.rememberRequest(current.id, current.name, current.request);
     if (collected && current) {
       this.collections = this.updateCollectionNode(this.collections, id, (node: CollectionNode) => ({
-        id: node.id, type: node.type, name: node.name, method: current.request.method,
-        expanded: node.expanded, children: node.children
+        id: node.id, type: node.type, name: node.name,
+        method: current.request.protocol === 'websocket' ? 'WS' :
+          (current.request.protocol === 'sse' ? 'SSE' : current.request.method),
+        expanded: node.expanded, variables: node.variables ?? [], children: node.children
       }));
     }
     if (shouldComplete) this.persistLocalData();
@@ -1525,6 +1617,38 @@ export struct NimboWindow {
       now.getSeconds().toString().padStart(2, '0');
   }
 
+  private beginRealtimeHistory(requestId: string, protocol: RequestProtocol, method: HttpMethod,
+    url: string): void {
+    if (!this.preferences.saveHistory) return;
+    const now = new Date();
+    const historyId = `history-${protocol}-${Date.now()}`;
+    this.realtimeHistoryIds.set(requestId, historyId);
+    this.historyItems = [{
+      id: historyId,
+      group: 'Today',
+      createdAt: Date.now(),
+      time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
+      method,
+      url,
+      status: 0,
+      duration: protocol === 'websocket' ? 'Connecting' : 'Streaming',
+      protocol
+    }, ...this.historyItems];
+    this.persistLocalData();
+  }
+
+  private updateRealtimeHistory(requestId: string, status: number, duration: string, completed: boolean): void {
+    const historyId = this.realtimeHistoryIds.get(requestId);
+    if (!historyId) return;
+    this.historyItems = this.historyItems.map((item: HistoryItemModel): HistoryItemModel =>
+      item.id === historyId ? {
+        id: item.id, group: item.group, createdAt: item.createdAt, time: item.time,
+        method: item.method, url: item.url, status, duration, protocol: item.protocol
+      } : item);
+    if (completed) this.realtimeHistoryIds.delete(requestId);
+    this.persistLocalData();
+  }
+
   private updateLatestWebSocketHistory(history: WebSocketConnectionRecord[],
     status: 'connecting' | 'connected' | 'closed' | 'failed', errorCode: string = ''): WebSocketConnectionRecord[] {
     if (history.length === 0) return history;
@@ -1598,6 +1722,13 @@ export struct NimboWindow {
       errorMessage,
       connectionHistory
     });
+    if (event.kind === 'open') {
+      this.updateRealtimeHistory(id, 101, 'Connected', false);
+    } else if (event.kind === 'close') {
+      this.updateRealtimeHistory(id, 101, 'Closed', true);
+    } else if (event.kind === 'error') {
+      this.updateRealtimeHistory(id, 0, 'Failed', true);
+    }
   }
 
   private webSocketUrlChange(id: string, value: string): void {
@@ -1630,6 +1761,7 @@ export struct NimboWindow {
   private async connectWebSocket(id: string): Promise<void> {
     const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
     if (!tab) return;
+    this.beginRealtimeHistory(id, 'websocket', tab.request.method, tab.request.url);
     const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
       this.emptyWebSocketSession(id);
     const record: WebSocketConnectionRecord = {
@@ -1644,7 +1776,7 @@ export struct NimboWindow {
       requestId: id, status: 'connecting', composer: current.composer, messages: current.messages,
       errorCode: '', errorMessage: '', connectionHistory: [...(current.connectionHistory ?? []), record]
     });
-    const environment = this.activeEnvironment();
+    const environment = this.scopedEnvironment(id, this.activeEnvironment());
     const config = WebSocketRequestBuilder.build(tab.request, environment);
     if (config.unresolvedVariables.length > 0) {
       this.webSocketEvent(id, { kind: 'error', code: 'UNRESOLVED_VARIABLE',
@@ -1689,7 +1821,7 @@ export struct NimboWindow {
   private async sendWebSocketMessage(id: string): Promise<void> {
     const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
     if (!current || current.status !== 'connected' || current.composer.length === 0) return;
-    const environment = this.activeEnvironment();
+    const environment = this.scopedEnvironment(id, this.activeEnvironment());
     const unresolved = WebSocketRequestBuilder.unresolved(current.composer, environment);
     if (unresolved.length > 0) {
       this.webSocketOperationError(id, 'UNRESOLVED_VARIABLE',
@@ -1782,6 +1914,7 @@ export struct NimboWindow {
         statusCode: event.statusCode || current.statusCode,
         contentType: event.contentType || current.contentType
       });
+      if (event.statusCode > 0) this.updateRealtimeHistory(id, event.statusCode, 'Streaming', false);
       return;
     }
     if (event.kind === 'open') {
@@ -1789,25 +1922,30 @@ export struct NimboWindow {
         requestId: id, status: 'connected', events: current.events, errorCode: '', errorMessage: '',
         statusCode: event.statusCode, contentType: event.contentType
       });
+      this.updateRealtimeHistory(id, event.statusCode, 'Streaming', false);
     } else if (event.kind === 'end') {
       this.replaceSseSession({
         requestId: id, status: 'completed', events: current.events, errorCode: '', errorMessage: '',
         statusCode: event.statusCode || current.statusCode,
         contentType: event.contentType || current.contentType
       });
+      this.updateRealtimeHistory(id, event.statusCode || current.statusCode, 'Completed', true);
     } else if (event.kind === 'error') {
       this.replaceSseSession({
         requestId: id, status: 'error', events: current.events, errorCode: event.code,
         errorMessage: event.message, statusCode: event.statusCode || current.statusCode,
         contentType: event.contentType || current.contentType
       });
+      this.updateRealtimeHistory(id, event.statusCode || current.statusCode, 'Failed', true);
     }
   }
 
   private async connectSse(id: string): Promise<void> {
     const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
     if (!tab) return;
-    const config = WebSocketRequestBuilder.build(tab.request, this.activeEnvironment());
+    this.beginRealtimeHistory(id, 'sse', tab.request.method, tab.request.url);
+    const config = WebSocketRequestBuilder.build(tab.request,
+      this.scopedEnvironment(id, this.activeEnvironment()));
     const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id) ??
       this.emptySseSession(id);
     if (config.unresolvedVariables.length > 0) {
@@ -1817,6 +1955,7 @@ export struct NimboWindow {
           config.unresolvedVariables.map((name: string) => `{{${name}}}`).join(', '),
         statusCode: 0, contentType: ''
       });
+      this.updateRealtimeHistory(id, 0, 'Failed', true);
       return;
     }
     const validUrl = (config.url.startsWith('http://') && config.url.length > 7) ||
@@ -1827,13 +1966,14 @@ export struct NimboWindow {
         errorMessage: this.preferences.language === 'zh' ? 'SSE 地址必须以 http:// 或 https:// 开头。' :
           'The SSE URL must start with http:// or https://.', statusCode: 0, contentType: ''
       });
+      this.updateRealtimeHistory(id, 0, 'Failed', true);
       return;
     }
     this.replaceSseSession({
       requestId: id, status: 'connecting', events: current.events, errorCode: '', errorMessage: '',
       statusCode: 0, contentType: ''
     });
-    await this.sseController.connect(id, config.url, config.headers,
+    await this.sseController.connect(id, config.url, tab.request.method, config.headers,
       Math.max(300000, tab.request.settings.timeoutMs),
       (event: SseControllerEvent) => this.handleSseEvent(id, event));
   }
@@ -1845,6 +1985,7 @@ export struct NimboWindow {
       requestId: id, status: 'stopping', events: current.events, errorCode: '', errorMessage: '',
       statusCode: current.statusCode, contentType: current.contentType
     });
+    this.updateRealtimeHistory(id, current.statusCode, 'Stopped', true);
     this.sseController.stop(id);
     this.replaceSseSession({
       requestId: id, status: 'disconnected', events: current.events, errorCode: '', errorMessage: '',
@@ -2063,9 +2204,12 @@ export struct NimboWindow {
     } else {
       const request = this.createRequest(item.method);
       request.url = item.url;
+      request.protocol = item.protocol ?? 'http';
+      const label = request.protocol === 'websocket' ? 'WebSocket' :
+        (request.protocol === 'sse' ? 'SSE' : item.method);
       this.tabs = [...this.tabs, {
         id: item.id,
-        name: `${item.method} Request`,
+        name: `${label} Request`,
         method: item.method,
         dirty: false,
         pinned: false,
@@ -2073,6 +2217,11 @@ export struct NimboWindow {
         request,
         response: createEmptyResponse()
       }];
+      if (request.protocol === 'websocket') {
+        this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(item.id)];
+      } else if (request.protocol === 'sse') {
+        this.sseSessions = [...this.sseSessions, this.emptySseSession(item.id)];
+      }
       this.activeTabId = item.id;
     }
     this.animateState(() => { this.activeDestination = 'workspace'; });
@@ -2104,7 +2253,7 @@ export struct NimboWindow {
 
   private async copyHistoryItem(item: HistoryItemModel, asCurl: boolean): Promise<void> {
     let value = item.url;
-    if (asCurl) {
+    if (asCurl && (item.protocol ?? 'http') === 'http') {
       const request = this.createRequest(item.method);
       request.url = item.url;
       value = CurlCodec.encode(request);
@@ -2324,7 +2473,10 @@ export struct NimboWindow {
               onToggleNode: (id: string) => this.toggleCollectionNode(id),
               onCreateCollection: () => this.beginCreateCollection(),
               onCreateRequest: (parentId: string) => this.createRequestInCollection(parentId),
+              onCreateWebSocket: (parentId: string) => this.createRequestInCollection(parentId, 'websocket'),
+              onCreateSse: (parentId: string) => this.createRequestInCollection(parentId, 'sse'),
               onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId),
+              onEditVariables: (node: CollectionNode) => this.beginEditCollectionVariables(node),
               onRenameFolder: (node: CollectionNode) => this.beginRenameFolder(node),
               onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node),
               onDuplicateRequest: (node: CollectionNode) => this.duplicateCollectionRequest(node),
@@ -2367,6 +2519,7 @@ export struct NimboWindow {
             phone: this.isPhone(),
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
+            resolvedVariables: this.activeScopedVariables(),
             webSocketSession: this.currentWebSocketSession(),
             sseSession: this.currentSseSession(),
             onSelectTab: (id: string) => {
@@ -2420,7 +2573,10 @@ export struct NimboWindow {
               onToggleNode: (id: string) => this.toggleCollectionNode(id),
               onCreateCollection: () => this.beginCreateCollection(),
               onCreateRequest: (parentId: string) => this.createRequestInCollection(parentId),
+              onCreateWebSocket: (parentId: string) => this.createRequestInCollection(parentId, 'websocket'),
+              onCreateSse: (parentId: string) => this.createRequestInCollection(parentId, 'sse'),
               onCreateFolder: (parentId: string) => this.beginCreateFolder(parentId),
+              onEditVariables: (node: CollectionNode) => this.beginEditCollectionVariables(node),
               onRenameFolder: (node: CollectionNode) => this.beginRenameFolder(node),
               onRenameRequest: (node: CollectionNode) => this.beginRenameRequest(node),
               onDuplicateRequest: (node: CollectionNode) => this.duplicateCollectionRequest(node),
@@ -2639,7 +2795,7 @@ export struct NimboWindow {
       const executionId = `runner-${serial}-${index}-${item.requestId}`;
       this.runnerExecutionId = executionId;
       const result = await this.executeRequestPipeline(executionId, seed.request, environmentId,
-        (): boolean => this.runnerSerial === serial, runtimeValues);
+        (): boolean => this.runnerSerial === serial, runtimeValues, node.id);
       if (this.runnerSerial !== serial) break;
       if (result) {
         this.updateRunnerItem(item.id, (current: RunnerItemModel): RunnerItemModel =>
@@ -2761,6 +2917,47 @@ export struct NimboWindow {
     } else if (node.id === 'binary-response-request') {
       request.url = 'https://api.example.com/download';
       response = createBinaryResponse();
+    } else if (node.id === 'websocket-echo-request') {
+      request.protocol = 'websocket';
+      request.url = 'wss://echo.websocket.org';
+    } else if (node.id === 'sse-events-request') {
+      request.protocol = 'sse';
+      request.url = 'https://echo.websocket.org/.sse';
+    } else if (node.id === 'openai-list-models-request') {
+      request.url = '{{OPENAI_BASE_URL}}/v1/models';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{OPENAI_API_KEY}}';
+    } else if (node.id === 'openai-create-response-request') {
+      request.url = '{{OPENAI_BASE_URL}}/v1/responses';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{OPENAI_API_KEY}}';
+      request.activeConfigTab = 'body';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "model": "{{OPENAI_MODEL}}",\n  "input": "用一句话介绍 Nimbo API 调试工具"\n}';
+      request.headers = [{
+        id: 'openai-content-type', enabled: true, key: 'Content-Type', value: 'application/json',
+        description: 'JSON 请求正文', type: 'text', secret: false
+      }];
+      request.settings.timeoutMs = 120000;
+    } else if (node.id === 'deepseek-list-models-request') {
+      request.url = '{{DEEPSEEK_BASE_URL}}/models';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{DEEPSEEK_API_KEY}}';
+    } else if (node.id === 'deepseek-chat-request') {
+      request.url = '{{DEEPSEEK_BASE_URL}}/chat/completions';
+      request.auth.type = 'bearer';
+      request.auth.bearerToken = '{{DEEPSEEK_API_KEY}}';
+      request.activeConfigTab = 'body';
+      request.bodyType = 'json';
+      request.bodyText = '{\n  "model": "{{DEEPSEEK_MODEL}}",\n  "messages": [\n    {\n' +
+        '      "role": "system",\n      "content": "你是一名简洁、专业的开发助手。"\n    },\n' +
+        '    {\n      "role": "user",\n      "content": "用一句话介绍 Nimbo API 调试工具"\n    }\n' +
+        '  ],\n  "stream": false\n}';
+      request.headers = [{
+        id: 'deepseek-content-type', enabled: true, key: 'Content-Type', value: 'application/json',
+        description: 'JSON 请求正文', type: 'text', secret: false
+      }];
+      request.settings.timeoutMs = 120000;
     }
     return { request, response };
   }
@@ -2878,6 +3075,19 @@ export struct NimboWindow {
           placeholder: $r('app.string.environment_name_placeholder'),
           onCancel: () => this.hideOverlay(),
           onConfirm: (name: string) => this.createEnvironment(name)
+        })
+      }
+      if (this.activeOverlay === 'collection-variables') {
+        CollectionVariablesDialog({
+          targetName: this.editingCollectionVariablesName,
+          initialVariables: this.editingCollectionVariables,
+          onCancel: () => {
+            this.editingCollectionVariablesId = '';
+            this.editingCollectionVariablesName = '';
+            this.editingCollectionVariables = [];
+            this.hideOverlay();
+          },
+          onConfirm: (variables: KeyValueItem[]) => this.saveCollectionVariables(variables)
         })
       }
       if (this.activeOverlay === 'delete-environment') {

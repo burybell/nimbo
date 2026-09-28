@@ -44,6 +44,28 @@ export struct HistoryPage {
     return ColorTokens.httpOther;
   }
 
+  private requestLabel(item: HistoryItemModel): string {
+    if (item.protocol === 'websocket') return 'WS';
+    if (item.protocol === 'sse') return 'SSE';
+    return item.method;
+  }
+
+  private requestColor(item: HistoryItemModel): ResourceColor {
+    if (item.protocol === 'websocket' || item.protocol === 'sse') return ColorTokens.brand600;
+    return this.methodColor(item.method);
+  }
+
+  private statusLabel(item: HistoryItemModel): string {
+    return item.status > 0 ? `${item.status}` : '—';
+  }
+
+  private menuItemsFor(item: HistoryItemModel): ContextMenuItemModel[] {
+    if (item.protocol === 'websocket' || item.protocol === 'sse') {
+      return this.menuItems.filter((entry: ContextMenuItemModel) => entry.id !== 'copy-curl');
+    }
+    return this.menuItems;
+  }
+
   private activeItemCount(): number {
     return this.items.filter((item: HistoryItemModel) => item.group === this.activeGroup).length;
   }
@@ -115,11 +137,11 @@ export struct HistoryPage {
               (item: HistoryItemModel) => {
                 Column({ space: SpacingTokens.x2 }) {
                   Row({ space: SpacingTokens.x3 }) {
-                    Text(item.method).fontSize(11).fontWeight(FontWeight.Medium)
-                      .fontColor(this.methodColor(item.method))
+                    Text(this.requestLabel(item)).fontSize(11).fontWeight(FontWeight.Medium)
+                      .fontColor(this.requestColor(item))
                     Text(item.url).layoutWeight(1).fontSize(13).fontColor(ColorTokens.textPrimary)
                       .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
-                    Text(`${item.status}`).fontSize(12).fontWeight(FontWeight.Medium)
+                    Text(this.statusLabel(item)).fontSize(12).fontWeight(FontWeight.Medium)
                       .fontColor(this.statusColor(item.status))
                   }
                   .width('100%')
@@ -217,11 +239,11 @@ export struct HistoryPage {
                 Column() {
                   Row({ space: SpacingTokens.x4 }) {
                     Text(item.time).width(60).fontSize(12).fontColor(ColorTokens.textTertiary)
-                    Text(item.method).width(58).fontSize(12).fontWeight(FontWeight.Medium)
-                      .fontColor(this.methodColor(item.method))
+                    Text(this.requestLabel(item)).width(58).fontSize(12).fontWeight(FontWeight.Medium)
+                      .fontColor(this.requestColor(item))
                     Text(item.url).layoutWeight(1).fontSize(13).fontColor(ColorTokens.textPrimary)
                       .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
-                    Text(`${item.status}`).width(42).fontSize(12).fontWeight(FontWeight.Medium)
+                    Text(this.statusLabel(item)).width(42).fontSize(12).fontWeight(FontWeight.Medium)
                       .fontColor(this.statusColor(item.status))
                     Text(item.duration).width(68).fontSize(12).fontColor(ColorTokens.textSecondary)
                     Text('⋯').width(32).height(32).textAlign(TextAlign.Center).fontSize(18)
@@ -240,7 +262,8 @@ export struct HistoryPage {
                   if (this.menuId === item.id) {
                     Row() {
                       Blank()
-                      NimboContextMenu({ items: this.menuItems, onSelect: (action: string) => this.handleMenu(action, item) })
+                      NimboContextMenu({ items: this.menuItemsFor(item),
+                        onSelect: (action: string) => this.handleMenu(action, item) })
                     }
                     .width('100%')
                     .padding({ right: SpacingTokens.x4, bottom: SpacingTokens.x2 })

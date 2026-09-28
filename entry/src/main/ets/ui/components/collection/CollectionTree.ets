@@ -20,7 +20,10 @@ export struct CollectionTree {
   onOpenRequest: (node: CollectionNode) => void = () => {};
   onToggleNode: (id: string) => void = () => {};
   onCreateRequest: (parentId: string) => void = () => {};
+  onCreateWebSocket: (parentId: string) => void = () => {};
+  onCreateSse: (parentId: string) => void = () => {};
   onCreateFolder: (parentId: string) => void = () => {};
+  onEditVariables: (node: CollectionNode) => void = () => {};
   onRenameFolder: (node: CollectionNode) => void = () => {};
   onRenameRequest: (node: CollectionNode) => void = () => {};
   onDuplicateRequest: (node: CollectionNode) => void = () => {};
@@ -28,8 +31,15 @@ export struct CollectionTree {
   onDeleteNode: (node: CollectionNode) => void = () => {};
   private folderMenuItems: ContextMenuItemModel[] = [
     { id: 'run', label: $r('app.string.runner_run'), icon: '', iconMedia: $r('app.media.run'), dangerous: false },
-    { id: 'create-request', label: $r('app.string.search_new_request'), icon: '+', dangerous: false },
+    { id: 'create-request', label: $r('app.string.new_http_request'), icon: '',
+      iconMedia: $r('app.media.request_http'), dangerous: false },
+    { id: 'create-websocket', label: $r('app.string.new_websocket_request'), icon: '',
+      iconMedia: $r('app.media.request_websocket'), dangerous: false },
+    { id: 'create-sse', label: $r('app.string.new_sse_request'), icon: '',
+      iconMedia: $r('app.media.request_sse'), dangerous: false },
     { id: 'create-folder', label: $r('app.string.folder_create'), icon: '▱', dangerous: false },
+    { id: 'variables', label: $r('app.string.collection_variables'), icon: '',
+      iconMedia: $r('app.media.nav_environments'), dangerous: false },
     { id: 'rename', label: $r('app.string.action_rename'), icon: '✎', dangerous: false },
     { id: 'delete', label: $r('app.string.action_delete'), icon: '×', dangerous: true }
   ];
@@ -90,7 +100,10 @@ export struct CollectionTree {
       this.menuNodeId = '';
     });
     if (action === 'create-request') this.onCreateRequest(node.id);
+    if (action === 'create-websocket') this.onCreateWebSocket(node.id);
+    if (action === 'create-sse') this.onCreateSse(node.id);
     if (action === 'create-folder') this.onCreateFolder(node.id);
+    if (action === 'variables') this.onEditVariables(node);
     if (action === 'run') this.onRunNode(node);
     if (action === 'rename') {
       if (node.type === 'request') {

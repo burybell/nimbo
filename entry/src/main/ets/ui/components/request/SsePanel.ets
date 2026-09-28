@@ -1,9 +1,11 @@
-import { AuthConfig, KeyValueItem, RequestDraft, SseEventModel, SseSessionModel } from '../../../models/ShellModels';
+import { AuthConfig, HttpMethod, KeyValueItem, RequestDraft, SseEventModel,
+  SseSessionModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { AuthEditor } from './AuthEditor';
 import { KeyValueEditor } from './KeyValueEditor';
-import { VariableTextInput } from './VariableTextInput';
+import { MethodSelector } from './MethodSelector';
+import { UrlInput } from './UrlInput';
 
 type SsePanelTab = 'events' | 'headers' | 'auth';
 
@@ -15,6 +17,7 @@ export struct SsePanel {
   @State activeTab: SsePanelTab = 'events';
   @State searchQuery: string = '';
   onUrlChange: (value: string) => void = () => {};
+  onMethodChange: (value: HttpMethod) => void = () => {};
   onHeadersChange: (value: KeyValueItem[]) => void = () => {};
   onAuthChange: (value: AuthConfig) => void = () => {};
   onConnect: () => void = () => {};
@@ -61,11 +64,11 @@ export struct SsePanel {
   @Builder
   private tab(label: ResourceStr, value: SsePanelTab, badge: number = 0) {
     Row({ space: 5 }) {
-      Text(label).fontSize(11).fontWeight(this.activeTab === value ? FontWeight.Medium : FontWeight.Regular)
+      Text(label).fontSize(13).fontWeight(this.activeTab === value ? FontWeight.Medium : FontWeight.Regular)
         .fontColor(this.activeTab === value ? ColorTokens.brand600 : ColorTokens.textSecondary)
       if (badge > 0) Text(`${badge}`).fontSize(9).fontColor(ColorTokens.textTertiary)
     }
-    .height(34).padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
+    .height(40).padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
     .border({ width: { bottom: this.activeTab === value ? 2 : 0 }, color: ColorTokens.brand500 })
     .onClick(() => { this.activeTab = value; })
   }
@@ -122,13 +125,15 @@ export struct SsePanel {
   build() {
     Column() {
       Row({ space: SpacingTokens.x2 }) {
-        Text('SSE').fontSize(11).fontWeight(FontWeight.Bold).fontColor(ColorTokens.brand600)
-          .width(42).height(SizeTokens.controlLarge).textAlign(TextAlign.Center)
-        VariableTextInput({ value: this.request.url, variables: this.variables, inputId: 'nimbo-sse-url',
-          placeholder: 'https://api.example.com/events', fontSize: 13, controlHeight: SizeTokens.controlLarge,
-          fillColor: ColorTokens.bgSurface, onChange: this.onUrlChange })
-          .layoutWeight(1).border({ width: 1, color: ColorTokens.borderDefault })
-          .borderRadius(RadiusTokens.medium).enabled(!this.active())
+        Row() {
+          MethodSelector({ value: this.request.method, embedded: true, onChange: this.onMethodChange })
+          UrlInput({ value: this.request.url, variables: this.variables, embedded: true,
+            onChange: this.onUrlChange, onSubmit: this.onConnect })
+            .layoutWeight(1)
+        }
+        .height(SizeTokens.controlLarge).layoutWeight(1).backgroundColor(ColorTokens.bgSurface)
+        .border({ width: 1, color: ColorTokens.borderDefault }).borderRadius(RadiusTokens.medium)
+        .clip(true).enabled(!this.active())
         if (this.active()) {
           Button(this.session.status === 'stopping' ? $r('app.string.sse_stopping') : $r('app.string.sse_stop'))
             .height(SizeTokens.controlLarge).fontSize(12).fontColor(ColorTokens.statusServerError)
@@ -162,14 +167,16 @@ export struct SsePanel {
           }
         }.margin({ right: SpacingTokens.x4 })
       }
-      .width('100%').height(36).backgroundColor(ColorTokens.bgSurface)
+      .width('100%').height(41).backgroundColor(ColorTokens.bgSurface)
       .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
 
       if (this.activeTab === 'events') {
         Row({ space: SpacingTokens.x2 }) {
           Image($r('app.media.search')).width(14).height(14).fillColor(ColorTokens.textTertiary)
           TextInput({ text: this.searchQuery, placeholder: $r('app.string.sse_search_placeholder') })
-            .layoutWeight(1).height(28).fontSize(11).backgroundColor(Color.Transparent)
+            .layoutWeight(1).height(28).fontSize(11).padding({ left: 6, right: 6, top: 0, bottom: 0 })
+            .placeholderFont({ size: 11 })
+            .backgroundColor(Color.Transparent)
             .placeholderColor(ColorTokens.textTertiary).onChange((value: string) => { this.searchQuery = value; })
           if (this.session.contentType.length > 0) {
             Text(this.session.contentType).fontSize(10).fontColor(ColorTokens.textTertiary)

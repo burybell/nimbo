@@ -252,12 +252,14 @@ export struct UrlInput {
     RichEditor({ controller: this.controller })
       .id('nimboRequestUrlInput')
       .height(SizeTokens.controlLarge)
-      .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: 8, bottom: 6 })
+      .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: 8, bottom: 3 })
       .backgroundColor(this.embedded ? Color.Transparent : ColorTokens.bgSurface)
       .caretColor(ColorTokens.brand500)
       .selectedBackgroundColor(ColorTokens.codeSelection)
       .copyOptions(CopyOptions.LocalDevice)
-      .placeholder($r('app.string.request_url_placeholder'), { fontColor: ColorTokens.textTertiary })
+      .placeholder($r('app.string.request_url_placeholder'), {
+        font: { size: 14, family: 'HarmonyOS Sans SC' }, fontColor: ColorTokens.textTertiary
+      })
       .aboutToIMEInput((value: RichEditorInsertValue) => this.beforeInput(value))
       .onKeyEvent((event: KeyEvent) => {
         if (event.type !== KeyType.Down) return false;

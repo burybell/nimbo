@@ -73,6 +73,18 @@
       "value": "重命名文件夹"
     },
     {
+      "name": "collection_variables",
+      "value": "变量"
+    },
+    {
+      "name": "collection_variables_hint",
+      "value": "变量会应用于该节点下的全部请求。离请求更近的文件夹优先级高于上级文件夹、集合和当前环境。"
+    },
+    {
+      "name": "toast_collection_variables_saved",
+      "value": "变量已保存"
+    },
+    {
       "name": "action_rename",
       "value": "重命名"
     },
@@ -1270,8 +1282,8 @@
     { "name": "runner_data_rows", "value": "行" },
     { "name": "runner_data_hint", "value": "每行数据对应一次迭代；数据变量仅在本次运行中覆盖所选环境。" },
     { "name": "runner_data_variables", "value": "变量：" },
-    { "name": "new_http_request", "value": "HTTP 请求" },
-    { "name": "new_websocket_request", "value": "WebSocket 请求" },
+    { "name": "new_http_request", "value": "新建 HTTP 请求" },
+    { "name": "new_websocket_request", "value": "新建 WS 请求" },
     { "name": "websocket_connect", "value": "连接" },
     { "name": "websocket_connecting", "value": "连接中…" },
     { "name": "websocket_disconnect", "value": "断开" },
@@ -1301,7 +1313,7 @@
     { "name": "websocket_history_connected", "value": "已连接" },
     { "name": "websocket_history_closed", "value": "已关闭" },
     { "name": "websocket_history_failed", "value": "失败" },
-    { "name": "new_sse_request", "value": "SSE 请求" },
+    { "name": "new_sse_request", "value": "新建 SSE 请求" },
     { "name": "sse_connect", "value": "连接" },
     { "name": "sse_stop", "value": "停止" },
     { "name": "sse_stopping", "value": "正在停止…" },

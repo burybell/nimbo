@@ -2,6 +2,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { http } from '@kit.NetworkKit';
 import { util } from '@kit.ArkTS';
 import { ParsedSseEvent, SseParser } from '../services/SseParser';
+import { HttpMethod } from '../models/ShellModels';
 
 export type SseControllerEventKind = 'open' | 'event' | 'end' | 'error';
 
@@ -34,7 +35,16 @@ export class SseController {
     return Array.isArray(value) ? value.join(', ') : `${value}`;
   }
 
-  async connect(id: string, url: string, headers: Record<string, string>, timeout: number,
+  private requestMethod(method: HttpMethod): http.RequestMethod {
+    if (method === 'POST') return http.RequestMethod.POST;
+    if (method === 'PUT') return http.RequestMethod.PUT;
+    if (method === 'DELETE') return http.RequestMethod.DELETE;
+    if (method === 'HEAD') return http.RequestMethod.HEAD;
+    if (method === 'OPTIONS') return http.RequestMethod.OPTIONS;
+    return http.RequestMethod.GET;
+  }
+
+  async connect(id: string, url: string, method: HttpMethod, headers: Record<string, string>, timeout: number,
     onEvent: (event: SseControllerEvent) => void): Promise<void> {
     this.stop(id);
     const request = http.createHttp();
@@ -77,12 +87,13 @@ export class SseController {
     requestHeaders['Accept'] = 'text/event-stream';
     Object.keys(headers).forEach((key: string) => { requestHeaders[key] = headers[key]; });
     const options: http.HttpRequestOptions = {
-      method: http.RequestMethod.GET,
+      method: this.requestMethod(method),
       header: requestHeaders,
       connectTimeout: timeout,
       readTimeout: timeout,
       usingCache: false
     };
+    if (method === 'PATCH') options.method = method as http.RequestMethod;
     try {
       statusCode = await request.requestInStream(url, options);
       if (this.requests.get(id) === request && !opened) {

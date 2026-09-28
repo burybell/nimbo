@@ -11,6 +11,14 @@ export struct NimboContextMenu {
   onSelect: (id: string) => void = () => {};
   onDismiss: () => void = () => {};
 
+  private iconWidth(item: ContextMenuItemModel): number {
+    return this.accentIcons || item.icon.length > 1 ? 38 : 18;
+  }
+
+  private iconFontSize(item: ContextMenuItemModel): number {
+    return this.accentIcons || item.icon.length > 1 ? 10 : 14;
+  }
+
   build() {
     Column() {
       ForEach(this.items, (item: ContextMenuItemModel, index: number) => {
@@ -20,16 +28,16 @@ export struct NimboContextMenu {
         Row({ space: SpacingTokens.x3 }) {
           if (item.iconMedia !== undefined) {
             Image(item.iconMedia)
-              .width(this.accentIcons ? 24 : 18)
+              .width(this.iconWidth(item))
               .height(this.accentIcons ? 24 : 18)
               .objectFit(ImageFit.Contain)
               .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
               .borderRadius(RadiusTokens.small)
           } else {
             Text(item.icon)
-              .width(this.accentIcons ? 24 : 18)
+              .width(this.iconWidth(item))
               .height(this.accentIcons ? 24 : 18)
-              .fontSize(this.accentIcons ? 11 : 14)
+              .fontSize(this.iconFontSize(item))
               .fontWeight(this.accentIcons ? FontWeight.Bold : FontWeight.Regular)
               .fontColor(item.dangerous ? ColorTokens.httpDelete :
                 (this.accentIcons ? ColorTokens.brand600 : ColorTokens.textSecondary))
@@ -50,7 +58,7 @@ export struct NimboContextMenu {
         .onClick(() => this.onSelect(item.id))
       }, (item: ContextMenuItemModel) => item.id)
     }
-    .width(184)
+    .width(this.accentIcons ? 216 : 184)
     .padding(SpacingTokens.x1)
     .backgroundColor(ColorTokens.bgSurface)
     .border({ width: 1, color: ColorTokens.borderSubtle })
