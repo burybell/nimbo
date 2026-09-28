@@ -1,6 +1,6 @@
 import { ResponseMediaKind } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
-import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
+import { RadiusTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 
 @Component
 export struct MediaViewer {
@@ -26,14 +26,16 @@ export struct MediaViewer {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
         Blank()
         Text(this.responseSize).fontSize(10).fontColor(ColorTokens.textTertiary)
-        Text($r('app.string.response_download_action'))
-          .fontSize(11)
-          .fontColor(ColorTokens.brand600)
-          .height(SizeTokens.controlSmall)
-          .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3 })
-          .textAlign(TextAlign.Center)
-          .backgroundColor(ColorTokens.brand50)
+        Button({ type: ButtonType.Normal }) {
+          Image($r('app.media.response_download'))
+            .width(16)
+            .height(16)
+        }
+          .width(28)
+          .height(28)
+          .backgroundColor(ColorTokens.bgWorkspace)
           .borderRadius(RadiusTokens.small)
+          .accessibilityText($r('app.string.response_download_action'))
           .onClick(this.onSave)
       }
       .width('100%')

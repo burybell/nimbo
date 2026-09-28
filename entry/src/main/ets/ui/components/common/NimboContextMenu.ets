@@ -18,16 +18,25 @@ export struct NimboContextMenu {
           Divider().color(ColorTokens.borderSubtle).margin({ top: SpacingTokens.x1, bottom: SpacingTokens.x1 })
         }
         Row({ space: SpacingTokens.x3 }) {
-          Text(item.icon)
-            .width(this.accentIcons ? 24 : 18)
-            .height(this.accentIcons ? 24 : 18)
-            .fontSize(this.accentIcons ? 11 : 14)
-            .fontWeight(this.accentIcons ? FontWeight.Bold : FontWeight.Regular)
-            .fontColor(item.dangerous ? ColorTokens.httpDelete :
-              (this.accentIcons ? ColorTokens.brand600 : ColorTokens.textSecondary))
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
-            .borderRadius(RadiusTokens.small)
+          if (item.iconMedia !== undefined) {
+            Image(item.iconMedia)
+              .width(this.accentIcons ? 24 : 18)
+              .height(this.accentIcons ? 24 : 18)
+              .objectFit(ImageFit.Contain)
+              .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
+              .borderRadius(RadiusTokens.small)
+          } else {
+            Text(item.icon)
+              .width(this.accentIcons ? 24 : 18)
+              .height(this.accentIcons ? 24 : 18)
+              .fontSize(this.accentIcons ? 11 : 14)
+              .fontWeight(this.accentIcons ? FontWeight.Bold : FontWeight.Regular)
+              .fontColor(item.dangerous ? ColorTokens.httpDelete :
+                (this.accentIcons ? ColorTokens.brand600 : ColorTokens.textSecondary))
+              .textAlign(TextAlign.Center)
+              .backgroundColor(this.accentIcons ? ColorTokens.brand50 : ColorTokens.bgSurface)
+              .borderRadius(RadiusTokens.small)
+          }
           Text(item.label)
             .fontSize(13)
             .fontColor(item.dangerous ? ColorTokens.httpDelete : ColorTokens.textPrimary)

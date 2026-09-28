@@ -12,7 +12,9 @@ export type ResponseTab = 'body' | 'headers' | 'cookies' | 'scripts' | 'tests' |
 export type ResponseBodyMode = 'pretty' | 'raw';
 export type ResponseMediaKind = 'none' | 'image' | 'video';
 export type ResponseErrorType = 'dns' | 'connectionRefused' | 'timeout' | 'tls' |
-  'connectionReset' | 'invalidUrl' | 'proxy' | 'script' | 'cancelled' | 'unknown';
+  'connectionReset' | 'invalidUrl' | 'proxy' | 'script' | 'variable' | 'file' | 'cancelled' | 'unknown';
+export type ResponseErrorStage = 'validation' | 'dns' | 'connect' | 'tls' | 'send' | 'receive' |
+  'script' | 'file' | 'unknown';
 
 export interface NavigationItemModel {
   id: NavigationDestination;
@@ -28,6 +30,24 @@ export interface CollectionNode {
   method?: string;
   expanded: boolean;
   children: CollectionNode[];
+}
+
+export type RunnerItemStatus = 'queued' | 'running' | 'passed' | 'failed' | 'cancelled';
+export type RunnerFilter = 'all' | 'passed' | 'failed' | 'cancelled';
+
+export interface RunnerItemModel {
+  id: string;
+  requestId: string;
+  name: string;
+  method: HttpMethod;
+  iteration: number;
+  status: RunnerItemStatus;
+  statusCode: number;
+  duration: string;
+  passedTests: number;
+  failedTests: number;
+  message: string;
+  details: string[];
 }
 
 export interface RequestTabModel {
@@ -154,6 +174,14 @@ export interface ResponseErrorModel {
   message: string;
   code: string;
   details: string;
+  stage?: ResponseErrorStage;
+  method?: HttpMethod;
+  host?: string;
+  durationMs?: number;
+  timeoutMs?: number;
+  sslVerification?: boolean;
+  followRedirects?: boolean;
+  unresolvedVariables?: string[];
 }
 
 export interface ResponseTiming {
@@ -221,5 +249,6 @@ export interface ContextMenuItemModel {
   id: string;
   label: ResourceStr;
   icon: string;
+  iconMedia?: ResourceStr;
   dangerous: boolean;
 }

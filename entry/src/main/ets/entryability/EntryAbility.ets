@@ -6,11 +6,16 @@ import { WindowChromeController } from '../services/WindowChromeController';
 const DOMAIN = 0x0000;
 const TITLE_BAR_HEIGHT = 52;
 const TITLE_BUTTON_FALLBACK_INSET = 132;
+const TITLE_BAR_EDGE_INSET = 12;
 
 export default class EntryAbility extends UIAbility {
   private mainWindow: window.Window | undefined = undefined;
+  private currentWindowStatus: window.WindowStatusType = window.WindowStatusType.UNDEFINED;
   private titleButtonRectChange = (rect: window.TitleButtonRect): void => {
     this.publishTitleButtonInset(rect);
+  };
+  private windowStatusChange = (status: window.WindowStatusType): void => {
+    this.publishTitleButtonInsetForStatus(status);
   };
   private windowEventChange = (event: window.WindowEventType): void => {
     if (event === window.WindowEventType.WINDOW_ACTIVE || event === window.WindowEventType.WINDOW_SHOWN) {
@@ -34,6 +39,7 @@ export default class EntryAbility extends UIAbility {
     if (this.mainWindow) {
       try {
         this.mainWindow.off('windowTitleButtonRectChange', this.titleButtonRectChange);
+        this.mainWindow.off('windowStatusDidChange', this.windowStatusChange);
         this.mainWindow.off('windowEvent', this.windowEventChange);
       } catch (error) {
         hilog.warn(DOMAIN, 'Nimbo', 'Unable to detach title button observer: %{public}s', JSON.stringify(error));
@@ -41,6 +47,7 @@ export default class EntryAbility extends UIAbility {
     }
     WindowChromeController.unbind();
     this.mainWindow = undefined;
+    this.currentWindowStatus = window.WindowStatusType.UNDEFINED;
   }
 
   onConfigurationUpdate(newConfig: Configuration): void {
@@ -79,15 +86,40 @@ export default class EntryAbility extends UIAbility {
       mainWindow.setWindowTitleMoveEnabled(true);
       mainWindow.setDecorButtonStyle({ buttonIconSize: 18, buttonBackgroundSize: 32,
         spacingBetweenButtons: 8, closeButtonRightMargin: 12, buttonBackgroundCornerRadius: 16 });
-      this.publishTitleButtonInset(mainWindow.getTitleButtonRect());
+      this.currentWindowStatus = mainWindow.getWindowStatus();
+      this.publishTitleButtonInset(mainWindow.getTitleButtonRect(), this.currentWindowStatus);
       mainWindow.on('windowTitleButtonRectChange', this.titleButtonRectChange);
+      mainWindow.on('windowStatusDidChange', this.windowStatusChange);
       mainWindow.on('windowEvent', this.windowEventChange);
     } catch (error) {
       hilog.warn(DOMAIN, 'Nimbo', 'Immersive title bar is unavailable: %{public}s', JSON.stringify(error));
     }
   }
 
-  private publishTitleButtonInset(rect: window.TitleButtonRect): void {
+  private publishTitleButtonInsetForStatus(status: window.WindowStatusType): void {
+    this.currentWindowStatus = status;
+    if (status === window.WindowStatusType.MAXIMIZE || status === window.WindowStatusType.FULL_SCREEN) {
+      AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BAR_EDGE_INSET);
+      return;
+    }
+    if (!this.mainWindow) {
+      AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
+      return;
+    }
+    try {
+      this.publishTitleButtonInset(this.mainWindow.getTitleButtonRect(), status);
+    } catch (_error) {
+      AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BUTTON_FALLBACK_INSET);
+    }
+  }
+
+  private publishTitleButtonInset(rect: window.TitleButtonRect,
+    status?: window.WindowStatusType): void {
+    const currentStatus = status ?? this.currentWindowStatus;
+    if (currentStatus === window.WindowStatusType.MAXIMIZE || currentStatus === window.WindowStatusType.FULL_SCREEN) {
+      AppStorage.setOrCreate('nimbo.titleButtonInset', TITLE_BAR_EDGE_INSET);
+      return;
+    }
     const inset = Math.max(TITLE_BUTTON_FALLBACK_INSET, rect.right + rect.width + 12);
     AppStorage.setOrCreate('nimbo.titleButtonInset', inset);
   }

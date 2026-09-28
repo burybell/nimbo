@@ -29,6 +29,82 @@ export class RequestController {
     return resolved;
   }
 
+  private variableNames(value: string): string[] {
+    const names: string[] = [];
+    const pattern = /\{\{\s*([^{}]+?)\s*\}\}/g;
+    let match = pattern.exec(value);
+    while (match !== null) {
+      const name = match[1].trim();
+      if (name.length > 0 && !names.includes(name)) names.push(name);
+      match = pattern.exec(value);
+    }
+    return names;
+  }
+
+  private unresolvedVariables(request: RequestDraft, environment: EnvironmentModel): string[] {
+    const available = new Set<string>();
+    environment.variables.forEach((variable: KeyValueItem) => {
+      if (variable.enabled && variable.key.trim().length > 0 && variable.value.length > 0) {
+        available.add(variable.key.trim());
+      }
+    });
+    const values: string[] = [request.url];
+    request.params.forEach((item: KeyValueItem) => {
+      if (item.enabled) values.push(item.key, item.value);
+    });
+    request.headers.forEach((item: KeyValueItem) => {
+      if (item.enabled) values.push(item.key, item.value);
+    });
+    if (request.auth.type === 'bearer') values.push(request.auth.bearerToken);
+    if (request.auth.type === 'basic') values.push(request.auth.username, request.auth.password);
+    if (request.auth.type === 'apiKey') values.push(request.auth.apiKey, request.auth.apiValue);
+    if (request.bodyType === 'json' || request.bodyType === 'text') values.push(request.bodyText);
+    if (request.bodyType === 'form') {
+      request.formItems.forEach((item: KeyValueItem) => {
+        if (item.enabled) values.push(item.key, item.value);
+      });
+    }
+    if (request.bodyType === 'multipart') {
+      request.multipartItems.forEach((item: KeyValueItem) => {
+        if (!item.enabled) return;
+        values.push(item.key);
+        if (item.type !== 'file') values.push(item.value);
+      });
+    }
+    const unresolved: string[] = [];
+    values.forEach((value: string) => this.variableNames(value).forEach((name: string) => {
+      if (!available.has(name) && !unresolved.includes(name)) unresolved.push(name);
+    }));
+    return unresolved;
+  }
+
+  private safeHost(url: string): string {
+    const trimmed = url.trim();
+    const scheme = trimmed.indexOf('://');
+    const start = scheme >= 0 ? scheme + 3 : 0;
+    let end = trimmed.length;
+    const separators = [trimmed.indexOf('/', start), trimmed.indexOf('?', start), trimmed.indexOf('#', start)];
+    separators.forEach((position: number) => {
+      if (position >= 0 && position < end) end = position;
+    });
+    let authority = trimmed.substring(start, end);
+    const at = authority.lastIndexOf('@');
+    if (at >= 0) authority = authority.substring(at + 1);
+    return authority;
+  }
+
+  private sanitizedErrorText(value: string): string {
+    return value.replace(/https?:\/\/[^\s]+/g, (matched: string) => {
+      const scheme = matched.indexOf('://');
+      const path = matched.indexOf('/', scheme + 3);
+      const query = matched.indexOf('?', scheme + 3);
+      let end = matched.length;
+      if (path >= 0) end = Math.min(end, path);
+      if (query >= 0) end = Math.min(end, query);
+      return `${matched.substring(0, end)}/***`;
+    });
+  }
+
   private encode(value: string): string {
     return encodeURIComponent(value);
   }
@@ -308,34 +384,60 @@ export class RequestController {
     };
   }
 
-  private errorModel(error: BusinessError): ResponseModel {
+  private errorModel(error: BusinessError, request: RequestDraft, resolvedUrl: string,
+    durationMs: number): ResponseModel {
     const response = createEmptyResponse();
     response.status = 'error';
     const code = error.code === undefined ? 'CLIENT_ERROR' : `${error.code}`;
+    const safeMessage = this.sanitizedErrorText(error.message);
     let model: ResponseErrorModel = {
-      type: 'unknown', title: 'Request failed', message: error.message,
-      code, details: error.message
+      type: 'unknown', title: 'Request failed', message: safeMessage,
+      code, details: safeMessage, stage: 'unknown', method: request.method,
+      host: this.safeHost(resolvedUrl), durationMs, timeoutMs: request.settings.timeoutMs,
+      sslVerification: request.settings.sslVerification, followRedirects: request.settings.followRedirects
     };
     if (error.message.includes('selected file') || error.message.includes('upload limit')) {
-      model = { type: 'unknown', title: 'File upload failed', message: error.message,
-        code, details: 'Choose a readable file no larger than 32 MB.' };
+      model.type = 'file';
+      model.title = 'File upload failed';
+      model.stage = 'file';
     }
     if (error.code === 2300003 || error.code === 2300001) {
-      model = { type: 'invalidUrl', title: 'Invalid URL', message: error.message,
-        code: `${error.code}`, details: 'Check the URL and protocol, then try again.' };
+      model.type = 'invalidUrl';
+      model.title = 'Invalid URL';
+      model.stage = 'validation';
+    } else if (error.code === 2300005) {
+      model.type = 'proxy';
+      model.title = 'Proxy lookup failed';
+      model.stage = 'connect';
     } else if (error.code === 2300006) {
-      model = { type: 'dns', title: 'DNS lookup failed', message: error.message,
-        code: `${error.code}`, details: 'The host name could not be resolved.' };
+      model.type = 'dns';
+      model.title = 'DNS lookup failed';
+      model.stage = 'dns';
     } else if (error.code === 2300007) {
-      model = { type: 'connectionRefused', title: 'Connection failed', message: error.message,
-        code: `${error.code}`, details: 'The remote server refused or could not accept the connection.' };
+      model.type = 'connectionRefused';
+      model.title = 'Connection failed';
+      model.stage = 'connect';
     } else if (error.code === 2300028) {
-      model = { type: 'timeout', title: 'Request timed out', message: 'The request exceeded its configured timeout.',
-        code: `${error.code}`, details: error.message };
+      model.type = 'timeout';
+      model.title = 'Request timed out';
+      model.stage = 'receive';
+    } else if (error.code === 2300055) {
+      model.type = 'connectionReset';
+      model.title = 'Connection interrupted';
+      model.stage = 'send';
+    } else if (error.code === 2300056 || error.code === 2300052) {
+      model.type = 'connectionReset';
+      model.title = 'Connection interrupted';
+      model.stage = 'receive';
+    } else if (error.code === 2300025 || error.code === 2300026 || error.code === 2300063) {
+      model.type = 'file';
+      model.title = 'File transfer failed';
+      model.stage = 'file';
     } else if (error.code === 2300058 || error.code === 2300059 || error.code === 2300060 ||
       error.code === 2300077) {
-      model = { type: 'tls', title: 'TLS certificate verification failed', message: error.message,
-        code: `${error.code}`, details: 'Review the certificate and request settings.' };
+      model.type = 'tls';
+      model.title = 'TLS certificate verification failed';
+      model.stage = 'tls';
     }
     response.error = model;
     return response;
@@ -343,8 +445,25 @@ export class RequestController {
 
   async send(id: string, request: RequestDraft, environment: EnvironmentModel): Promise<ResponseModel> {
     this.cancelledRequests.delete(id);
+    const startedAt = Date.now();
+    const unresolved = this.unresolvedVariables(request, environment);
+    if (unresolved.length > 0) {
+      const response = createEmptyResponse();
+      response.status = 'error';
+      response.error = {
+        type: 'variable', title: 'Unresolved environment variables',
+        message: unresolved.join(', '), code: 'UNRESOLVED_VARIABLE',
+        details: unresolved.join(', '), stage: 'validation', method: request.method,
+        host: this.safeHost(request.url), durationMs: 0, timeoutMs: request.settings.timeoutMs,
+        sslVerification: request.settings.sslVerification, followRedirects: request.settings.followRedirects,
+        unresolvedVariables: unresolved
+      };
+      return response;
+    }
+    let resolvedUrl = request.url.trim();
     try {
       const url = this.buildUrl(request, environment);
+      resolvedUrl = url;
       const headers = this.buildHeaders(request, environment);
       if (request.settings.useCookieJar && !this.hasHeader(headers, 'cookie')) {
         const cookie = this.cookieHeader(url);
@@ -374,7 +493,7 @@ export class RequestController {
       return this.responseModel(result);
     } catch (error) {
       if (this.cancelledRequests.has(id)) return createCancelledResponse();
-      return this.errorModel(error as BusinessError);
+      return this.errorModel(error as BusinessError, request, resolvedUrl, Date.now() - startedAt);
     }
   }
 

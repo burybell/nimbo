@@ -77,7 +77,14 @@ export function createErrorResponse(): ResponseModel {
     title: 'Connection failed',
     message: 'Connection refused — localhost:8080',
     code: 'ECONNREFUSED',
-    details: 'TCP connection to 127.0.0.1:8080 failed.'
+    details: 'TCP connection to localhost:8080 failed.',
+    stage: 'connect',
+    method: 'GET',
+    host: 'localhost:8080',
+    durationMs: 12,
+    timeoutMs: 30000,
+    sslVerification: true,
+    followRedirects: true
   };
   return response;
 }

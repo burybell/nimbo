@@ -1,4 +1,5 @@
-import { EnvironmentModel, RequestDraft, RequestTabModel, ResponseModel } from '../../../models/ShellModels';
+import { EnvironmentModel, RequestDraft, RequestTabModel, ResponseErrorModel,
+  ResponseModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -31,6 +32,7 @@ export struct Workspace {
   onCopyResponseBody: (response: ResponseModel) => void = () => {};
   onDownloadResponseBody: (response: ResponseModel) => void = () => {};
   onCopyGeneratedCode: (value: string) => void = () => {};
+  onCopyErrorDiagnostic: (error: ResponseErrorModel) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -173,7 +175,8 @@ export struct Workspace {
             onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId),
             onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
             onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
-            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response)
+            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response),
+            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error)
           })
           .layoutWeight(1)
           .opacity(this.contentOpacity)
@@ -208,7 +211,8 @@ export struct Workspace {
             onPreviewLarge: () => this.onPreviewLargeResponse(this.activeTabId),
             onSaveBinary: () => this.onSaveBinary(this.tabs[this.activeIndex()].response),
             onCopyBody: () => this.onCopyResponseBody(this.tabs[this.activeIndex()].response),
-            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response)
+            onDownloadBody: () => this.onDownloadResponseBody(this.tabs[this.activeIndex()].response),
+            onCopyDiagnostic: () => this.onCopyErrorDiagnostic(this.tabs[this.activeIndex()].response.error)
           })
             .layoutWeight(1)
         }
