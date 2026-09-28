@@ -40,6 +40,13 @@ export struct CollectionTree {
     { id: 'delete', label: $r('app.string.action_delete'), icon: '×', dangerous: true }
   ];
 
+  private menuItemsForRequest(node: CollectionNode | undefined): ContextMenuItemModel[] {
+    if (node?.method === 'WS' || node?.method === 'SSE') {
+      return this.requestMenuItems.filter((item: ContextMenuItemModel) => item.id !== 'run');
+    }
+    return this.requestMenuItems;
+  }
+
   private methodColor(method: string): ResourceColor {
     if (method === 'GET') return ColorTokens.httpGet;
     if (method === 'POST') return ColorTokens.httpPost;
@@ -101,7 +108,7 @@ export struct CollectionTree {
     if (this.menuNodeId.length > 0) {
       NimboContextMenu({
         items: this.findNode(this.nodes, this.menuNodeId)?.type === 'request' ?
-          this.requestMenuItems : this.folderMenuItems,
+          this.menuItemsForRequest(this.findNode(this.nodes, this.menuNodeId)) : this.folderMenuItems,
         onSelect: (action: string) => this.handleMenu(action),
         onDismiss: () => {
           this.getUIContext().animateTo({ duration: MotionTokens.fast, curve: MotionTokens.exitCurve }, () => {

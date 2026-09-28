@@ -1300,6 +1300,24 @@
     { "name": "websocket_history_connecting", "value": "连接中" },
     { "name": "websocket_history_connected", "value": "已连接" },
     { "name": "websocket_history_closed", "value": "已关闭" },
-    { "name": "websocket_history_failed", "value": "失败" }
+    { "name": "websocket_history_failed", "value": "失败" },
+    { "name": "new_sse_request", "value": "SSE 请求" },
+    { "name": "sse_connect", "value": "连接" },
+    { "name": "sse_stop", "value": "停止" },
+    { "name": "sse_stopping", "value": "正在停止…" },
+    { "name": "sse_status_disconnected", "value": "未连接" },
+    { "name": "sse_status_connecting", "value": "正在连接" },
+    { "name": "sse_status_connected", "value": "接收中" },
+    { "name": "sse_status_stopping", "value": "正在停止" },
+    { "name": "sse_status_completed", "value": "已结束" },
+    { "name": "sse_status_error", "value": "流连接错误" },
+    { "name": "sse_tab_events", "value": "事件" },
+    { "name": "sse_empty_title", "value": "暂无服务器事件" },
+    { "name": "sse_empty_description", "value": "连接 SSE 地址后，可实时查看服务端推送事件。" },
+    { "name": "sse_search_placeholder", "value": "搜索事件" },
+    { "name": "sse_search_empty", "value": "没有匹配的事件" },
+    { "name": "sse_copy_all", "value": "复制全部事件" },
+    { "name": "sse_export", "value": "导出事件" },
+    { "name": "sse_clear", "value": "清空事件" }
   ]
 }

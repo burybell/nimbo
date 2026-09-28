@@ -72,7 +72,7 @@ export class LocalDataStore {
   }
 
   private static normalizeRequest(request: RequestDraft): void {
-    if (request.protocol !== 'websocket') request.protocol = 'http';
+    if (request.protocol !== 'websocket' && request.protocol !== 'sse') request.protocol = 'http';
     if (request.preRequestScript === undefined || typeof request.preRequestScript.enabled !== 'boolean' ||
       typeof request.preRequestScript.source !== 'string') {
       request.preRequestScript = { enabled: false, source: '' };

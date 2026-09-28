@@ -86,10 +86,12 @@ export struct RequestTabBar {
         Row() {
           ForEach(this.tabs, (tab: RequestTabModel) => {
             Row({ space: SpacingTokens.x2 }) {
-              Text(tab.request.protocol === 'websocket' ? 'WS' : tab.method)
+              Text(tab.request.protocol === 'websocket' ? 'WS' :
+                (tab.request.protocol === 'sse' ? 'SSE' : tab.method))
                 .fontSize(10)
                 .fontWeight(FontWeight.Medium)
-                .fontColor(tab.request.protocol === 'websocket' ? ColorTokens.brand600 : this.methodColor(tab.method))
+                .fontColor(tab.request.protocol === 'http' || tab.request.protocol === undefined ?
+                  this.methodColor(tab.method) : ColorTokens.brand600)
               if (this.editingTabId === tab.id) {
                 TextInput({ text: this.editingName })
                   .id('nimboRequestTabRenameInput')

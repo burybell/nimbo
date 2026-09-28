@@ -15,6 +15,7 @@ export struct PrimarySidebar {
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   onCreateRequest: () => void = () => {};
   onCreateWebSocket: () => void = () => {};
+  onCreateSse: () => void = () => {};
   @State hoveredItemId: string = '';
   @State createMenuVisible: boolean = false;
 
@@ -32,7 +33,8 @@ export struct PrimarySidebar {
   private createItems(): ContextMenuItemModel[] {
     return [
       { id: 'http', label: $r('app.string.new_http_request'), icon: 'HTTP', dangerous: false },
-      { id: 'websocket', label: $r('app.string.new_websocket_request'), icon: 'WS', dangerous: false }
+      { id: 'websocket', label: $r('app.string.new_websocket_request'), icon: 'WS', dangerous: false },
+      { id: 'sse', label: $r('app.string.new_sse_request'), icon: 'SSE', dangerous: false }
     ];
   }
 
@@ -44,6 +46,7 @@ export struct PrimarySidebar {
       onSelect: (id: string) => {
         this.createMenuVisible = false;
         if (id === 'websocket') this.onCreateWebSocket();
+        else if (id === 'sse') this.onCreateSse();
         else this.onCreateRequest();
       },
       onDismiss: () => { this.createMenuVisible = false; }

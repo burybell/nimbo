@@ -1,7 +1,7 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
-export type RequestProtocol = 'http' | 'websocket';
+export type RequestProtocol = 'http' | 'websocket' | 'sse';
 export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'postResponse' |
   'extract' | 'tests' | 'generate' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
@@ -199,6 +199,27 @@ export interface WebSocketSessionModel {
   errorCode: string;
   errorMessage: string;
   connectionHistory?: WebSocketConnectionRecord[];
+}
+
+export type SseConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'stopping' | 'completed' | 'error';
+
+export interface SseEventModel {
+  id: string;
+  event: string;
+  data: string;
+  eventId: string;
+  retry: string;
+  timestamp: string;
+}
+
+export interface SseSessionModel {
+  requestId: string;
+  status: SseConnectionStatus;
+  events: SseEventModel[];
+  errorCode: string;
+  errorMessage: string;
+  statusCode: number;
+  contentType: string;
 }
 
 export interface ResponseErrorModel {

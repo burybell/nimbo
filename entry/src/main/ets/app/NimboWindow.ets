@@ -13,6 +13,8 @@ import {
   ResponseErrorModel,
   ResponseModel,
   ResponseStatus,
+  SseEventModel,
+  SseSessionModel,
   TestResult,
   WebSocketConnectionRecord,
   WebSocketMessageModel,
@@ -49,6 +51,7 @@ import { MediaPreviewStore } from '../services/MediaPreviewStore';
 import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
 import { WebSocketController, WebSocketEvent } from '../controller/WebSocketController';
+import { SseController, SseControllerEvent } from '../controller/SseController';
 import { WebSocketRequestBuilder } from '../services/WebSocketRequestBuilder';
 import { RunnerDataSet, RunnerDataService } from '../services/RunnerDataService';
 import {
@@ -164,11 +167,14 @@ export struct NimboWindow {
   @State runnerDataColumns: string = '';
   @State runnerDataError: string = '';
   @State webSocketSessions: WebSocketSessionModel[] = [];
+  @State sseSessions: SseSessionModel[] = [];
   private nextTabNumber: number = 1;
   private nextCollectionNodeNumber: number = 1;
   private requestController: RequestController = new RequestController();
   private webSocketController: WebSocketController = new WebSocketController();
+  private sseController: SseController = new SseController();
   private webSocketMessageSerial: number = 0;
+  private sseEventSerial: number = 0;
   private requestPersistenceTimer: number = -1;
   private requestSerials: Map<string, number> = new Map<string, number>();
   private runnerSerial: number = 0;
@@ -185,6 +191,7 @@ export struct NimboWindow {
 
   aboutToDisappear(): void {
     this.webSocketController.disconnectAll();
+    this.sseController.stopAll();
   }
 
   private idleRequest(request: RequestDraft): RequestDraft {
@@ -264,6 +271,8 @@ export struct NimboWindow {
     this.applyFont(this.preferences.interfaceFont);
     this.webSocketSessions = this.tabs.filter((tab: RequestTabModel) =>
       tab.request.protocol === 'websocket').map((tab: RequestTabModel) => this.emptyWebSocketSession(tab.id));
+    this.sseSessions = this.tabs.filter((tab: RequestTabModel) =>
+      tab.request.protocol === 'sse').map((tab: RequestTabModel) => this.emptySseSession(tab.id));
     this.stateReady = true;
     this.persistLocalData();
   }
@@ -708,7 +717,7 @@ export struct NimboWindow {
     const name = this.preferences.language === 'zh' ? `${node.name} 副本` : `${node.name} Copy`;
     const duplicated: CollectionNode = {
       id, type: 'request', name,
-      method: request.protocol === 'websocket' ? 'WS' : request.method,
+      method: request.protocol === 'websocket' ? 'WS' : (request.protocol === 'sse' ? 'SSE' : request.method),
       expanded: false, children: []
     };
     this.collections = this.insertAfterCollectionNode(this.collections, node.id, duplicated);
@@ -718,6 +727,8 @@ export struct NimboWindow {
     }];
     if (request.protocol === 'websocket') {
       this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(id)];
+    } else if (request.protocol === 'sse') {
+      this.sseSessions = [...this.sseSessions, this.emptySseSession(id)];
     }
     this.activeTabId = id;
     this.rememberRequest(id, name, request);
@@ -767,12 +778,17 @@ export struct NimboWindow {
     requestIds.forEach((id: string) => {
       this.requestSerials.set(id, (this.requestSerials.get(id) ?? 0) + 1);
       this.requestController.cancel(id);
+      this.webSocketController.disconnect(id, false);
+      this.sseController.stop(id);
     });
     const activeIndex = this.tabs.findIndex((tab: RequestTabModel) => tab.id === this.activeTabId);
     this.collections = this.removeCollectionNode(this.collections, node.id);
     this.savedRequests = this.savedRequests.filter((item: PersistedRequestModel) =>
       !requestIds.includes(item.id));
     this.tabs = this.tabs.filter((tab: RequestTabModel) => !requestIds.includes(tab.id));
+    this.webSocketSessions = this.webSocketSessions.filter((item: WebSocketSessionModel) =>
+      !requestIds.includes(item.requestId));
+    this.sseSessions = this.sseSessions.filter((item: SseSessionModel) => !requestIds.includes(item.requestId));
     if (!this.tabs.some((tab: RequestTabModel) => tab.id === this.activeTabId)) {
       const nextIndex = Math.min(Math.max(activeIndex, 0), this.tabs.length - 1);
       this.activeTabId = nextIndex >= 0 ? this.tabs[nextIndex].id : '';
@@ -835,7 +851,8 @@ export struct NimboWindow {
     if (!tab) return;
     const requestNode: CollectionNode = {
       id, type: 'request', name,
-      method: tab.request.protocol === 'websocket' ? 'WS' : tab.request.method,
+      method: tab.request.protocol === 'websocket' ? 'WS' :
+        (tab.request.protocol === 'sse' ? 'SSE' : tab.request.method),
       expanded: false, children: []
     };
     this.collections = this.updateCollectionNode(this.collections, targetId, (node: CollectionNode) => ({
@@ -1471,6 +1488,36 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private emptySseSession(id: string): SseSessionModel {
+    return {
+      requestId: id, status: 'disconnected', events: [], errorCode: '', errorMessage: '',
+      statusCode: 0, contentType: ''
+    };
+  }
+
+  private currentSseSession(): SseSessionModel {
+    const session = this.sseSessions.find((item: SseSessionModel) => item.requestId === this.activeTabId);
+    return session ?? this.emptySseSession(this.activeTabId);
+  }
+
+  private createSseTab(): void {
+    const id = `untitled-${this.nextTabNumber}`;
+    const request = this.createRequest();
+    request.protocol = 'sse';
+    request.url = 'https://';
+    const name = `Untitled SSE ${this.nextTabNumber}`;
+    this.tabs = [...this.tabs, {
+      id, name, method: 'GET', dirty: true, pinned: false, loading: false,
+      request, response: createEmptyResponse()
+    }];
+    this.sseSessions = [...this.sseSessions, this.emptySseSession(id)];
+    this.nextTabNumber += 1;
+    this.activeTabId = id;
+    this.animateState(() => { this.activeDestination = 'workspace'; });
+    this.rememberRequest(id, name, request);
+    this.persistLocalData();
+  }
+
   private webSocketTimestamp(): string {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:` +
@@ -1699,6 +1746,147 @@ export struct NimboWindow {
     try {
       const date = new Date().toISOString().substring(0, 10);
       if (await LocalFileExporter.saveText(`nimbo-websocket-${date}.txt`, this.webSocketTranscript(session))) {
+        this.showToast($r('app.string.toast_exported'));
+      }
+    } catch (_error) {
+      this.showToast($r('app.string.toast_export_failed'));
+    }
+  }
+
+  private sseTimestamp(): string {
+    return this.webSocketTimestamp();
+  }
+
+  private replaceSseSession(next: SseSessionModel): void {
+    const exists = this.sseSessions.some((item: SseSessionModel) => item.requestId === next.requestId);
+    this.sseSessions = exists ? this.sseSessions.map((item: SseSessionModel) =>
+      item.requestId === next.requestId ? next : item) : [...this.sseSessions, next];
+  }
+
+  private handleSseEvent(id: string, event: SseControllerEvent): void {
+    const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id) ??
+      this.emptySseSession(id);
+    if (event.kind === 'event' && event.event) {
+      this.sseEventSerial += 1;
+      const item: SseEventModel = {
+        id: `sse-event-${Date.now()}-${this.sseEventSerial}`,
+        event: event.event.event,
+        data: event.event.data,
+        eventId: event.event.eventId,
+        retry: event.event.retry,
+        timestamp: this.sseTimestamp()
+      };
+      this.replaceSseSession({
+        requestId: id, status: current.status === 'connecting' ? 'connected' : current.status,
+        events: [...current.events, item], errorCode: '', errorMessage: '',
+        statusCode: event.statusCode || current.statusCode,
+        contentType: event.contentType || current.contentType
+      });
+      return;
+    }
+    if (event.kind === 'open') {
+      this.replaceSseSession({
+        requestId: id, status: 'connected', events: current.events, errorCode: '', errorMessage: '',
+        statusCode: event.statusCode, contentType: event.contentType
+      });
+    } else if (event.kind === 'end') {
+      this.replaceSseSession({
+        requestId: id, status: 'completed', events: current.events, errorCode: '', errorMessage: '',
+        statusCode: event.statusCode || current.statusCode,
+        contentType: event.contentType || current.contentType
+      });
+    } else if (event.kind === 'error') {
+      this.replaceSseSession({
+        requestId: id, status: 'error', events: current.events, errorCode: event.code,
+        errorMessage: event.message, statusCode: event.statusCode || current.statusCode,
+        contentType: event.contentType || current.contentType
+      });
+    }
+  }
+
+  private async connectSse(id: string): Promise<void> {
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
+    if (!tab) return;
+    const config = WebSocketRequestBuilder.build(tab.request, this.activeEnvironment());
+    const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id) ??
+      this.emptySseSession(id);
+    if (config.unresolvedVariables.length > 0) {
+      this.replaceSseSession({
+        requestId: id, status: 'error', events: current.events, errorCode: 'UNRESOLVED_VARIABLE',
+        errorMessage: `${this.preferences.language === 'zh' ? '缺少环境变量' : 'Missing environment variables'}: ` +
+          config.unresolvedVariables.map((name: string) => `{{${name}}}`).join(', '),
+        statusCode: 0, contentType: ''
+      });
+      return;
+    }
+    const validUrl = (config.url.startsWith('http://') && config.url.length > 7) ||
+      (config.url.startsWith('https://') && config.url.length > 8);
+    if (!validUrl) {
+      this.replaceSseSession({
+        requestId: id, status: 'error', events: current.events, errorCode: 'INVALID_URL',
+        errorMessage: this.preferences.language === 'zh' ? 'SSE 地址必须以 http:// 或 https:// 开头。' :
+          'The SSE URL must start with http:// or https://.', statusCode: 0, contentType: ''
+      });
+      return;
+    }
+    this.replaceSseSession({
+      requestId: id, status: 'connecting', events: current.events, errorCode: '', errorMessage: '',
+      statusCode: 0, contentType: ''
+    });
+    await this.sseController.connect(id, config.url, config.headers,
+      Math.max(300000, tab.request.settings.timeoutMs),
+      (event: SseControllerEvent) => this.handleSseEvent(id, event));
+  }
+
+  private stopSse(id: string): void {
+    const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id);
+    if (!current) return;
+    this.replaceSseSession({
+      requestId: id, status: 'stopping', events: current.events, errorCode: '', errorMessage: '',
+      statusCode: current.statusCode, contentType: current.contentType
+    });
+    this.sseController.stop(id);
+    this.replaceSseSession({
+      requestId: id, status: 'disconnected', events: current.events, errorCode: '', errorMessage: '',
+      statusCode: current.statusCode, contentType: current.contentType
+    });
+  }
+
+  private clearSseEvents(id: string): void {
+    const current = this.sseSessions.find((item: SseSessionModel) => item.requestId === id);
+    if (!current) return;
+    this.replaceSseSession({
+      requestId: id, status: current.status, events: [], errorCode: current.errorCode,
+      errorMessage: current.errorMessage, statusCode: current.statusCode, contentType: current.contentType
+    });
+  }
+
+  private sseTranscript(session: SseSessionModel): string {
+    return session.events.map((item: SseEventModel) => {
+      const metadata = [item.eventId.length > 0 ? `id=${item.eventId}` : '',
+        item.retry.length > 0 ? `retry=${item.retry}` : ''].filter((value: string) => value.length > 0).join(' ');
+      return `[${item.timestamp}] ${item.event}${metadata.length > 0 ? ` (${metadata})` : ''}\n${item.data}`;
+    }).join('\n\n');
+  }
+
+  private async copySseEvents(id: string): Promise<void> {
+    const session = this.sseSessions.find((item: SseSessionModel) => item.requestId === id);
+    if (!session || session.events.length === 0) return;
+    try {
+      const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.sseTranscript(session));
+      await pasteboard.getSystemPasteboard().setData(data);
+      this.showToast($r('app.string.copied'));
+    } catch (_error) {
+      this.showToast($r('app.string.toast_copy_failed'));
+    }
+  }
+
+  private async exportSseEvents(id: string): Promise<void> {
+    const session = this.sseSessions.find((item: SseSessionModel) => item.requestId === id);
+    if (!session || session.events.length === 0) return;
+    try {
+      const date = new Date().toISOString().substring(0, 10);
+      if (await LocalFileExporter.saveText(`nimbo-sse-${date}.txt`, this.sseTranscript(session))) {
         this.showToast($r('app.string.toast_exported'));
       }
     } catch (_error) {
@@ -2180,6 +2368,7 @@ export struct NimboWindow {
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
             webSocketSession: this.currentWebSocketSession(),
+            sseSession: this.currentSseSession(),
             onSelectTab: (id: string) => {
               this.activeTabId = id;
               this.persistLocalData();
@@ -2200,6 +2389,11 @@ export struct NimboWindow {
             onWebSocketClear: (id: string) => this.clearWebSocketMessages(id),
             onWebSocketCopy: (id: string) => this.copyWebSocketMessages(id),
             onWebSocketExport: (id: string) => this.exportWebSocketMessages(id),
+            onSseConnect: (id: string) => this.connectSse(id),
+            onSseStop: (id: string) => this.stopSse(id),
+            onSseClear: (id: string) => this.clearSseEvents(id),
+            onSseCopy: (id: string) => this.copySseEvents(id),
+            onSseExport: (id: string) => this.exportSseEvents(id),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response),
             onCopyResponseBody: (response: ResponseModel) => this.copyResponseBody(response),
@@ -2258,6 +2452,8 @@ export struct NimboWindow {
     this.requestController.cancel(id);
     this.webSocketController.disconnect(id, false);
     this.webSocketSessions = this.webSocketSessions.filter((item: WebSocketSessionModel) => item.requestId !== id);
+    this.sseController.stop(id);
+    this.sseSessions = this.sseSessions.filter((item: SseSessionModel) => item.requestId !== id);
     const closingIndex = this.tabs.findIndex((tab: RequestTabModel) => tab.id === id);
     this.tabs = this.tabs.filter((tab: RequestTabModel) => tab.id !== id);
     if (this.activeTabId === id) {
@@ -2274,6 +2470,8 @@ export struct NimboWindow {
   private closeAllTabs(): void {
     this.webSocketController.disconnectAll();
     this.webSocketSessions = [];
+    this.sseController.stopAll();
+    this.sseSessions = [];
     this.tabs.forEach((tab: RequestTabModel) => {
       this.requestSerials.set(tab.id, (this.requestSerials.get(tab.id) ?? 0) + 1);
       this.requestController.cancel(tab.id);
@@ -2286,7 +2484,7 @@ export struct NimboWindow {
   private collectRunnerNodes(node: CollectionNode, requests: CollectionNode[]): void {
     if (node.type === 'request') {
       const saved = this.savedRequests.find((item: PersistedRequestModel) => item.id === node.id);
-      if (saved?.request.protocol !== 'websocket') requests.push(node);
+      if (!saved || saved.request.protocol === 'http' || saved.request.protocol === undefined) requests.push(node);
       return;
     }
     node.children.forEach((child: CollectionNode) => this.collectRunnerNodes(child, requests));
@@ -2589,6 +2787,9 @@ export struct NimboWindow {
     if (seed.request.protocol === 'websocket' &&
       !this.webSocketSessions.some((session: WebSocketSessionModel) => session.requestId === tab.id)) {
       this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(tab.id)];
+    } else if (seed.request.protocol === 'sse' &&
+      !this.sseSessions.some((session: SseSessionModel) => session.requestId === tab.id)) {
+      this.sseSessions = [...this.sseSessions, this.emptySseSession(tab.id)];
     }
     this.activeTabId = tab.id;
     this.rememberRequest(tab.id, tab.name, tab.request);
@@ -2629,7 +2830,8 @@ export struct NimboWindow {
               activeDestination: this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
               onCreateRequest: () => this.createTab(),
-              onCreateWebSocket: () => this.createWebSocketTab()
+              onCreateWebSocket: () => this.createWebSocketTab(),
+              onCreateSse: () => this.createSseTab()
             })
 
             this.mainContent()

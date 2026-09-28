@@ -457,7 +457,9 @@ Milestone 15 在现有本地请求工作区内增加实时协议调试能力，�
 
 第一批进度（2026-09-28）：WebSocket 已作为请求 Tab 的协议类型接入工作区，新建菜单可区分 HTTP 与 WebSocket；工作区支持地址输入、连接、断开、文本消息发送、接收/发送/系统消息时间线、状态与错误码、单条复制和清空消息。URL 随 schema v10 本地状态恢复，实时连接和消息不持久化；保存到集合的节点显示 `WS`，Collection Runner 会跳过 WebSocket 请求。仓库质量检查和 HAP 构建通过，实体 HarmonyOS PC 使用同一局域网内的本地 Echo Server 完成“连接 → 发送文本 → 接收同文 → 主动断开”的真实网络往返，并验证无效地址只进入错误状态而不再导致进程退出；无新增 ArkTS warning。当前批次未提前实现环境变量、Headers、认证、搜索、导出或 SSE。
 
-第二批进度（2026-09-28）：WebSocket 工作区增加消息、标头、认证和连接记录四个页签；连接地址、自定义 Headers、Bearer / Basic / API Key 认证及文本消息均支持当前环境变量，建立连接前会阻止缺失变量并给出明确提示。连接参数会解析为原生 WebSocket 握手 URL 与 Header，API Key 可按配置进入 Header 或 Query。消息时间线支持即时检索、整批复制和显式导出文本文件；每次连接尝试会在当前 Tab 的内存会话中记录连接中、已连接、已关闭或失败状态及错误码。实时消息和连接记录仍不持久化，关闭 Tab 或重启应用即清除；请求地址、Headers 与认证配置仍随请求本地保存。仓库质量检查和 HAP 构建通过，无新增 ArkTS warning。第三批 SSE 尚未提前实现。
+第二批进度（2026-09-28）：WebSocket 工作区增加消息、标头、认证和连接记录四个页签；连接地址、自定义 Headers、Bearer / Basic / API Key 认证及文本消息均支持当前环境变量，建立连接前会阻止缺失变量并给出明确提示。连接参数会解析为原生 WebSocket 握手 URL 与 Header，API Key 可按配置进入 Header 或 Query。消息时间线支持即时检索、整批复制和显式导出文本文件；每次连接尝试会在当前 Tab 的内存会话中记录连接中、已连接、已关闭或失败状态及错误码。实时消息和连接记录仍不持久化，关闭 Tab 或重启应用即清除；请求地址、Headers 与认证配置仍随请求本地保存。仓库质量检查和 HAP 构建通过，无新增 ArkTS warning。
+
+第三批进度（2026-09-28）：SSE 已作为独立请求协议接入新建菜单、请求 Tab、集合保存和恢复流程；工作区支持 `http://` / `https://` 地址、连接、主动停止、流状态、HTTP 状态码、Content-Type 与网络错误码。原生 HTTP 流通过 `requestInStream` 按块接收并使用增量 UTF-8 解码，SSE 解析器支持 CRLF、跨块事件、注释、默认 `message`、自定义 `event`、多行 `data`、`id` 与 `retry`。事件时间线支持搜索、单条选择复制、整批复制、清空和显式导出；地址、Headers、Bearer / Basic / API Key 认证支持当前环境变量及缺失变量校验。事件只保留在 Tab 内存会话中，不进入普通 HTTP 历史；Collection Runner 会跳过 SSE，并且集合中的 WS / SSE 请求不再显示运行菜单。仓库质量检查和 HAP 构建通过，实体 HarmonyOS PC 使用局域网 SSE Server 验证有限流“连接 → 分块接收三类事件 → 正常结束”，以及持续流“连续接收 → 主动停止 → 服务端连接重置”的完整链路，无新增 ArkTS warning。Milestone 15 三批完成。
 
 继续暂缓：二进制 WebSocket 发送、自动重连、Socket.IO、GraphQL Subscription、gRPC、并发 Runner、集合级脚本、第三方脚本包、远程模块、完整 Postman `pm.*` 兼容层，以及 AI、Cloud、Login 等既定后续范围。
 

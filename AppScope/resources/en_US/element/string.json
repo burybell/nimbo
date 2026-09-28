@@ -1300,6 +1300,24 @@
     { "name": "websocket_history_connecting", "value": "Connecting" },
     { "name": "websocket_history_connected", "value": "Connected" },
     { "name": "websocket_history_closed", "value": "Closed" },
-    { "name": "websocket_history_failed", "value": "Failed" }
+    { "name": "websocket_history_failed", "value": "Failed" },
+    { "name": "new_sse_request", "value": "SSE request" },
+    { "name": "sse_connect", "value": "Connect" },
+    { "name": "sse_stop", "value": "Stop" },
+    { "name": "sse_stopping", "value": "Stopping…" },
+    { "name": "sse_status_disconnected", "value": "Disconnected" },
+    { "name": "sse_status_connecting", "value": "Connecting" },
+    { "name": "sse_status_connected", "value": "Streaming" },
+    { "name": "sse_status_stopping", "value": "Stopping" },
+    { "name": "sse_status_completed", "value": "Completed" },
+    { "name": "sse_status_error", "value": "Stream error" },
+    { "name": "sse_tab_events", "value": "Events" },
+    { "name": "sse_empty_title", "value": "No server events" },
+    { "name": "sse_empty_description", "value": "Connect to an SSE endpoint to inspect streaming events." },
+    { "name": "sse_search_placeholder", "value": "Search events" },
+    { "name": "sse_search_empty", "value": "No matching events" },
+    { "name": "sse_copy_all", "value": "Copy all events" },
+    { "name": "sse_export", "value": "Export events" },
+    { "name": "sse_clear", "value": "Clear events" }
   ]
 }

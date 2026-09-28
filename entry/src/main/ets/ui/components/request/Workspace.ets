@@ -1,5 +1,5 @@
 import { AuthConfig, EnvironmentModel, KeyValueItem, RequestDraft, RequestTabModel, ResponseErrorModel,
-  ResponseModel, WebSocketSessionModel } from '../../../models/ShellModels';
+  ResponseModel, SseSessionModel, WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -9,6 +9,7 @@ import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
 import { WebSocketPanel } from './WebSocketPanel';
+import { SsePanel } from './SsePanel';
 
 @Component
 export struct Workspace {
@@ -23,6 +24,10 @@ export struct Workspace {
   @Prop selectedEnvironmentId: string = '';
   @Prop webSocketSession: WebSocketSessionModel = {
     requestId: '', status: 'disconnected', composer: '', messages: [], errorCode: '', errorMessage: ''
+  };
+  @Prop sseSession: SseSessionModel = {
+    requestId: '', status: 'disconnected', events: [], errorCode: '', errorMessage: '',
+    statusCode: 0, contentType: ''
   };
   onSaveRequest: (id: string) => void = () => {};
   onSelectTab: (id: string) => void = () => {};
@@ -45,6 +50,11 @@ export struct Workspace {
   onWebSocketClear: (id: string) => void = () => {};
   onWebSocketCopy: (id: string) => void = () => {};
   onWebSocketExport: (id: string) => void = () => {};
+  onSseConnect: (id: string) => void = () => {};
+  onSseStop: (id: string) => void = () => {};
+  onSseClear: (id: string) => void = () => {};
+  onSseCopy: (id: string) => void = () => {};
+  onSseExport: (id: string) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -117,7 +127,8 @@ export struct Workspace {
       if (this.phone && this.tabs.length > 0) {
         Row({ space: SpacingTokens.x2 }) {
           Text(this.tabs[this.activeIndex()].request.protocol === 'websocket' ? 'WS' :
-            this.tabs[this.activeIndex()].method)
+            (this.tabs[this.activeIndex()].request.protocol === 'sse' ? 'SSE' :
+              this.tabs[this.activeIndex()].method))
             .fontSize(11)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.brand600)
@@ -142,7 +153,8 @@ export struct Workspace {
         .backgroundColor(ColorTokens.bgSurface)
         .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
 
-        if (this.tabs[this.activeIndex()].request.protocol !== 'websocket') {
+        if (this.tabs[this.activeIndex()].request.protocol !== 'websocket' &&
+          this.tabs[this.activeIndex()].request.protocol !== 'sse') {
           Row() {
             Text($r('app.string.mobile_request'))
               .layoutWeight(1)
@@ -185,6 +197,26 @@ export struct Workspace {
           description: $r('app.string.empty_workspace_description')
         })
           .layoutWeight(1)
+      } else if (this.tabs[this.activeIndex()].request.protocol === 'sse') {
+        SsePanel({
+          session: this.sseSession,
+          request: this.tabs[this.activeIndex()].request,
+          variables: this.activeVariables(),
+          onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
+          onHeadersChange: (headers: KeyValueItem[]) => this.onUpdateRequest(this.activeTabId,
+            this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, headers, this.tabs[this.activeIndex()].request.auth)),
+          onAuthChange: (auth: AuthConfig) => this.onUpdateRequest(this.activeTabId,
+            this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers, auth)),
+          onConnect: () => this.onSseConnect(this.activeTabId),
+          onStop: () => this.onSseStop(this.activeTabId),
+          onClear: () => this.onSseClear(this.activeTabId),
+          onCopy: () => this.onSseCopy(this.activeTabId),
+          onExport: () => this.onSseExport(this.activeTabId)
+        })
+          .layoutWeight(1)
+          .opacity(this.contentOpacity)
       } else if (this.tabs[this.activeIndex()].request.protocol === 'websocket') {
         WebSocketPanel({
           session: this.webSocketSession,
