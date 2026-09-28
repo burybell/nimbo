@@ -32,7 +32,7 @@ interface LegacyPersistedAppState {
 
 export class LocalDataStore {
   static readonly storageKey: string = 'nimbo.localData';
-  static readonly schemaVersion: number = 9;
+  static readonly schemaVersion: number = 10;
 
   static encode(state: PersistedAppState): string {
     return JSON.stringify(state);
@@ -50,7 +50,7 @@ export class LocalDataStore {
         state.preferences.interfaceFont = 'harmony';
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else if (versioned.schemaVersion === 5 || versioned.schemaVersion === 6 ||
-        versioned.schemaVersion === 7 || versioned.schemaVersion === 8) {
+        versioned.schemaVersion === 7 || versioned.schemaVersion === 8 || versioned.schemaVersion === 9) {
         state = versioned as PersistedAppState;
         state.schemaVersion = LocalDataStore.schemaVersion;
       } else {
@@ -72,6 +72,7 @@ export class LocalDataStore {
   }
 
   private static normalizeRequest(request: RequestDraft): void {
+    if (request.protocol !== 'websocket') request.protocol = 'http';
     if (request.preRequestScript === undefined || typeof request.preRequestScript.enabled !== 'boolean' ||
       typeof request.preRequestScript.source !== 'string') {
       request.preRequestScript = { enabled: false, source: '' };

@@ -121,6 +121,7 @@ export function createCancelledResponse(): ResponseModel {
 
 export function createEmptyRequest(method: HttpMethod = 'GET'): RequestDraft {
   return {
+    protocol: 'http',
     method,
     url: '',
     lifecycle: 'idle',

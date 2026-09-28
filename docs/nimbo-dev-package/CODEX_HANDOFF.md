@@ -445,6 +445,20 @@ Milestone 14 在已有单请求执行链之上增加本地集合运行器，目�
 
 继续暂缓：并发 Runner、集合级脚本、第三方脚本包、远程模块、完整 Postman `pm.*` 兼容层，以及 WebSocket、SSE、GraphQL、gRPC、AI、Cloud、Login 等既定后续范围。
 
+### Milestone 15 — WebSocket & SSE
+
+Milestone 15 在现有本地请求工作区内增加实时协议调试能力，仍坚持无需账号、无需云端和本地优先。WebSocket 与 SSE 必须复用现有 Tab、环境和错误反馈语言，但连接会话、消息内容与流式事件默认只保留在内存中，不自动进入普通 HTTP 历史，也不得让 Collection Runner 把长连接当作普通请求执行。
+
+分三批完成：
+
+1. WebSocket 最小闭环：新建 WebSocket 请求、`ws://` / `wss://` 连接与断开、文本消息收发、连接状态和消息时间线
+2. 工作流整合：环境变量、Headers、认证、连接历史，以及消息搜索、复制和显式导出
+3. SSE：连接与停止、流式事件展示、错误诊断和实体机稳定性验收
+
+第一批进度（2026-09-28）：WebSocket 已作为请求 Tab 的协议类型接入工作区，新建菜单可区分 HTTP 与 WebSocket；工作区支持地址输入、连接、断开、文本消息发送、接收/发送/系统消息时间线、状态与错误码、单条复制和清空消息。URL 随 schema v10 本地状态恢复，实时连接和消息不持久化；保存到集合的节点显示 `WS`，Collection Runner 会跳过 WebSocket 请求。仓库质量检查和 HAP 构建通过，实体 HarmonyOS PC 使用同一局域网内的本地 Echo Server 完成“连接 → 发送文本 → 接收同文 → 主动断开”的真实网络往返，并验证无效地址只进入错误状态而不再导致进程退出；无新增 ArkTS warning。当前批次未提前实现环境变量、Headers、认证、搜索、导出或 SSE。
+
+继续暂缓：二进制 WebSocket 发送、自动重连、Socket.IO、GraphQL Subscription、gRPC、并发 Runner、集合级脚本、第三方脚本包、远程模块、完整 Postman `pm.*` 兼容层，以及 AI、Cloud、Login 等既定后续范围。
+
 ---
 
 ## 6. 架构约束

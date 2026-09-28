@@ -48,6 +48,7 @@ export struct RequestPanel {
     preRequestScript: RequestScript = this.request.preRequestScript,
     postResponseScript: RequestScript = this.request.postResponseScript): void {
     this.onChange({
+      protocol: this.request.protocol,
       method,
       url,
       lifecycle,

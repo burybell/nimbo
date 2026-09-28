@@ -1,7 +1,12 @@
-import { NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
+import { ContextMenuItemModel, NavigationDestination, NavigationItemModel } from '../../../models/ShellModels';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { RadiusTokens, SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
+import { NimboContextMenu } from './NimboContextMenu';
+
+interface PopupVisibilityEvent {
+  isVisible: boolean;
+}
 
 @Component
 export struct PrimarySidebar {
@@ -9,7 +14,9 @@ export struct PrimarySidebar {
   @Prop activeDestination: NavigationDestination = 'collections';
   onDestinationChange: (destination: NavigationDestination) => void = () => {};
   onCreateRequest: () => void = () => {};
+  onCreateWebSocket: () => void = () => {};
   @State hoveredItemId: string = '';
+  @State createMenuVisible: boolean = false;
 
   private mainItems: NavigationItemModel[] = [
     { id: 'workspace', label: $r('app.string.nav_workspace'),
@@ -21,6 +28,27 @@ export struct PrimarySidebar {
     { id: 'history', label: $r('app.string.nav_history'),
       icon: $r('app.media.nav_history'), activeIcon: $r('app.media.nav_history_active') }
   ];
+
+  private createItems(): ContextMenuItemModel[] {
+    return [
+      { id: 'http', label: $r('app.string.new_http_request'), icon: 'HTTP', dangerous: false },
+      { id: 'websocket', label: $r('app.string.new_websocket_request'), icon: 'WS', dangerous: false }
+    ];
+  }
+
+  @Builder
+  createMenu() {
+    NimboContextMenu({
+      items: this.createItems(),
+      accentIcons: true,
+      onSelect: (id: string) => {
+        this.createMenuVisible = false;
+        if (id === 'websocket') this.onCreateWebSocket();
+        else this.onCreateRequest();
+      },
+      onDismiss: () => { this.createMenuVisible = false; }
+    })
+  }
 
   @Builder
   navItem(item: NavigationItemModel) {
@@ -61,7 +89,16 @@ export struct PrimarySidebar {
           .height(SizeTokens.controlLarge)
           .backgroundColor(ColorTokens.brand500)
           .borderRadius(RadiusTokens.medium)
-          .onClick(this.onCreateRequest)
+          .onClick(() => { this.createMenuVisible = !this.createMenuVisible; })
+          .bindPopup(this.createMenuVisible, {
+            builder: this.createMenu,
+            placement: Placement.RightTop,
+            popupColor: Color.Transparent,
+            enableArrow: false,
+            onStateChange: (event: PopupVisibilityEvent) => {
+              if (!event.isVisible) this.createMenuVisible = false;
+            }
+          })
       } else {
         Button() {
           Row({ space: SpacingTokens.x2 }) {
@@ -84,7 +121,16 @@ export struct PrimarySidebar {
           normal: { .backgroundColor(ColorTokens.brand500) },
           pressed: { .backgroundColor(ColorTokens.brand600) }
         })
-        .onClick(this.onCreateRequest)
+        .onClick(() => { this.createMenuVisible = !this.createMenuVisible; })
+        .bindPopup(this.createMenuVisible, {
+          builder: this.createMenu,
+          placement: Placement.BottomLeft,
+          popupColor: Color.Transparent,
+          enableArrow: false,
+          onStateChange: (event: PopupVisibilityEvent) => {
+            if (!event.isVisible) this.createMenuVisible = false;
+          }
+        })
       }
 
       Column({ space: SpacingTokens.x1 }) {

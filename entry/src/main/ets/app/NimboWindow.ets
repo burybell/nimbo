@@ -13,7 +13,9 @@ import {
   ResponseErrorModel,
   ResponseModel,
   ResponseStatus,
-  TestResult
+  TestResult,
+  WebSocketMessageModel,
+  WebSocketSessionModel
 } from '../models/ShellModels';
 import { EnvironmentModel, HistoryItemModel, KeyValueItem } from '../models/ShellModels';
 import {
@@ -45,6 +47,7 @@ import { LocalFileExporter } from '../services/LocalFileExporter';
 import { MediaPreviewStore } from '../services/MediaPreviewStore';
 import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
+import { WebSocketController, WebSocketEvent } from '../controller/WebSocketController';
 import { RunnerDataSet, RunnerDataService } from '../services/RunnerDataService';
 import {
   createBinaryResponse,
@@ -158,9 +161,12 @@ export struct NimboWindow {
   @State runnerDataRowCount: number = 0;
   @State runnerDataColumns: string = '';
   @State runnerDataError: string = '';
+  @State webSocketSessions: WebSocketSessionModel[] = [];
   private nextTabNumber: number = 1;
   private nextCollectionNodeNumber: number = 1;
   private requestController: RequestController = new RequestController();
+  private webSocketController: WebSocketController = new WebSocketController();
+  private webSocketMessageSerial: number = 0;
   private requestPersistenceTimer: number = -1;
   private requestSerials: Map<string, number> = new Map<string, number>();
   private runnerSerial: number = 0;
@@ -173,6 +179,10 @@ export struct NimboWindow {
 
   aboutToAppear(): void {
     this.restoreLocalData();
+  }
+
+  aboutToDisappear(): void {
+    this.webSocketController.disconnectAll();
   }
 
   private idleRequest(request: RequestDraft): RequestDraft {
@@ -250,6 +260,8 @@ export struct NimboWindow {
     }
     this.applyTheme(this.preferences.theme);
     this.applyFont(this.preferences.interfaceFont);
+    this.webSocketSessions = this.tabs.filter((tab: RequestTabModel) =>
+      tab.request.protocol === 'websocket').map((tab: RequestTabModel) => this.emptyWebSocketSession(tab.id));
     this.stateReady = true;
     this.persistLocalData();
   }
@@ -693,13 +705,18 @@ export struct NimboWindow {
     const id = this.newCollectionNodeId('request');
     const name = this.preferences.language === 'zh' ? `${node.name} 副本` : `${node.name} Copy`;
     const duplicated: CollectionNode = {
-      id, type: 'request', name, method: request.method, expanded: false, children: []
+      id, type: 'request', name,
+      method: request.protocol === 'websocket' ? 'WS' : request.method,
+      expanded: false, children: []
     };
     this.collections = this.insertAfterCollectionNode(this.collections, node.id, duplicated);
     this.tabs = [...this.tabs, {
       id, name, method: request.method, dirty: false, pinned: false, loading: false,
       request, response: createEmptyResponse()
     }];
+    if (request.protocol === 'websocket') {
+      this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(id)];
+    }
     this.activeTabId = id;
     this.rememberRequest(id, name, request);
     this.animateState(() => { this.activeDestination = 'workspace'; });
@@ -815,7 +832,9 @@ export struct NimboWindow {
     const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
     if (!tab) return;
     const requestNode: CollectionNode = {
-      id, type: 'request', name, method: tab.request.method, expanded: false, children: []
+      id, type: 'request', name,
+      method: tab.request.protocol === 'websocket' ? 'WS' : tab.request.method,
+      expanded: false, children: []
     };
     this.collections = this.updateCollectionNode(this.collections, targetId, (node: CollectionNode) => ({
       id: node.id, type: node.type, name: node.name, method: node.method,
@@ -892,6 +911,7 @@ export struct NimboWindow {
 
   private requestWithLifecycle(request: RequestDraft, lifecycle: 'idle' | 'sending'): RequestDraft {
     return {
+      protocol: request.protocol,
       method: request.method,
       url: request.url,
       lifecycle,
@@ -1408,6 +1428,198 @@ export struct NimboWindow {
     this.persistLocalData();
   }
 
+  private emptyWebSocketSession(id: string): WebSocketSessionModel {
+    return {
+      requestId: id,
+      status: 'disconnected',
+      composer: '',
+      messages: [],
+      errorCode: '',
+      errorMessage: ''
+    };
+  }
+
+  private currentWebSocketSession(): WebSocketSessionModel {
+    const session = this.webSocketSessions.find((item: WebSocketSessionModel) =>
+      item.requestId === this.activeTabId);
+    return session ?? this.emptyWebSocketSession(this.activeTabId);
+  }
+
+  private createWebSocketTab(): void {
+    const id = `untitled-${this.nextTabNumber}`;
+    const request = this.createRequest();
+    request.protocol = 'websocket';
+    request.url = 'wss://';
+    const name = `Untitled WebSocket ${this.nextTabNumber}`;
+    this.tabs = [...this.tabs, {
+      id,
+      name,
+      method: 'GET',
+      dirty: true,
+      pinned: false,
+      loading: false,
+      request,
+      response: createEmptyResponse()
+    }];
+    this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(id)];
+    this.nextTabNumber += 1;
+    this.activeTabId = id;
+    this.animateState(() => { this.activeDestination = 'workspace'; });
+    this.rememberRequest(id, name, request);
+    this.persistLocalData();
+  }
+
+  private webSocketTimestamp(): string {
+    const now = new Date();
+    return `${now.getHours().toString().padStart(2, '0')}:` +
+      `${now.getMinutes().toString().padStart(2, '0')}:` +
+      now.getSeconds().toString().padStart(2, '0');
+  }
+
+  private webSocketMessage(direction: 'sent' | 'received' | 'system', text: string): WebSocketMessageModel {
+    this.webSocketMessageSerial += 1;
+    return {
+      id: `ws-message-${Date.now()}-${this.webSocketMessageSerial}`,
+      direction,
+      text,
+      timestamp: this.webSocketTimestamp()
+    };
+  }
+
+  private replaceWebSocketSession(next: WebSocketSessionModel): void {
+    const exists = this.webSocketSessions.some((item: WebSocketSessionModel) =>
+      item.requestId === next.requestId);
+    this.webSocketSessions = exists ? this.webSocketSessions.map((item: WebSocketSessionModel) =>
+      item.requestId === next.requestId ? next : item) : [...this.webSocketSessions, next];
+  }
+
+  private webSocketEvent(id: string, event: WebSocketEvent): void {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
+      this.emptyWebSocketSession(id);
+    let status = current.status;
+    let errorCode = current.errorCode;
+    let errorMessage = current.errorMessage;
+    let message: WebSocketMessageModel | undefined = undefined;
+    const eventText = event.text ?? '';
+    const replacePreviousError = event.kind === 'error' && current.status === 'error' &&
+      current.messages.length > 0 && current.messages[current.messages.length - 1].direction === 'system';
+    if (event.kind === 'open') {
+      status = 'connected';
+      errorCode = '';
+      errorMessage = '';
+      message = this.webSocketMessage('system', this.preferences.language === 'zh' ? '连接已建立' :
+        'Connection established');
+    } else if (event.kind === 'message') {
+      message = this.webSocketMessage('received', eventText);
+    } else if (event.kind === 'close') {
+      status = 'disconnected';
+      const reason = eventText.length > 0 ? ` · ${eventText}` : '';
+      message = this.webSocketMessage('system', `${this.preferences.language === 'zh' ? '连接已关闭' :
+        'Connection closed'} (${event.code})${reason}`);
+    } else {
+      status = 'error';
+      errorCode = event.code;
+      errorMessage = eventText;
+      message = this.webSocketMessage('system', eventText.length > 0 ? eventText :
+        (this.preferences.language === 'zh' ? 'WebSocket 连接失败' : 'WebSocket connection failed'));
+    }
+    this.replaceWebSocketSession({
+      requestId: id,
+      status,
+      composer: current.composer,
+      messages: message ? (replacePreviousError ?
+        [...current.messages.slice(0, current.messages.length - 1), message] : [...current.messages, message]) :
+        current.messages,
+      errorCode,
+      errorMessage
+    });
+  }
+
+  private webSocketUrlChange(id: string, value: string): void {
+    const current = this.tabs.find((tab: RequestTabModel) => tab.id === id);
+    if (!current || current.request.url === value) return;
+    this.tabs = this.tabs.map((tab: RequestTabModel) => {
+      if (tab.id !== id) return tab;
+      const request = this.requestWithLifecycle(tab.request, 'idle');
+      request.url = value;
+      return {
+        id: tab.id, name: tab.name, method: tab.method, dirty: true,
+        pinned: tab.pinned, loading: false, request, response: tab.response
+      };
+    });
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
+    if (tab) this.rememberRequest(tab.id, tab.name, tab.request);
+    this.scheduleRequestPersistence();
+  }
+
+  private async connectWebSocket(id: string): Promise<void> {
+    const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
+    if (!tab) return;
+    const url = tab.request.url.trim();
+    const validUrl = (url.startsWith('ws://') && url.length > 5) ||
+      (url.startsWith('wss://') && url.length > 6);
+    if (!validUrl) {
+      this.webSocketEvent(id, { kind: 'error', code: 'INVALID_URL',
+        text: this.preferences.language === 'zh' ? 'WebSocket 地址必须以 ws:// 或 wss:// 开头。' :
+          'The WebSocket URL must start with ws:// or wss://.' });
+      return;
+    }
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
+      this.emptyWebSocketSession(id);
+    this.replaceWebSocketSession({
+      requestId: id, status: 'connecting', composer: current.composer, messages: current.messages,
+      errorCode: '', errorMessage: ''
+    });
+    await this.webSocketController.connect(id, url, (event: WebSocketEvent) => this.webSocketEvent(id, event));
+  }
+
+  private async disconnectWebSocket(id: string): Promise<void> {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
+    if (!current) return;
+    this.replaceWebSocketSession({
+      requestId: id, status: 'closing', composer: current.composer, messages: current.messages,
+      errorCode: '', errorMessage: ''
+    });
+    await this.webSocketController.disconnect(id);
+  }
+
+  private webSocketComposerChange(id: string, value: string): void {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
+      this.emptyWebSocketSession(id);
+    if (current.composer === value) return;
+    this.replaceWebSocketSession({
+      requestId: id, status: current.status, composer: value, messages: current.messages,
+      errorCode: current.errorCode, errorMessage: current.errorMessage
+    });
+  }
+
+  private async sendWebSocketMessage(id: string): Promise<void> {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
+    if (!current || current.status !== 'connected' || current.composer.length === 0) return;
+    const value = current.composer;
+    const sent = await this.webSocketController.send(id, value);
+    const latest = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ?? current;
+    if (sent) {
+      this.replaceWebSocketSession({
+        requestId: id, status: latest.status, composer: '',
+        messages: [...latest.messages, this.webSocketMessage('sent', value)], errorCode: '', errorMessage: ''
+      });
+    } else {
+      this.webSocketEvent(id, { kind: 'error', code: 'SEND_FAILED',
+        text: this.preferences.language === 'zh' ? '消息发送失败，请检查连接状态。' :
+          'The message could not be sent. Check the connection state.' });
+    }
+  }
+
+  private clearWebSocketMessages(id: string): void {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
+    if (!current) return;
+    this.replaceWebSocketSession({
+      requestId: id, status: current.status, composer: current.composer, messages: [],
+      errorCode: current.errorCode, errorMessage: current.errorMessage
+    });
+  }
+
   private showToast(message: ResourceStr, actionVisible: boolean = false): void {
     this.toastMessage = message;
     this.toastActionVisible = actionVisible;
@@ -1881,6 +2093,7 @@ export struct NimboWindow {
             phone: this.isPhone(),
             environments: this.environments,
             selectedEnvironmentId: this.selectedEnvironmentId,
+            webSocketSession: this.currentWebSocketSession(),
             onSelectTab: (id: string) => {
               this.activeTabId = id;
               this.persistLocalData();
@@ -1893,6 +2106,12 @@ export struct NimboWindow {
             onSaveRequest: (id: string) => this.beginSaveRequest(id),
             onCopyGeneratedCode: (value: string) => this.copyGeneratedCode(value),
             onCopyErrorDiagnostic: (error: ResponseErrorModel) => this.copyErrorDiagnostic(error),
+            onWebSocketUrlChange: (id: string, value: string) => this.webSocketUrlChange(id, value),
+            onWebSocketConnect: (id: string) => this.connectWebSocket(id),
+            onWebSocketDisconnect: (id: string) => this.disconnectWebSocket(id),
+            onWebSocketComposerChange: (id: string, value: string) => this.webSocketComposerChange(id, value),
+            onWebSocketSend: (id: string) => this.sendWebSocketMessage(id),
+            onWebSocketClear: (id: string) => this.clearWebSocketMessages(id),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response),
             onCopyResponseBody: (response: ResponseModel) => this.copyResponseBody(response),
@@ -1949,6 +2168,8 @@ export struct NimboWindow {
   private closeTab(id: string): void {
     this.requestSerials.set(id, (this.requestSerials.get(id) ?? 0) + 1);
     this.requestController.cancel(id);
+    this.webSocketController.disconnect(id, false);
+    this.webSocketSessions = this.webSocketSessions.filter((item: WebSocketSessionModel) => item.requestId !== id);
     const closingIndex = this.tabs.findIndex((tab: RequestTabModel) => tab.id === id);
     this.tabs = this.tabs.filter((tab: RequestTabModel) => tab.id !== id);
     if (this.activeTabId === id) {
@@ -1963,6 +2184,8 @@ export struct NimboWindow {
   }
 
   private closeAllTabs(): void {
+    this.webSocketController.disconnectAll();
+    this.webSocketSessions = [];
     this.tabs.forEach((tab: RequestTabModel) => {
       this.requestSerials.set(tab.id, (this.requestSerials.get(tab.id) ?? 0) + 1);
       this.requestController.cancel(tab.id);
@@ -1974,7 +2197,8 @@ export struct NimboWindow {
 
   private collectRunnerNodes(node: CollectionNode, requests: CollectionNode[]): void {
     if (node.type === 'request') {
-      requests.push(node);
+      const saved = this.savedRequests.find((item: PersistedRequestModel) => item.id === node.id);
+      if (saved?.request.protocol !== 'websocket') requests.push(node);
       return;
     }
     node.children.forEach((child: CollectionNode) => this.collectRunnerNodes(child, requests));
@@ -2274,6 +2498,10 @@ export struct NimboWindow {
       response: seed.response
     };
     this.tabs = [...this.tabs, tab];
+    if (seed.request.protocol === 'websocket' &&
+      !this.webSocketSessions.some((session: WebSocketSessionModel) => session.requestId === tab.id)) {
+      this.webSocketSessions = [...this.webSocketSessions, this.emptyWebSocketSession(tab.id)];
+    }
     this.activeTabId = tab.id;
     this.rememberRequest(tab.id, tab.name, tab.request);
     this.persistLocalData();
@@ -2312,7 +2540,8 @@ export struct NimboWindow {
               compact: this.isCompact(),
               activeDestination: this.activeDestination,
               onDestinationChange: (destination: NavigationDestination) => this.selectDestination(destination),
-              onCreateRequest: () => this.createTab()
+              onCreateRequest: () => this.createTab(),
+              onCreateWebSocket: () => this.createWebSocketTab()
             })
 
             this.mainContent()

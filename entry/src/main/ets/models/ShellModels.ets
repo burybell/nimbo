@@ -1,6 +1,7 @@
 export type NavigationDestination = 'workspace' | 'collections' | 'environments' | 'history' | 'settings';
 export type CollectionNodeType = 'collection' | 'folder' | 'request';
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+export type RequestProtocol = 'http' | 'websocket';
 export type RequestConfigTab = 'params' | 'headers' | 'auth' | 'body' | 'preRequest' | 'postResponse' |
   'extract' | 'tests' | 'generate' | 'settings';
 export type RequestLifecycle = 'idle' | 'sending';
@@ -149,6 +150,7 @@ export interface ScriptExecutionResult {
 }
 
 export interface RequestDraft {
+  protocol?: RequestProtocol;
   method: HttpMethod;
   url: string;
   lifecycle: RequestLifecycle;
@@ -166,6 +168,25 @@ export interface RequestDraft {
   extractionRules: ExtractionRule[];
   testRules: TestRule[];
   settings: RequestSettings;
+}
+
+export type WebSocketConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'closing' | 'error';
+export type WebSocketMessageDirection = 'sent' | 'received' | 'system';
+
+export interface WebSocketMessageModel {
+  id: string;
+  direction: WebSocketMessageDirection;
+  text: string;
+  timestamp: string;
+}
+
+export interface WebSocketSessionModel {
+  requestId: string;
+  status: WebSocketConnectionStatus;
+  composer: string;
+  messages: WebSocketMessageModel[];
+  errorCode: string;
+  errorMessage: string;
 }
 
 export interface ResponseErrorModel {

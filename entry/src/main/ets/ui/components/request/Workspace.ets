@@ -1,5 +1,5 @@
 import { EnvironmentModel, RequestDraft, RequestTabModel, ResponseErrorModel,
-  ResponseModel } from '../../../models/ShellModels';
+  ResponseModel, WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
 import { NimboEmptyState } from '../common/NimboEmptyState';
@@ -8,6 +8,7 @@ import { ResponsePanel } from '../response/ResponsePanel';
 import { ColorTokens } from '../../tokens/ColorTokens';
 import { SizeTokens, SpacingTokens } from '../../tokens/LayoutTokens';
 import { MotionTokens } from '../../tokens/MotionTokens';
+import { WebSocketPanel } from './WebSocketPanel';
 
 @Component
 export struct Workspace {
@@ -20,6 +21,9 @@ export struct Workspace {
   @Prop phone: boolean = false;
   @Prop environments: EnvironmentModel[] = [];
   @Prop selectedEnvironmentId: string = '';
+  @Prop webSocketSession: WebSocketSessionModel = {
+    requestId: '', status: 'disconnected', composer: '', messages: [], errorCode: '', errorMessage: ''
+  };
   onSaveRequest: (id: string) => void = () => {};
   onSelectTab: (id: string) => void = () => {};
   onCloseTab: (id: string) => void = () => {};
@@ -33,6 +37,12 @@ export struct Workspace {
   onDownloadResponseBody: (response: ResponseModel) => void = () => {};
   onCopyGeneratedCode: (value: string) => void = () => {};
   onCopyErrorDiagnostic: (error: ResponseErrorModel) => void = () => {};
+  onWebSocketUrlChange: (id: string, value: string) => void = () => {};
+  onWebSocketConnect: (id: string) => void = () => {};
+  onWebSocketDisconnect: (id: string) => void = () => {};
+  onWebSocketComposerChange: (id: string, value: string) => void = () => {};
+  onWebSocketSend: (id: string) => void = () => {};
+  onWebSocketClear: (id: string) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -41,6 +51,7 @@ export struct Workspace {
 
   private requestWithLifecycle(request: RequestDraft, lifecycle: 'idle' | 'sending'): RequestDraft {
     return {
+      protocol: request.protocol,
       method: request.method,
       url: request.url,
       lifecycle,
@@ -87,7 +98,8 @@ export struct Workspace {
     Column() {
       if (this.phone && this.tabs.length > 0) {
         Row({ space: SpacingTokens.x2 }) {
-          Text(this.tabs[this.activeIndex()].method)
+          Text(this.tabs[this.activeIndex()].request.protocol === 'websocket' ? 'WS' :
+            this.tabs[this.activeIndex()].method)
             .fontSize(11)
             .fontWeight(FontWeight.Medium)
             .fontColor(ColorTokens.brand600)
@@ -112,29 +124,31 @@ export struct Workspace {
         .backgroundColor(ColorTokens.bgSurface)
         .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
 
-        Row() {
-          Text($r('app.string.mobile_request'))
-            .layoutWeight(1)
-            .height(44)
-            .fontSize(13)
-            .fontWeight(this.mobilePage === 'request' ? FontWeight.Medium : FontWeight.Regular)
-            .textAlign(TextAlign.Center)
-            .fontColor(this.mobilePage === 'request' ? ColorTokens.brand600 : ColorTokens.textSecondary)
-            .border({ width: { bottom: this.mobilePage === 'request' ? 2 : 0 }, color: ColorTokens.brand500 })
-            .onClick(() => { this.mobilePage = 'request'; })
-          Text($r('app.string.mobile_response'))
-            .layoutWeight(1)
-            .height(44)
-            .fontSize(13)
-            .fontWeight(this.mobilePage === 'response' ? FontWeight.Medium : FontWeight.Regular)
-            .textAlign(TextAlign.Center)
-            .fontColor(this.mobilePage === 'response' ? ColorTokens.brand600 : ColorTokens.textSecondary)
-            .border({ width: { bottom: this.mobilePage === 'response' ? 2 : 0 }, color: ColorTokens.brand500 })
-            .onClick(() => { this.mobilePage = 'response'; })
+        if (this.tabs[this.activeIndex()].request.protocol !== 'websocket') {
+          Row() {
+            Text($r('app.string.mobile_request'))
+              .layoutWeight(1)
+              .height(44)
+              .fontSize(13)
+              .fontWeight(this.mobilePage === 'request' ? FontWeight.Medium : FontWeight.Regular)
+              .textAlign(TextAlign.Center)
+              .fontColor(this.mobilePage === 'request' ? ColorTokens.brand600 : ColorTokens.textSecondary)
+              .border({ width: { bottom: this.mobilePage === 'request' ? 2 : 0 }, color: ColorTokens.brand500 })
+              .onClick(() => { this.mobilePage = 'request'; })
+            Text($r('app.string.mobile_response'))
+              .layoutWeight(1)
+              .height(44)
+              .fontSize(13)
+              .fontWeight(this.mobilePage === 'response' ? FontWeight.Medium : FontWeight.Regular)
+              .textAlign(TextAlign.Center)
+              .fontColor(this.mobilePage === 'response' ? ColorTokens.brand600 : ColorTokens.textSecondary)
+              .border({ width: { bottom: this.mobilePage === 'response' ? 2 : 0 }, color: ColorTokens.brand500 })
+              .onClick(() => { this.mobilePage = 'response'; })
+          }
+          .width('100%')
+          .height(44)
+          .backgroundColor(ColorTokens.bgSurface)
         }
-        .width('100%')
-        .height(44)
-        .backgroundColor(ColorTokens.bgSurface)
       } else if (!this.phone) {
         RequestTabBar({
           tabs: $tabs,
@@ -153,6 +167,19 @@ export struct Workspace {
           description: $r('app.string.empty_workspace_description')
         })
           .layoutWeight(1)
+      } else if (this.tabs[this.activeIndex()].request.protocol === 'websocket') {
+        WebSocketPanel({
+          session: this.webSocketSession,
+          url: this.tabs[this.activeIndex()].request.url,
+          onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
+          onConnect: () => this.onWebSocketConnect(this.activeTabId),
+          onDisconnect: () => this.onWebSocketDisconnect(this.activeTabId),
+          onComposerChange: (value: string) => this.onWebSocketComposerChange(this.activeTabId, value),
+          onSend: () => this.onWebSocketSend(this.activeTabId),
+          onClear: () => this.onWebSocketClear(this.activeTabId)
+        })
+          .layoutWeight(1)
+          .opacity(this.contentOpacity)
       } else if (this.phone) {
         if (this.mobilePage === 'request') {
           RequestPanel({
