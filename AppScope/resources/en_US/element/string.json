@@ -1287,6 +1287,19 @@
     { "name": "websocket_message_placeholder", "value": "Enter a text message" },
     { "name": "websocket_sent", "value": "Sent" },
     { "name": "websocket_received", "value": "Received" },
-    { "name": "websocket_system", "value": "System" }
+    { "name": "websocket_system", "value": "System" },
+    { "name": "websocket_tab_messages", "value": "Messages" },
+    { "name": "websocket_tab_headers", "value": "Headers" },
+    { "name": "websocket_tab_auth", "value": "Authorization" },
+    { "name": "websocket_tab_history", "value": "Connections" },
+    { "name": "websocket_search_placeholder", "value": "Search messages" },
+    { "name": "websocket_search_empty", "value": "No matching messages" },
+    { "name": "websocket_copy_all", "value": "Copy all messages" },
+    { "name": "websocket_export", "value": "Export messages" },
+    { "name": "websocket_history_empty", "value": "No connection attempts in this session" },
+    { "name": "websocket_history_connecting", "value": "Connecting" },
+    { "name": "websocket_history_connected", "value": "Connected" },
+    { "name": "websocket_history_closed", "value": "Closed" },
+    { "name": "websocket_history_failed", "value": "Failed" }
   ]
 }

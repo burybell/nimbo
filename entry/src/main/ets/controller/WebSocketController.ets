@@ -26,7 +26,8 @@ export class WebSocketController {
     return error && typeof error.code === 'number' ? `${error.code}` : 'WEBSOCKET_ERROR';
   }
 
-  async connect(id: string, url: string, onEvent: (event: WebSocketEvent) => void): Promise<void> {
+  async connect(id: string, url: string, headers: Record<string, string>,
+    onEvent: (event: WebSocketEvent) => void): Promise<void> {
     await this.disconnect(id, false);
     const socket = webSocket.createWebSocket();
     this.sockets.set(id, socket);
@@ -60,7 +61,8 @@ export class WebSocketController {
       onEvent({ kind: 'error', text: this.errorText(error), code: this.errorCode(error) });
     });
     try {
-      await socket.connect(url);
+      if (Object.keys(headers).length > 0) await socket.connect(url, { header: headers });
+      else await socket.connect(url);
     } catch (error) {
       if (this.sockets.get(id) === socket) this.sockets.delete(id);
       const failure = error as BusinessError;

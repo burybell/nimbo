@@ -1,4 +1,4 @@
-import { EnvironmentModel, RequestDraft, RequestTabModel, ResponseErrorModel,
+import { AuthConfig, EnvironmentModel, KeyValueItem, RequestDraft, RequestTabModel, ResponseErrorModel,
   ResponseModel, WebSocketSessionModel } from '../../../models/ShellModels';
 import { RequestTabBar } from './RequestTabBar';
 import { RequestPanel } from './RequestPanel';
@@ -43,6 +43,8 @@ export struct Workspace {
   onWebSocketComposerChange: (id: string, value: string) => void = () => {};
   onWebSocketSend: (id: string) => void = () => {};
   onWebSocketClear: (id: string) => void = () => {};
+  onWebSocketCopy: (id: string) => void = () => {};
+  onWebSocketExport: (id: string) => void = () => {};
   private tabSwitchSerial: number = 0;
 
   private activeIndex(): number {
@@ -70,6 +72,22 @@ export struct Workspace {
       testRules: request.testRules,
       settings: request.settings
     };
+  }
+
+  private webSocketRequest(request: RequestDraft, url: string, headers: KeyValueItem[], auth: AuthConfig): RequestDraft {
+    return {
+      protocol: request.protocol, method: request.method, url, lifecycle: request.lifecycle,
+      activeConfigTab: request.activeConfigTab, params: request.params, headers, auth,
+      bodyType: request.bodyType, bodyText: request.bodyText, formItems: request.formItems,
+      multipartItems: request.multipartItems, binaryFileName: request.binaryFileName,
+      preRequestScript: request.preRequestScript, postResponseScript: request.postResponseScript,
+      extractionRules: request.extractionRules, testRules: request.testRules, settings: request.settings
+    };
+  }
+
+  private activeVariables(): KeyValueItem[] {
+    const environment = this.environments.find((item: EnvironmentModel) => item.id === this.selectedEnvironmentId);
+    return environment ? environment.variables : [];
   }
 
   private selectTab(id: string): void {
@@ -170,13 +188,22 @@ export struct Workspace {
       } else if (this.tabs[this.activeIndex()].request.protocol === 'websocket') {
         WebSocketPanel({
           session: this.webSocketSession,
-          url: this.tabs[this.activeIndex()].request.url,
+          request: this.tabs[this.activeIndex()].request,
+          variables: this.activeVariables(),
           onUrlChange: (value: string) => this.onWebSocketUrlChange(this.activeTabId, value),
+          onHeadersChange: (headers: KeyValueItem[]) => this.onUpdateRequest(this.activeTabId,
+            this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, headers, this.tabs[this.activeIndex()].request.auth)),
+          onAuthChange: (auth: AuthConfig) => this.onUpdateRequest(this.activeTabId,
+            this.webSocketRequest(this.tabs[this.activeIndex()].request,
+              this.tabs[this.activeIndex()].request.url, this.tabs[this.activeIndex()].request.headers, auth)),
           onConnect: () => this.onWebSocketConnect(this.activeTabId),
           onDisconnect: () => this.onWebSocketDisconnect(this.activeTabId),
           onComposerChange: (value: string) => this.onWebSocketComposerChange(this.activeTabId, value),
           onSend: () => this.onWebSocketSend(this.activeTabId),
-          onClear: () => this.onWebSocketClear(this.activeTabId)
+          onClear: () => this.onWebSocketClear(this.activeTabId),
+          onCopy: () => this.onWebSocketCopy(this.activeTabId),
+          onExport: () => this.onWebSocketExport(this.activeTabId)
         })
           .layoutWeight(1)
           .opacity(this.contentOpacity)

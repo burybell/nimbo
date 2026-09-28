@@ -180,6 +180,17 @@ export interface WebSocketMessageModel {
   timestamp: string;
 }
 
+export type WebSocketConnectionRecordStatus = 'connecting' | 'connected' | 'closed' | 'failed';
+
+export interface WebSocketConnectionRecord {
+  id: string;
+  url: string;
+  startedAt: string;
+  endedAt: string;
+  status: WebSocketConnectionRecordStatus;
+  errorCode: string;
+}
+
 export interface WebSocketSessionModel {
   requestId: string;
   status: WebSocketConnectionStatus;
@@ -187,6 +198,7 @@ export interface WebSocketSessionModel {
   messages: WebSocketMessageModel[];
   errorCode: string;
   errorMessage: string;
+  connectionHistory?: WebSocketConnectionRecord[];
 }
 
 export interface ResponseErrorModel {

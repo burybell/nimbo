@@ -1287,6 +1287,19 @@
     { "name": "websocket_message_placeholder", "value": "输入文本消息" },
     { "name": "websocket_sent", "value": "已发送" },
     { "name": "websocket_received", "value": "已接收" },
-    { "name": "websocket_system", "value": "系统" }
+    { "name": "websocket_system", "value": "系统" },
+    { "name": "websocket_tab_messages", "value": "消息" },
+    { "name": "websocket_tab_headers", "value": "标头" },
+    { "name": "websocket_tab_auth", "value": "认证" },
+    { "name": "websocket_tab_history", "value": "连接记录" },
+    { "name": "websocket_search_placeholder", "value": "搜索消息" },
+    { "name": "websocket_search_empty", "value": "没有匹配的消息" },
+    { "name": "websocket_copy_all", "value": "复制全部消息" },
+    { "name": "websocket_export", "value": "导出消息" },
+    { "name": "websocket_history_empty", "value": "本次会话暂无连接记录" },
+    { "name": "websocket_history_connecting", "value": "连接中" },
+    { "name": "websocket_history_connected", "value": "已连接" },
+    { "name": "websocket_history_closed", "value": "已关闭" },
+    { "name": "websocket_history_failed", "value": "失败" }
   ]
 }

@@ -14,6 +14,7 @@ import {
   ResponseModel,
   ResponseStatus,
   TestResult,
+  WebSocketConnectionRecord,
   WebSocketMessageModel,
   WebSocketSessionModel
 } from '../models/ShellModels';
@@ -48,6 +49,7 @@ import { MediaPreviewStore } from '../services/MediaPreviewStore';
 import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
 import { WebSocketController, WebSocketEvent } from '../controller/WebSocketController';
+import { WebSocketRequestBuilder } from '../services/WebSocketRequestBuilder';
 import { RunnerDataSet, RunnerDataService } from '../services/RunnerDataService';
 import {
   createBinaryResponse,
@@ -1476,6 +1478,17 @@ export struct NimboWindow {
       now.getSeconds().toString().padStart(2, '0');
   }
 
+  private updateLatestWebSocketHistory(history: WebSocketConnectionRecord[],
+    status: 'connecting' | 'connected' | 'closed' | 'failed', errorCode: string = ''): WebSocketConnectionRecord[] {
+    if (history.length === 0) return history;
+    return history.map((item: WebSocketConnectionRecord, index: number): WebSocketConnectionRecord =>
+      index === history.length - 1 ? {
+        id: item.id, url: item.url, startedAt: item.startedAt,
+        endedAt: status === 'closed' || status === 'failed' ? this.webSocketTimestamp() : '',
+        status, errorCode
+      } : item);
+  }
+
   private webSocketMessage(direction: 'sent' | 'received' | 'system', text: string): WebSocketMessageModel {
     this.webSocketMessageSerial += 1;
     return {
@@ -1500,6 +1513,7 @@ export struct NimboWindow {
     let errorCode = current.errorCode;
     let errorMessage = current.errorMessage;
     let message: WebSocketMessageModel | undefined = undefined;
+    let connectionHistory = current.connectionHistory ?? [];
     const eventText = event.text ?? '';
     const replacePreviousError = event.kind === 'error' && current.status === 'error' &&
       current.messages.length > 0 && current.messages[current.messages.length - 1].direction === 'system';
@@ -1509,6 +1523,7 @@ export struct NimboWindow {
       errorMessage = '';
       message = this.webSocketMessage('system', this.preferences.language === 'zh' ? '连接已建立' :
         'Connection established');
+      connectionHistory = this.updateLatestWebSocketHistory(connectionHistory, 'connected');
     } else if (event.kind === 'message') {
       message = this.webSocketMessage('received', eventText);
     } else if (event.kind === 'close') {
@@ -1516,12 +1531,14 @@ export struct NimboWindow {
       const reason = eventText.length > 0 ? ` · ${eventText}` : '';
       message = this.webSocketMessage('system', `${this.preferences.language === 'zh' ? '连接已关闭' :
         'Connection closed'} (${event.code})${reason}`);
+      connectionHistory = this.updateLatestWebSocketHistory(connectionHistory, 'closed', event.code);
     } else {
       status = 'error';
       errorCode = event.code;
       errorMessage = eventText;
       message = this.webSocketMessage('system', eventText.length > 0 ? eventText :
         (this.preferences.language === 'zh' ? 'WebSocket 连接失败' : 'WebSocket connection failed'));
+      connectionHistory = this.updateLatestWebSocketHistory(connectionHistory, 'failed', event.code);
     }
     this.replaceWebSocketSession({
       requestId: id,
@@ -1531,7 +1548,8 @@ export struct NimboWindow {
         [...current.messages.slice(0, current.messages.length - 1), message] : [...current.messages, message]) :
         current.messages,
       errorCode,
-      errorMessage
+      errorMessage,
+      connectionHistory
     });
   }
 
@@ -1552,10 +1570,42 @@ export struct NimboWindow {
     this.scheduleRequestPersistence();
   }
 
+  private webSocketOperationError(id: string, code: string, text: string): void {
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
+      this.emptyWebSocketSession(id);
+    this.replaceWebSocketSession({
+      requestId: id, status: current.status, composer: current.composer,
+      messages: [...current.messages, this.webSocketMessage('system', text)],
+      errorCode: code, errorMessage: text, connectionHistory: current.connectionHistory
+    });
+  }
+
   private async connectWebSocket(id: string): Promise<void> {
     const tab = this.tabs.find((item: RequestTabModel) => item.id === id);
     if (!tab) return;
-    const url = tab.request.url.trim();
+    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
+      this.emptyWebSocketSession(id);
+    const record: WebSocketConnectionRecord = {
+      id: `ws-connection-${Date.now()}-${this.webSocketMessageSerial + 1}`,
+      url: tab.request.url,
+      startedAt: this.webSocketTimestamp(),
+      endedAt: '',
+      status: 'connecting',
+      errorCode: ''
+    };
+    this.replaceWebSocketSession({
+      requestId: id, status: 'connecting', composer: current.composer, messages: current.messages,
+      errorCode: '', errorMessage: '', connectionHistory: [...(current.connectionHistory ?? []), record]
+    });
+    const environment = this.activeEnvironment();
+    const config = WebSocketRequestBuilder.build(tab.request, environment);
+    if (config.unresolvedVariables.length > 0) {
+      this.webSocketEvent(id, { kind: 'error', code: 'UNRESOLVED_VARIABLE',
+        text: `${this.preferences.language === 'zh' ? '缺少环境变量' : 'Missing environment variables'}: ` +
+          config.unresolvedVariables.map((name: string) => `{{${name}}}`).join(', ') });
+      return;
+    }
+    const url = config.url;
     const validUrl = (url.startsWith('ws://') && url.length > 5) ||
       (url.startsWith('wss://') && url.length > 6);
     if (!validUrl) {
@@ -1564,13 +1614,8 @@ export struct NimboWindow {
           'The WebSocket URL must start with ws:// or wss://.' });
       return;
     }
-    const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ??
-      this.emptyWebSocketSession(id);
-    this.replaceWebSocketSession({
-      requestId: id, status: 'connecting', composer: current.composer, messages: current.messages,
-      errorCode: '', errorMessage: ''
-    });
-    await this.webSocketController.connect(id, url, (event: WebSocketEvent) => this.webSocketEvent(id, event));
+    await this.webSocketController.connect(id, url, config.headers,
+      (event: WebSocketEvent) => this.webSocketEvent(id, event));
   }
 
   private async disconnectWebSocket(id: string): Promise<void> {
@@ -1578,7 +1623,7 @@ export struct NimboWindow {
     if (!current) return;
     this.replaceWebSocketSession({
       requestId: id, status: 'closing', composer: current.composer, messages: current.messages,
-      errorCode: '', errorMessage: ''
+      errorCode: '', errorMessage: '', connectionHistory: current.connectionHistory
     });
     await this.webSocketController.disconnect(id);
   }
@@ -1589,25 +1634,35 @@ export struct NimboWindow {
     if (current.composer === value) return;
     this.replaceWebSocketSession({
       requestId: id, status: current.status, composer: value, messages: current.messages,
-      errorCode: current.errorCode, errorMessage: current.errorMessage
+      errorCode: current.errorCode, errorMessage: current.errorMessage,
+      connectionHistory: current.connectionHistory
     });
   }
 
   private async sendWebSocketMessage(id: string): Promise<void> {
     const current = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
     if (!current || current.status !== 'connected' || current.composer.length === 0) return;
-    const value = current.composer;
+    const environment = this.activeEnvironment();
+    const unresolved = WebSocketRequestBuilder.unresolved(current.composer, environment);
+    if (unresolved.length > 0) {
+      this.webSocketOperationError(id, 'UNRESOLVED_VARIABLE',
+        `${this.preferences.language === 'zh' ? '消息中缺少环境变量' :
+          'Missing environment variables in message'}: ` + unresolved.map((name: string) => `{{${name}}}`).join(', '));
+      return;
+    }
+    const source = current.composer;
+    const value = WebSocketRequestBuilder.resolve(source, environment);
     const sent = await this.webSocketController.send(id, value);
     const latest = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id) ?? current;
     if (sent) {
       this.replaceWebSocketSession({
         requestId: id, status: latest.status, composer: '',
-        messages: [...latest.messages, this.webSocketMessage('sent', value)], errorCode: '', errorMessage: ''
+        messages: [...latest.messages, this.webSocketMessage('sent', value)], errorCode: '', errorMessage: '',
+        connectionHistory: latest.connectionHistory
       });
     } else {
-      this.webSocketEvent(id, { kind: 'error', code: 'SEND_FAILED',
-        text: this.preferences.language === 'zh' ? '消息发送失败，请检查连接状态。' :
-          'The message could not be sent. Check the connection state.' });
+      this.webSocketOperationError(id, 'SEND_FAILED', this.preferences.language === 'zh' ?
+        '消息发送失败，请检查连接状态。' : 'The message could not be sent. Check the connection state.');
     }
   }
 
@@ -1616,8 +1671,39 @@ export struct NimboWindow {
     if (!current) return;
     this.replaceWebSocketSession({
       requestId: id, status: current.status, composer: current.composer, messages: [],
-      errorCode: current.errorCode, errorMessage: current.errorMessage
+      errorCode: current.errorCode, errorMessage: current.errorMessage,
+      connectionHistory: current.connectionHistory
     });
+  }
+
+  private webSocketTranscript(session: WebSocketSessionModel): string {
+    return session.messages.map((item: WebSocketMessageModel) =>
+      `[${item.timestamp}] ${item.direction.toUpperCase()}\n${item.text}`).join('\n\n');
+  }
+
+  private async copyWebSocketMessages(id: string): Promise<void> {
+    const session = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
+    if (!session || session.messages.length === 0) return;
+    try {
+      const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.webSocketTranscript(session));
+      await pasteboard.getSystemPasteboard().setData(data);
+      this.showToast($r('app.string.copied'));
+    } catch (_error) {
+      this.showToast($r('app.string.toast_copy_failed'));
+    }
+  }
+
+  private async exportWebSocketMessages(id: string): Promise<void> {
+    const session = this.webSocketSessions.find((item: WebSocketSessionModel) => item.requestId === id);
+    if (!session || session.messages.length === 0) return;
+    try {
+      const date = new Date().toISOString().substring(0, 10);
+      if (await LocalFileExporter.saveText(`nimbo-websocket-${date}.txt`, this.webSocketTranscript(session))) {
+        this.showToast($r('app.string.toast_exported'));
+      }
+    } catch (_error) {
+      this.showToast($r('app.string.toast_export_failed'));
+    }
   }
 
   private showToast(message: ResourceStr, actionVisible: boolean = false): void {
@@ -2112,6 +2198,8 @@ export struct NimboWindow {
             onWebSocketComposerChange: (id: string, value: string) => this.webSocketComposerChange(id, value),
             onWebSocketSend: (id: string) => this.sendWebSocketMessage(id),
             onWebSocketClear: (id: string) => this.clearWebSocketMessages(id),
+            onWebSocketCopy: (id: string) => this.copyWebSocketMessages(id),
+            onWebSocketExport: (id: string) => this.exportWebSocketMessages(id),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response),
             onCopyResponseBody: (response: ResponseModel) => this.copyResponseBody(response),
