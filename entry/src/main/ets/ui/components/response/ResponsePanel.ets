@@ -26,6 +26,7 @@ export struct ResponsePanel {
   onSaveBinary: () => void = () => {};
   onCopyBody: () => void = () => {};
   onDownloadBody: () => void = () => {};
+  onCopyDiagnostic: () => void = () => {};
 
   private matchCount(): number {
     if (this.searchQuery.length === 0) return 0;
@@ -321,13 +322,14 @@ export struct ResponsePanel {
         })
         if (this.activeTab === 'body') {
           if (this.response.status === 'error' || this.response.status === 'cancelled') {
-            Column() {
-              ErrorPanel({ error: this.response.error, onRetry: this.onRetry })
+            Scroll() {
+              ErrorPanel({ error: this.response.error, onRetry: this.onRetry,
+                onCopyDiagnostic: this.onCopyDiagnostic })
             }
             .width('100%')
             .layoutWeight(1)
             .padding(SpacingTokens.x4)
-            .justifyContent(FlexAlign.Center)
+            .scrollBar(BarState.Auto)
             .transition(TransitionEffect.OPACITY.combine(TransitionEffect.translate({ y: 6 }))
               .animation({ duration: MotionTokens.normal, curve: MotionTokens.standardCurve }))
           } else if (this.response.status === 'large') {

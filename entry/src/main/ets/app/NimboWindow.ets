@@ -10,6 +10,7 @@ import {
   RequestTabModel,
   RunnerItemModel,
   ScriptExecutionResult,
+  ResponseErrorModel,
   ResponseModel,
   ResponseStatus,
   TestResult
@@ -1165,7 +1166,7 @@ export struct NimboWindow {
     };
   }
 
-  private scriptFailureResponse(result: ScriptResult): ResponseModel {
+  private scriptFailureResponse(result: ScriptResult, request: RequestDraft): ResponseModel {
     const response = createEmptyResponse();
     response.status = 'error';
     response.error = {
@@ -1177,7 +1178,14 @@ export struct NimboWindow {
         (this.preferences.language === 'zh' ? '请求未发送，脚本修改未应用。' :
           'The request was not sent and script changes were not applied.'),
       code: result.status,
-      details: result.error
+      details: result.error,
+      stage: 'script',
+      method: request.method,
+      host: this.diagnosticHost(request.url),
+      durationMs: result.durationMs,
+      timeoutMs: request.settings.timeoutMs,
+      sslVerification: request.settings.sslVerification,
+      followRedirects: request.settings.followRedirects
     };
     return this.responseWithScriptResults(response, [this.scriptExecution(result)]);
   }
@@ -1232,7 +1240,7 @@ export struct NimboWindow {
       if (!isActive()) return undefined;
       scriptResults.push(this.scriptExecution(execution.result));
       if (execution.result.status !== 'success') {
-        let failure = this.scriptFailureResponse(execution.result);
+        let failure = this.scriptFailureResponse(execution.result, request);
         failure = this.applyResponseTests(request, failure);
         return { response: failure, executedRequest: request };
       }
@@ -1634,6 +1642,62 @@ export struct NimboWindow {
     }
   }
 
+  private diagnosticHost(url: string): string {
+    const trimmed = url.trim();
+    const scheme = trimmed.indexOf('://');
+    const start = scheme >= 0 ? scheme + 3 : 0;
+    let end = trimmed.length;
+    const separators = [trimmed.indexOf('/', start), trimmed.indexOf('?', start), trimmed.indexOf('#', start)];
+    separators.forEach((position: number) => {
+      if (position >= 0 && position < end) end = position;
+    });
+    let authority = trimmed.substring(start, end);
+    const at = authority.lastIndexOf('@');
+    if (at >= 0) authority = authority.substring(at + 1);
+    return authority;
+  }
+
+  private diagnosticStage(stage: string): string {
+    const chinese = this.preferences.language === 'zh';
+    if (stage === 'validation') return chinese ? '请求校验' : 'Validation';
+    if (stage === 'dns') return chinese ? 'DNS 解析' : 'DNS lookup';
+    if (stage === 'connect') return chinese ? '建立连接' : 'Connection';
+    if (stage === 'tls') return chinese ? 'TLS 握手' : 'TLS handshake';
+    if (stage === 'send') return chinese ? '发送请求' : 'Request upload';
+    if (stage === 'receive') return chinese ? '等待或接收响应' : 'Response wait/download';
+    if (stage === 'script') return chinese ? '前置脚本' : 'Pre-request script';
+    if (stage === 'file') return chinese ? '读取或传输文件' : 'File read/transfer';
+    return chinese ? '未知阶段' : 'Unknown stage';
+  }
+
+  private async copyErrorDiagnostic(error: ResponseErrorModel): Promise<void> {
+    const chinese = this.preferences.language === 'zh';
+    const lines: string[] = [
+      chinese ? 'Nimbo 请求诊断' : 'Nimbo request diagnostic',
+      `${chinese ? '类型' : 'Type'}: ${error.type}`,
+      `${chinese ? '错误码' : 'Code'}: ${error.code || '-'}`,
+      `${chinese ? '阶段' : 'Stage'}: ${this.diagnosticStage(error.stage ?? 'unknown')}`,
+      `${chinese ? '请求' : 'Request'}: ${error.method ?? '-'} ${error.host ?? '-'}`,
+      `${chinese ? '耗时' : 'Elapsed'}: ${error.durationMs ?? 0} ms`,
+      `${chinese ? '超时设置' : 'Timeout'}: ${error.timeoutMs ?? 0} ms`,
+      `${chinese ? '证书校验' : 'TLS verification'}: ${error.sslVerification === false ? 'off' : 'on'}`,
+      `${chinese ? '自动重定向' : 'Follow redirects'}: ${error.followRedirects === false ? 'off' : 'on'}`
+    ];
+    if ((error.unresolvedVariables?.length ?? 0) > 0) {
+      lines.push(`${chinese ? '缺失变量' : 'Missing variables'}: ${error.unresolvedVariables?.join(', ')}`);
+    }
+    if (error.type !== 'script' && error.details.length > 0) {
+      lines.push(`${chinese ? '系统信息' : 'System message'}: ${error.details}`);
+    }
+    try {
+      const data = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, lines.join('\n'));
+      await pasteboard.getSystemPasteboard().setData(data);
+      this.showToast($r('app.string.error_diagnostic_copied'));
+    } catch (_error) {
+      this.showToast($r('app.string.toast_copy_failed'));
+    }
+  }
+
   private async exportNimbo(includeSecrets: boolean): Promise<void> {
     try {
       const date = new Date().toISOString().substring(0, 10);
@@ -1828,6 +1892,7 @@ export struct NimboWindow {
             onUpdateRequest: (id: string, request: RequestDraft) => this.updateRequest(id, request),
             onSaveRequest: (id: string) => this.beginSaveRequest(id),
             onCopyGeneratedCode: (value: string) => this.copyGeneratedCode(value),
+            onCopyErrorDiagnostic: (error: ResponseErrorModel) => this.copyErrorDiagnostic(error),
             onPreviewLargeResponse: (id: string) => this.previewLargeResponse(id),
             onSaveBinary: (response: ResponseModel) => this.saveBinaryResponse(response),
             onCopyResponseBody: (response: ResponseModel) => this.copyResponseBody(response),

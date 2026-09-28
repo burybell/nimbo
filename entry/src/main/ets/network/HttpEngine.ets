@@ -1,6 +1,16 @@
 import { http } from '@kit.NetworkKit';
 import { util } from '@kit.ArkTS';
+import { BusinessError } from '@kit.BasicServicesKit';
 import { HttpEngineRequest, HttpEngineResponse } from '../models/NetworkModels';
+
+class HttpEngineError extends Error {
+  code: number;
+
+  constructor(code: number, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
 
 class StopRedirectInterceptor implements http.HttpInterceptor {
   interceptorType: http.InterceptorType = http.InterceptorType.REDIRECTION;
@@ -105,8 +115,9 @@ export class HttpEngine {
         protocol: response.connectionExtraInfo ? response.connectionExtraInfo.networkProtocolName : 'HTTP'
       };
     } catch (error) {
-      if (error instanceof Error) throw error;
-      throw new Error('Unknown HTTP engine error');
+      const networkError = error as BusinessError;
+      throw new HttpEngineError(networkError.code,
+        networkError.message.length > 0 ? networkError.message : 'Unknown HTTP engine error');
     } finally {
       if (this.activeRequests.get(id) === task) {
         task.destroy();
