@@ -110,6 +110,7 @@ export struct CollectionRunnerDialog {
     .fontColor(this.activeFilter === filter ? ColorTokens.textOnBrand : ColorTokens.textSecondary)
     .backgroundColor(this.activeFilter === filter ? ColorTokens.brand500 : ColorTokens.bgWorkspace)
     .borderRadius(RadiusTokens.full)
+    .padding({ left: SpacingTokens.x3, right: SpacingTokens.x3, top: 0, bottom: 0 })
     .onClick(() => {
       this.activeFilter = filter;
       this.expandedItemId = '';

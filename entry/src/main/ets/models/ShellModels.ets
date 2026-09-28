@@ -239,5 +239,6 @@ export interface ContextMenuItemModel {
   id: string;
   label: ResourceStr;
   icon: string;
+  iconMedia?: ResourceStr;
   dangerous: boolean;
 }

@@ -27,14 +27,14 @@ export struct CollectionTree {
   onRunNode: (node: CollectionNode) => void = () => {};
   onDeleteNode: (node: CollectionNode) => void = () => {};
   private folderMenuItems: ContextMenuItemModel[] = [
-    { id: 'run', label: $r('app.string.runner_run'), icon: '▶', dangerous: false },
+    { id: 'run', label: $r('app.string.runner_run'), icon: '', iconMedia: $r('app.media.run'), dangerous: false },
     { id: 'create-request', label: $r('app.string.search_new_request'), icon: '+', dangerous: false },
     { id: 'create-folder', label: $r('app.string.folder_create'), icon: '▱', dangerous: false },
     { id: 'rename', label: $r('app.string.action_rename'), icon: '✎', dangerous: false },
     { id: 'delete', label: $r('app.string.action_delete'), icon: '×', dangerous: true }
   ];
   private requestMenuItems: ContextMenuItemModel[] = [
-    { id: 'run', label: $r('app.string.runner_run'), icon: '▶', dangerous: false },
+    { id: 'run', label: $r('app.string.runner_run'), icon: '', iconMedia: $r('app.media.run'), dangerous: false },
     { id: 'rename', label: $r('app.string.request_rename'), icon: '✎', dangerous: false },
     { id: 'duplicate', label: $r('app.string.request_duplicate'), icon: '⧉', dangerous: false },
     { id: 'delete', label: $r('app.string.action_delete'), icon: '×', dangerous: true }
