@@ -10,15 +10,21 @@ import { ToolbarIconButton } from './ToolbarIconButton';
 export struct GlobalToolbar {
   @StorageProp('nimbo.titleButtonInset') titleButtonInset: number = 132;
   @StorageProp('nimbo.windowFocused') windowFocused: boolean = true;
+  @State toolbarWidth: number = 1440;
   @Prop compact: boolean = false;
   @Prop phone: boolean = false;
-  @Prop availableWidth: number = 1440;
   @Prop selectedEnvironmentId: string = 'development';
   @Prop environments: EnvironmentModel[] = [];
   onEnvironmentChange: (id: string) => void = () => {};
   onSettings: () => void = () => {};
   onSearch: () => void = () => {};
   onImport: () => void = () => {};
+  private resizeTimer: number = -1;
+
+  aboutToDisappear(): void {
+    if (this.resizeTimer >= 0) clearTimeout(this.resizeTimer);
+    this.resizeTimer = -1;
+  }
 
   private searchWidth(): number {
     return this.compact ? 220 : 300;
@@ -26,11 +32,11 @@ export struct GlobalToolbar {
 
   private searchOffset(): number {
     const width = this.searchWidth();
-    const centeredLeft = (this.availableWidth - width) / 2;
+    const centeredLeft = (this.toolbarWidth - width) / 2;
     const logoRight = (this.compact ? SizeTokens.primarySidebarCompactWidth :
       SizeTokens.primarySidebarWidth) + SpacingTokens.x3;
     const rightControlsWidth = 244 + this.titleButtonInset;
-    const latestSafeLeft = this.availableWidth - rightControlsWidth - width - SpacingTokens.x3;
+    const latestSafeLeft = this.toolbarWidth - rightControlsWidth - width - SpacingTokens.x3;
     const safeLeft = Math.max(logoRight, Math.min(centeredLeft, latestSafeLeft));
     return safeLeft - centeredLeft;
   }
@@ -110,5 +116,15 @@ export struct GlobalToolbar {
     .padding(this.phone ? { left: SpacingTokens.x3, right: this.titleButtonInset } : 0)
     .backgroundColor(ColorTokens.bgSurface)
     .border({ width: { bottom: 1 }, color: ColorTokens.borderSubtle })
+    .onAreaChange((_oldValue: Area, newValue: Area) => {
+      const measuredWidth = Number.parseFloat(newValue.width.toString());
+      if (Number.isNaN(measuredWidth) || measuredWidth < 320 ||
+        Math.abs(measuredWidth - this.toolbarWidth) < 1) return;
+      if (this.resizeTimer >= 0) clearTimeout(this.resizeTimer);
+      this.resizeTimer = setTimeout(() => {
+        this.resizeTimer = -1;
+        this.toolbarWidth = measuredWidth;
+      }, 48);
+    })
   }
 }

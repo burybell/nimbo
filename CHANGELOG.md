@@ -24,6 +24,7 @@ The project follows [Semantic Versioning](https://semver.org/) for published rel
 - Added JSON and text request bodies to SSE so POST-based streaming APIs can be configured and variable-resolved
 - Stabilized title-bar action placement across full-screen restore and kept search before environment/import/settings at narrow desktop widths
 - Replaced the detached WebSocket Send button with an integrated icon action; Enter/Ctrl+Enter sends and Shift+Enter inserts a line break
+- Reduced maximize, restore, and minimize work by updating the root layout only at responsive breakpoint crossings and isolating delayed title-bar width measurement
 
 ## [1.0] - 2026-09-12
 

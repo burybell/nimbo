@@ -56,6 +56,7 @@ import { NimboExportCodec } from '../services/NimboExportCodec';
 import { RequestController } from '../controller/RequestController';
 import { WebSocketController, WebSocketEvent } from '../controller/WebSocketController';
 import { SseController, SseControllerEvent } from '../controller/SseController';
+import { WindowChromeController } from '../services/WindowChromeController';
 import { WebSocketRequestBuilder } from '../services/WebSocketRequestBuilder';
 import { RunnerDataSet, RunnerDataService } from '../services/RunnerDataService';
 import {
@@ -374,6 +375,12 @@ export struct NimboWindow {
 
   private isPhone(): boolean {
     return this.windowWidth < BreakpointTokens.tablet;
+  }
+
+  private layoutClass(width: number): number {
+    if (width < BreakpointTokens.tablet) return 0;
+    if (width < BreakpointTokens.desktop) return 1;
+    return 2;
   }
 
   private createRequest(method: HttpMethod = 'GET'): RequestDraft {
@@ -3149,7 +3156,6 @@ export struct NimboWindow {
         GlobalToolbar({
           compact: this.isCompact(),
           phone: this.isPhone(),
-          availableWidth: this.windowWidth,
           selectedEnvironmentId: this.selectedEnvironmentId,
           environments: this.environments,
           onEnvironmentChange: (id: string) => {
@@ -3381,12 +3387,12 @@ export struct NimboWindow {
     .defaultFocus(true)
     .onAreaChange((_oldValue: Area, newValue: Area) => {
       const measuredWidth = Number.parseFloat(newValue.width.toString());
-      if (!Number.isNaN(measuredWidth)) {
-        if (this.windowWidth >= BreakpointTokens.tablet && measuredWidth < BreakpointTokens.tablet &&
-          this.activeDestination === 'collections') this.collectionDrawerOpen = true;
-        if (measuredWidth >= BreakpointTokens.tablet) this.collectionDrawerOpen = false;
-        this.windowWidth = measuredWidth;
-      }
+      if (Number.isNaN(measuredWidth) || measuredWidth < 320 || WindowChromeController.isMinimized() ||
+        this.layoutClass(measuredWidth) === this.layoutClass(this.windowWidth)) return;
+      if (this.windowWidth >= BreakpointTokens.tablet && measuredWidth < BreakpointTokens.tablet &&
+        this.activeDestination === 'collections') this.collectionDrawerOpen = true;
+      if (measuredWidth >= BreakpointTokens.tablet) this.collectionDrawerOpen = false;
+      this.windowWidth = measuredWidth;
     })
     .onKeyEvent((event: KeyEvent) => {
       if (event.type === KeyType.Down && event.keyCode === 2035 &&

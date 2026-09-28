@@ -5,13 +5,24 @@ const TITLE_BAR_EDGE_INSET = 12;
 
 export class WindowChromeController {
   private static mainWindow: window.Window | undefined = undefined;
+  private static minimized: boolean = false;
 
   static bind(mainWindow: window.Window): void {
     WindowChromeController.mainWindow = mainWindow;
+    WindowChromeController.minimized = false;
   }
 
   static unbind(): void {
     WindowChromeController.mainWindow = undefined;
+    WindowChromeController.minimized = false;
+  }
+
+  static updateStatus(status: window.WindowStatusType): void {
+    WindowChromeController.minimized = status === window.WindowStatusType.MINIMIZE;
+  }
+
+  static isMinimized(): boolean {
+    return WindowChromeController.minimized;
   }
 
   static startMoving(): void {

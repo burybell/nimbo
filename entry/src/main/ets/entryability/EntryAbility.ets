@@ -15,6 +15,7 @@ export default class EntryAbility extends UIAbility {
     this.publishTitleButtonInset(rect);
   };
   private windowStatusChange = (status: window.WindowStatusType): void => {
+    WindowChromeController.updateStatus(status);
     this.publishTitleButtonInsetForStatus(status);
   };
   private windowEventChange = (event: window.WindowEventType): void => {
@@ -87,6 +88,7 @@ export default class EntryAbility extends UIAbility {
       mainWindow.setDecorButtonStyle({ buttonIconSize: 18, buttonBackgroundSize: 32,
         spacingBetweenButtons: 8, closeButtonRightMargin: 12, buttonBackgroundCornerRadius: 16 });
       this.currentWindowStatus = mainWindow.getWindowStatus();
+      WindowChromeController.updateStatus(this.currentWindowStatus);
       this.publishTitleButtonInset(mainWindow.getTitleButtonRect(), this.currentWindowStatus);
       mainWindow.on('windowTitleButtonRectChange', this.titleButtonRectChange);
       mainWindow.on('windowStatusDidChange', this.windowStatusChange);
